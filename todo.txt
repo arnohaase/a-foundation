@@ -1,0 +1,20 @@
+todo
+----
+* *NoThrow for function interfaces
+* documentation
+* JUnit tests:
+  * ACompositeIterator
+  * AOption
+  * ASoftlyLimited[Blocking]Queue
+  * AEquality.IDENTITY
+  * AJsonSerHelper
+  * ArrayStack.reverseIterator()
+  * AMap.keys(), values()
+  * AMap.withDefault(), .withDefaultValue()
+* Map:
+  * fromMutable(juMap)
+* mkString
+
+* TODO comments
+* warnings
+  * "unused"
