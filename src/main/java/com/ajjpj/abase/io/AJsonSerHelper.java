@@ -7,6 +7,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 
 /**
@@ -17,12 +20,15 @@ import java.nio.charset.Charset;
  * @author arno
  */
 public class AJsonSerHelper {
-    final Charset UTF_8 = Charset.forName("UTF-8");
+    static final Charset UTF_8 = Charset.forName("UTF-8");
 
-    private final int[] TEN_POW = new int[] {1, 10, 100, 1000, 10*1000, 100*1000, 1000*1000, 10*1000*1000, 100*1000*1000, 1000*1000*1000};
+    private static final int[] TEN_POW = new int[] {1, 10, 100, 1000, 10*1000, 100*1000, 1000*1000, 10*1000*1000, 100*1000*1000, 1000*1000*1000};
+    private static final String[] PATTERNS = new String[] {"0", "0.0", "0.00", "0.000", "0.0000", "0.00000", "0.000000", "0.0000000", "0.00000000", "0.000000000"};
+    private static final DecimalFormatSymbols DECIMAL_FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
 
     private final Writer out;
-    private final ArrayStack<JsonSerState> state = new ArrayStack<JsonSerState>();
+    private final ArrayStack<JsonSerState> state = new ArrayStack<
+            >();
 
     public AJsonSerHelper(OutputStream out) {
         this.out = new OutputStreamWriter(out, UTF_8);
@@ -118,6 +124,12 @@ public class AJsonSerHelper {
             out.write(fracPart);
         }
 
+        afterValueWritten();
+    }
+
+    public void writeNumberLiteral(double value, int numFracDigits) throws IOException {
+        checkAcceptsValueAndPrefixComma();
+        out.write(new DecimalFormat(PATTERNS[numFracDigits], DECIMAL_FORMAT_SYMBOLS).format(value));
         afterValueWritten();
     }
 

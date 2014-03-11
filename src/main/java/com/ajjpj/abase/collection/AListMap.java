@@ -1,6 +1,6 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -157,7 +157,7 @@ public class AListMap <K,V> implements AMap<K,V> {
     }
 
     @Override
-    public <E extends Exception> AMap<K, V> withDefault(AFunction1<V, K, E> function) {
+    public AMap<K, V> withDefault(AFunction1NoThrow<V, K> function) {
         return new AMapWithDefault<>(this, function);
     }
 

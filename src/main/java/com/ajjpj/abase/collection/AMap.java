@@ -1,7 +1,7 @@
 package com.ajjpj.abase.collection;
 
 
-import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.Iterator;
 
@@ -35,5 +35,5 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
     java.util.Map<K,V> asJavaUtilMap();
 
     AMap<K,V> withDefaultValue(V defaultValue);
-    <E extends Exception> AMap<K,V> withDefault(AFunction1<V,K,E> function);
+    AMap<K,V> withDefault(AFunction1NoThrow<V,K> function);
 }

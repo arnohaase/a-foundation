@@ -1,6 +1,7 @@
 package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.*;
 
@@ -93,9 +94,8 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
     @Override
     public boolean containsValue(V value) {
-        final Iterator<APair<K,V>> iter = iterator();
-        while (iter.hasNext()) {
-            if(equality.equals(value, iter.next())) {
+        for(V cur: values()) {
+            if(equality.equals(value, cur)) {
                 return true;
             }
         }
@@ -128,7 +128,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     @Override
-    public <E extends Exception> AMap<K, V> withDefault(AFunction1<V, K, E> function) {
+    public AMap<K, V> withDefault(AFunction1NoThrow<V, K> function) {
         return new AMapWithDefault<>(this, function);
     }
 
@@ -191,11 +191,11 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     @Override public Iterable<K> keys() {
-        return Collections.<K>emptyList();
+        return Collections.emptyList();
     }
 
     @Override public Iterable<V> values() {
-        return Collections.<V>emptyList();
+        return Collections.emptyList();
     }
 
     @Override
