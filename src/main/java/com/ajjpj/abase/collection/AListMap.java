@@ -2,9 +2,7 @@ package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.function.AFunction1NoThrow;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * @author arno
@@ -106,49 +104,81 @@ public class AListMap <K,V> implements AMap<K,V> {
     }
 
     @Override
-    public Iterable<K> keys() {
-        return new Iterable<K>() {
-            @Override public Iterator<K> iterator() {
-                final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
-
-                return new Iterator<K>() {
-                    @Override public boolean hasNext() {
-                        return lmi.hasNext();
-                    }
-
-                    @Override public K next() {
-                        return lmi.next()._1;
-                    }
-
-                    @Override public void remove() {
-                        lmi.remove();
-                    }
-                };
-            }
-        };
+    public Set<K> keys() {
+        return new KeySet();
     }
 
     @Override
-    public Iterable<V> values() {
-        return new Iterable<V>() {
-            @Override public Iterator<V> iterator() {
-                final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
+    public Collection<V> values() {
+        return new ValueCollection();
+    }
 
-                return new Iterator<V>() {
-                    @Override public boolean hasNext() {
-                        return lmi.hasNext();
-                    }
+    @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
+    class KeySet implements Set<K> {
+        @Override public int size() { return AListMap.this.size(); }
+        @Override public boolean isEmpty() { return size() == 0; }
+        @Override public boolean contains(Object o) { return containsKey((K) o); }
+        @Override public Iterator<K> iterator() {
+            final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
 
-                    @Override public V next() {
-                        return lmi.next()._2;
-                    }
+            return new Iterator<K>() {
+                @Override public boolean hasNext() { return lmi.hasNext(); }
+                @Override public K next() { return lmi.next()._1; }
+                @Override public void remove() { lmi.remove(); }
+            };
+        }
 
-                    @Override public void remove() {
-                        lmi.remove();
-                    }
-                };
+        @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
+        @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
+        @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
+        @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+        @Override public boolean containsAll(Collection<?> c) {
+            for(Object o: c) {
+                if(!contains(o)) {
+                    return false;
+                }
             }
-        };
+            return true;
+        }
+
+        @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
+        @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        @Override public void clear() { throw new UnsupportedOperationException(); }
+    }
+
+    @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
+    class ValueCollection implements Collection<V> {
+        @Override public int size() { return AListMap.this.size(); }
+        @Override public boolean isEmpty() { return size() == 0; }
+        @Override public boolean contains(Object o) { return containsValue((V) o); }
+        @Override public Iterator<V> iterator() {
+            final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
+
+            return new Iterator<V>() {
+                @Override public boolean hasNext() { return lmi.hasNext(); }
+                @Override public V next() {return lmi.next()._2; }
+                @Override public void remove() { lmi.remove(); }
+            };
+        }
+
+        @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
+        @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
+        @Override public boolean add(V v) { throw new UnsupportedOperationException(); }
+        @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+        @Override public boolean containsAll(Collection<?> c) {
+            for(Object o: c) {
+                if(!contains(o)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override public boolean addAll(Collection<? extends V> c) { throw new UnsupportedOperationException(); }
+        @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        @Override public void clear() { throw new UnsupportedOperationException(); }
     }
 
     @Override

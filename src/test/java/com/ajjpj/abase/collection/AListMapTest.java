@@ -1,14 +1,10 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.collection.AListMap;
-import com.ajjpj.abase.collection.AMap;
-import com.ajjpj.abase.collection.AOption;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 
 /**
@@ -62,6 +58,29 @@ public class AListMapTest {
         assertEquals(false, m4.containsKey(1));
         assertEquals(false, m4.get(1).isDefined());
         assertEquals(false, m4.containsKey(2));
+    }
+
+    @Test
+    public void testKeysValues() {
+        final AListMap<String, Integer> map = AListMap.<String, Integer>empty()
+                .updated("a", 1)
+                .updated("b", 2)
+                .updated("c", 3)
+                .updated("d", 4);
+
+        final Set<String> keys = map.keys();
+        assertEquals(4, keys.size());
+        assertTrue(keys.contains("a"));
+        assertTrue(keys.contains("b"));
+        assertTrue(keys.contains("c"));
+        assertTrue(keys.contains("d"));
+
+        final Collection<Integer> values = map.values();
+        assertEquals(4, values.size());
+        assertTrue(values.contains(1));
+        assertTrue(values.contains(2));
+        assertTrue(values.contains(3));
+        assertTrue(values.contains(4));
     }
 
     @Test

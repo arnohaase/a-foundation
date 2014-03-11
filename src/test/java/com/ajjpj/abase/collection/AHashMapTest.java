@@ -4,9 +4,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -68,7 +66,7 @@ public class AHashMapTest {
 
     private Map<Integer, Integer> createJu() {
         final Random rand = new Random(12345);
-        final Map<Integer, Integer> result = new HashMap<Integer, Integer>();
+        final Map<Integer, Integer> result = new HashMap<>();
 
         for(int i=0; i<numIter; i++) {
             final int key = rand.nextInt(size);
@@ -83,7 +81,7 @@ public class AHashMapTest {
     }
     private Map<Integer, Integer> createConc() {
         final Random rand = new Random(12345);
-        final Map<Integer, Integer> result = new ConcurrentHashMap<Integer, Integer>();
+        final Map<Integer, Integer> result = new ConcurrentHashMap<>();
 
         for(int i=0; i<numIter; i++) {
             final int key = rand.nextInt(size);
@@ -158,6 +156,29 @@ public class AHashMapTest {
     }
 
     @Test
+    public void testKeysValues() {
+        final AHashMap<String, Integer> map = AHashMap.<String, Integer>empty()
+                .updated("a", 1)
+                .updated("b", 2)
+                .updated("c", 3)
+                .updated("d", 4);
+
+        final Set<String> keys = map.keys();
+        assertEquals(4, keys.size());
+        assertTrue(keys.contains("a"));
+        assertTrue(keys.contains("b"));
+        assertTrue(keys.contains("c"));
+        assertTrue(keys.contains("d"));
+
+        final Collection<Integer> values = map.values();
+        assertEquals(4, values.size());
+        assertTrue(values.contains(1));
+        assertTrue(values.contains(2));
+        assertTrue(values.contains(3));
+        assertTrue(values.contains(4));
+    }
+
+    @Test
     public void testEquals() {
         assertEquals(AHashMap.empty(), AHashMap.empty());
         assertEquals(AHashMap.empty().hashCode(), AHashMap.empty().hashCode());
@@ -194,7 +215,7 @@ public class AHashMapTest {
     public void testShotgun() {
         final Random rand = new Random(12345);
 
-        final Map<Integer, Integer> ju = new HashMap<Integer, Integer>();
+        final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = AHashMap.empty();
 
         for(int i=0; i<1000*1000; i++) {

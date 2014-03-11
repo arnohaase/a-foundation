@@ -3,7 +3,9 @@ package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.function.AFunction1NoThrow;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author arno
@@ -23,8 +25,8 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
      */
     V getRequired(K key);
 
-    Iterable<K> keys();
-    Iterable<V> values();
+    Set<K> keys();
+    Collection<V> values();
 
     AMap<K,V> updated(K key, V value);
     AMap<K,V> removed(K key);

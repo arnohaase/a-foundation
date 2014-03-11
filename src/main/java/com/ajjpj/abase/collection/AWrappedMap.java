@@ -2,8 +2,10 @@ package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.function.AFunction1NoThrow;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -89,12 +91,12 @@ abstract class AWrappedMap<K,V> implements AMap<K,V> {
     }
 
     @Override
-    public Iterable<K> keys() {
+    public Set<K> keys() {
         return inner.keys();
     }
 
     @Override
-    public Iterable<V> values() {
+    public Collection<V> values() {
         return inner.values();
     }
 

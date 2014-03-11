@@ -205,11 +205,11 @@ public class AHashMap<K, V> implements AMap<K,V> {
         };
     }
 
-    @Override public Iterable<K> keys() {
-        return Collections.emptyList();
+    @Override public Set<K> keys() {
+        return Collections.emptySet();
     }
 
-    @Override public Iterable<V> values() {
+    @Override public Collection<V> values() {
         return Collections.emptyList();
     }
 
@@ -382,13 +382,13 @@ public class AHashMap<K, V> implements AMap<K,V> {
         }
 
         @Override
-        public Iterable<K> keys() {
-            return Arrays.asList(key);
+        public Set<K> keys() {
+            return Collections.singleton(key);
         }
 
         @Override
-        public Iterable<V> values() {
-            return Arrays.asList(value);
+        public Collection<V> values() {
+            return Collections.singletonList(value);
         }
     }
 
@@ -454,12 +454,12 @@ public class AHashMap<K, V> implements AMap<K,V> {
         }
 
         @Override
-        public Iterable<K> keys() {
+        public Set<K> keys() {
             return kvs.keys();
         }
 
         @Override
-        public Iterable<V> values() {
+        public Collection<V> values() {
             return kvs.values();
         }
     }
@@ -493,29 +493,77 @@ public class AHashMap<K, V> implements AMap<K,V> {
         }
 
         @Override
-        public Iterable<K> keys() {
-            return new Iterable<K>() {
-                @Override public Iterator<K> iterator() {
-                    final List<Iterator<K>> innerIter = new ArrayList<>(elems.length);
-                    for(AHashMap<K,V> m: elems) {
-                        innerIter.add(m.keys().iterator());
-                    }
-                    return new ACompositeIterator<>(innerIter);
-                }
-            };
+        public Set<K> keys() {
+            return new KeySet();
         }
 
         @Override
-        public Iterable<V> values() {
-            return new Iterable<V>() {
-                @Override public Iterator<V> iterator() {
-                    final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
-                    for(AHashMap<K,V> m: elems) {
-                        innerIter.add(m.values().iterator());
-                    }
-                    return new ACompositeIterator<>(innerIter);
+        public Collection<V> values() {
+            return new ValueCollection();
+        }
+
+        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
+        class KeySet implements Set<K> {
+            @Override public int size() { return size; }
+            @Override public boolean isEmpty() { return size == 0; }
+            @Override public boolean contains(Object o) { return containsKey((K) o); }
+            @Override public Iterator<K> iterator() {
+                final List<Iterator<K>> innerIter = new ArrayList<>(elems.length);
+                for(AHashMap<K,V> m: elems) {
+                    innerIter.add(m.keys().iterator());
                 }
-            };
+                return new ACompositeIterator<>(innerIter);
+            }
+
+            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
+            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
+            @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
+            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+            @Override public boolean containsAll(Collection<?> c) {
+                for(Object o: c) {
+                    if(!contains(o)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
+            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+            @Override public void clear() { throw new UnsupportedOperationException(); }
+        }
+
+        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
+        class ValueCollection implements Collection<V> {
+            @Override public int size() { return size; }
+            @Override public boolean isEmpty() { return size == 0; }
+            @Override public boolean contains(Object o) { return containsValue((V) o); }
+            @Override public Iterator<V> iterator() {
+                final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
+                for(AHashMap<K,V> m: elems) {
+                    innerIter.add(m.values().iterator());
+                }
+                return new ACompositeIterator<>(innerIter);
+            }
+
+            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
+            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
+            @Override public boolean add(V v) { throw new UnsupportedOperationException(); }
+            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+            @Override public boolean containsAll(Collection<?> c) {
+                for(Object o: c) {
+                    if(!contains(o)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override public boolean addAll(Collection<? extends V> c) { throw new UnsupportedOperationException(); }
+            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+            @Override public void clear() { throw new UnsupportedOperationException(); }
         }
 
         @Override
