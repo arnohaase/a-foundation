@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -176,6 +177,100 @@ public class AHashMapTest {
         assertTrue(values.contains(2));
         assertTrue(values.contains(3));
         assertTrue(values.contains(4));
+    }
+
+    @Test
+    public void testWithDefaultValue() {
+        AMap<Integer, String> map = AHashMap.empty();
+        map = map.withDefaultValue("a");
+
+        assertEquals("a", map.getRequired(1));
+        assertEquals("a", map.getRequired(2));
+        assertEquals(AOption.some("a"), map.get(3));
+        assertEquals(AOption.some("a"), map.get(4));
+
+        assertTrue(map.keys().isEmpty());
+        assertTrue(map.values().isEmpty());
+        assertFalse(map.containsKey(1));
+        assertFalse(map.containsValue("a"));
+
+        assertEquals(0, map.size());
+
+        map = map.updated(1, "x");
+
+        assertEquals(1, map.size());
+        assertEquals(1, map.keys().size());
+        assertTrue(map.keys().contains(1));
+        assertEquals(1, map.values().size());
+        assertTrue(map.values().contains("x"));
+
+        assertEquals("x", map.getRequired(1));
+        assertEquals("a", map.getRequired(2));
+        assertEquals(AOption.some("x"), map.get(1));
+        assertEquals(AOption.some("a"), map.get(2));
+
+        map = map.removed(1);
+
+        assertEquals("a", map.getRequired(1));
+        assertEquals("a", map.getRequired(2));
+        assertEquals(AOption.some("a"), map.get(3));
+        assertEquals(AOption.some("a"), map.get(4));
+
+        assertTrue(map.keys().isEmpty());
+        assertTrue(map.values().isEmpty());
+        assertFalse(map.containsKey(1));
+        assertFalse(map.containsValue("a"));
+
+        assertEquals(0, map.size());
+    }
+
+    @Test
+    public void testWithDefault() {
+        AMap<Integer, String> map = AHashMap.empty();
+        map = map.withDefault(new AFunction1NoThrow<String, Integer>() {
+            @Override public String apply(Integer param) {
+                return String.valueOf(param);
+            }
+        });
+
+        assertEquals("1", map.getRequired(1));
+        assertEquals("2", map.getRequired(2));
+        assertEquals(AOption.some("3"), map.get(3));
+        assertEquals(AOption.some("4"), map.get(4));
+
+        assertTrue(map.keys().isEmpty());
+        assertTrue(map.values().isEmpty());
+        assertFalse(map.containsKey(1));
+        assertFalse(map.containsValue("1"));
+
+        assertEquals(0, map.size());
+
+        map = map.updated(1, "x");
+
+        assertEquals(1, map.size());
+        assertEquals(1, map.keys().size());
+        assertTrue(map.keys().contains(1));
+        assertEquals(1, map.values().size());
+        assertTrue(map.values().contains("x"));
+
+        assertEquals("x", map.getRequired(1));
+        assertEquals("2", map.getRequired(2));
+        assertEquals(AOption.some("x"), map.get(1));
+        assertEquals(AOption.some("2"), map.get(2));
+
+        map = map.removed(1);
+
+        assertEquals("1", map.getRequired(1));
+        assertEquals("2", map.getRequired(2));
+        assertEquals(AOption.some("3"), map.get(3));
+        assertEquals(AOption.some("4"), map.get(4));
+
+        assertTrue(map.keys().isEmpty());
+        assertTrue(map.values().isEmpty());
+        assertFalse(map.containsKey(1));
+        assertFalse(map.containsValue("x"));
+
+        assertEquals(0, map.size());
     }
 
     @Test
