@@ -71,6 +71,7 @@ public class AHashSet<T> implements Iterable<T> {
         return inner.hashCode();
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if(o == this) {

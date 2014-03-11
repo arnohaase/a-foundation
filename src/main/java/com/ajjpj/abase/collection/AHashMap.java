@@ -12,11 +12,12 @@ import java.util.*;
  */
 public class AHashMap<K, V> implements AMap<K,V> {
     private static final int LEVEL_INCREMENT = 5;
-
-    final AEquality equality;
+    private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
     private static final AHashMap<Object, Object> emptyEquals = new AHashMap<>(AEquality.EQUALS);
     private static final AHashMap<Object, Object> emptyIdentity = new AHashMap<>(AEquality.IDENTITY);
+
+    final AEquality equality;
 
     private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
@@ -33,8 +34,22 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     @SuppressWarnings("unused")
+    public static <K,V> AHashMap<K,V> fromJavaUtilMap(Map<K,V> map) {
+        return fromJavaUtilMap(DEFAULT_EQUALITY, map);
+    }
+    public static <K,V> AHashMap<K,V> fromJavaUtilMap(AEquality equality, Map<K,V> map) {
+        AHashMap<K,V> result = new AHashMap<>(equality);
+
+        for(Map.Entry<K,V> entry: map.entrySet()) {
+            result = result.updated(entry.getKey(), entry.getValue());
+        }
+
+        return result;
+    }
+
+    @SuppressWarnings("unused")
     public static <K,V> AHashMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
-        return fromKeysAndValues(AEquality.EQUALS, keys, values);
+        return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
     }
     public static <K,V> AHashMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
         final Iterator<K> ki = keys.iterator();
@@ -53,7 +68,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
     @SuppressWarnings("unused")
     public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<V, K, E> f) throws E {
-        return fromKeysAndFunction(AEquality.EQUALS, keys, f);
+        return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
     }
     public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<V, K, E> f) throws E {
         final Iterator<K> ki = keys.iterator();

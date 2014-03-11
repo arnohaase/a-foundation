@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -127,7 +128,8 @@ public class AHashMapTest {
     }
 
 //TODO extract to a performance test suite
-//    @Test
+    @Test
+    @Ignore
     public void testReadWritePerf() {
         doReadJu(createJu());
         doReadJu(createConc());
@@ -187,8 +189,6 @@ public class AHashMapTest {
         assertNotEquals(AHashMap.empty().updated("a", "1").hashCode(),
                         AHashMap.empty().updated("b", "1").hashCode());
     }
-
-    //TODO equality
 
     @Test
     public void testShotgun() {

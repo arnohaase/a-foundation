@@ -8,9 +8,8 @@ todo
   * ArrayStack.reverseIterator()
   * AMap.keys(), values()
   * AMap.withDefault(), .withDefaultValue()
-* Map:
-  * fromMutable(juMap)
-* mkString
+  * AMap.fromMutable(juMap), .fromKeysAndValues(), .fromKeysAndFunction
+  * ACollectionHelper.mkString
 
 * TODO comments
 * warnings
