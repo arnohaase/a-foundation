@@ -6,6 +6,9 @@ import java.util.Iterator;
 
 
 /**
+ * This is a fixed-size data structure that is optimized for concurrent write performance with less frequent reads. Once
+ *  the buffer is full, the least recent elements are overwritten.
+ *
  * @author arno
  */
 public class ARingBuffer<T> implements Iterable<T> {
@@ -55,6 +58,10 @@ public class ARingBuffer<T> implements Iterable<T> {
         return (rawIdx + bufSize) % bufSize;
     }
 
+    /**
+     * Iterators returned via this method are stable with regard to changes, i.e. changes may occur during iteration,
+     *  but they do not affect the elements returned by the iterator.
+     */
     @Override public synchronized Iterator<T> iterator() {
         return new Iterator<T>() {
             final T[] snapshot = allocate();

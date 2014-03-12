@@ -9,8 +9,10 @@ import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.*;
 
+
 /**
- * This is an immutable hash map based on 32-way hash tries.
+ * This is an immutable hash map based on 32-way hash tries. Its implementation is optimized to minimize copying when
+ *  the map is modified.
  *
  * @author arno
  */
@@ -25,10 +27,18 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
     private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
-    public static <K,V> AHashMap<K,V> empty() {
-        return empty(AEquality.EQUALS);
-    }
 
+    /**
+     * Returns an empty AHashMap instance with default (i.e. equals-based) equality. Calling this factory method instead
+     *  of the constructor allows internal reuse of empty map instances since they are immutable.
+     */
+    public static <K,V> AHashMap<K,V> empty() {
+        return empty(DEFAULT_EQUALITY);
+    }
+    /**
+     * Returns an empty AHashMap instance with the given equality strategy. Calling this factory method instead of
+     *  the constructor allows internal reuse of empty map instances since they are immutable.
+     */
     @SuppressWarnings("unchecked")
     public static <K,V> AHashMap<K,V> empty(AEquality equality) {
         // for typical equality implementations, return pre-instantiated objects
@@ -37,10 +47,18 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return new AHashMap<>(equality);
     }
 
+    /**
+     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from the contents of
+     *  a given <code>java.util.Map</code>.
+     */
     @SuppressWarnings("unused")
     public static <K,V> AHashMap<K,V> fromJavaUtilMap(Map<K,V> map) {
         return fromJavaUtilMap(DEFAULT_EQUALITY, map);
     }
+    /**
+     * Returns an AHashMap instance for a given equality, initializing it from the contents of a given
+     *  <code>java.util.Map</code>.
+     */
     public static <K,V> AHashMap<K,V> fromJavaUtilMap(AEquality equality, Map<K,V> map) {
         AHashMap<K,V> result = new AHashMap<>(equality);
 
@@ -51,10 +69,18 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return result;
     }
 
+    /**
+     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from separate 'keys'
+     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     */
     @SuppressWarnings("unused")
     public static <K,V> AHashMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
         return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
     }
+    /**
+     * Returns an AHashMap instance with a given equality, initializing it from separate 'keys'
+     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     */
     public static <K,V> AHashMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
         final Iterator<K> ki = keys.iterator();
         final Iterator<V> vi = values.iterator();
@@ -70,10 +96,20 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return result;
     }
 
+    /**
+     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from a collection of
+     *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
+     *  determine the corresponding value, and the pair is then stored in the map.
+     */
     @SuppressWarnings("unused")
     public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<V, K, E> f) throws E {
         return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
     }
+    /**
+     * Returns an AHashMap instance with a given equality, initializing it from a collection of
+     *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
+     *  determine the corresponding value, and the pair is then stored in the map.
+     */
     public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<V, K, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
@@ -89,7 +125,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
 
-    public AHashMap(AEquality equality) {
+    private AHashMap(AEquality equality) {
         this.equality = equality;
     }
 

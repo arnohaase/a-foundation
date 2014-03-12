@@ -7,21 +7,53 @@ import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.*;
 
+
 /**
+ * This AMap implementation stores entries in a linked list, giving all lookup operations O(n) complexity. That makes
+ *  AHashMap the better choice most of the time.<p />
+ *
+ * This class is however useful when keys are known to have the same hash codes (e.g. deep in the innards of AHashMap),
+ *  or if control over iteration order is desirable.
+ *
  * @author arno
  */
 public class AListMap <K,V> implements AMap<K,V> {
+    private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
+
+    private static final AListMap<Object, Object> emptyEquals = new AListMap<>(AEquality.EQUALS);
+    private static final AListMap<Object, Object> emptyIdentity = new AListMap<>(AEquality.IDENTITY);
+
+    /**
+     * Returns an empty AListMap instance with default (i.e. equals-based) equality. Calling this factory method instead
+     *  of the constructor allows internal reuse of empty map instances since they are immutable.
+     */
     public static <K,V> AListMap<K,V> empty() {
-        return new AListMap<>();
+        return empty(DEFAULT_EQUALITY);
     }
+    /**
+     * Returns an empty AListMap instance with a given equality. Calling this factory method instead
+     *  of the constructor allows internal reuse of empty map instances since they are immutable.
+     */
+    @SuppressWarnings("unchecked")
     public static <K,V> AListMap<K,V> empty(AEquality equality) {
+        if(equality == AEquality.EQUALS) return (AListMap<K, V>) emptyEquals;
+        if(equality == AEquality.IDENTITY) return (AListMap<K, V>) emptyIdentity;
+
         return new AListMap<> (equality);
     }
 
-    public static <K,V> AListMap<K,V> create(Iterable<APair<K,V>> elements) {
-        return create(AEquality.EQUALS, elements);
+    /**
+     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from separate 'keys'
+     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     */
+    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<APair<K,V>> elements) {
+        return fromKeysAndValues(DEFAULT_EQUALITY, elements);
     }
-    public static <K,V> AListMap<K,V> create(AEquality equality, Iterable<APair<K,V>> elements) {
+    /**
+     * Returns an AHashMap instance with a given equality, initializing it from separate 'keys'
+     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     */
+    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<APair<K,V>> elements) {
         AListMap<K,V> result = empty(equality);
 
         for(APair<K,V> el: elements) {
@@ -34,10 +66,7 @@ public class AListMap <K,V> implements AMap<K,V> {
 
     private Integer cachedHashcode = null; // intentionally not volatile - potentially recalculating for different threads is traded for better single threaded performance
 
-    public AListMap() {
-        this(AEquality.EQUALS);
-    }
-    public AListMap(AEquality equality) {
+    private AListMap(AEquality equality) {
         this.equality = equality;
     }
 
@@ -332,7 +361,7 @@ public class AListMap <K,V> implements AMap<K,V> {
                 remaining = remaining.tail();
             }
 
-            return AListMap.create(raw.reverse().asJavaUtilList());
+            return AListMap.fromKeysAndValues(raw.reverse().asJavaUtilList());
         }
     }
 

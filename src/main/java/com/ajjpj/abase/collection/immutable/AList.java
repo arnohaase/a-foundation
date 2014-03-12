@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection.immutable;
 
+import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.AOption;
 import com.ajjpj.abase.function.AFunction1;
@@ -11,7 +12,11 @@ import java.util.*;
 
 /**
  * This is an immutable linked list implementation. It provides "mutators" that return copies of the list without
- *  affecting the original ("copy on write").
+ *  affecting the original ("copy on write").<p />
+ *
+ * The API is based on terminology of functional languages. NIL is the empty list, <code>head<</code> is the list's
+ *  first element, <code>tail</code> is the list without its first element, and <code>cons()</code> is the
+ *  operation that prepends an element to an existing list.
  *
  * @author arno
  */
@@ -22,11 +27,17 @@ abstract public class AList<T> implements Iterable<T> {
         this.size = size;
     }
 
+    /**
+     * Returns the empty list. All calls to this method are guaranteed to return the <em>same</em> instance.
+     */
     @SuppressWarnings("unchecked")
     public static <T> AList<T> nil() {
         return (AList<T>) Nil.INSTANCE;
     }
 
+    /**
+     * Creates an AList based on the contents of an existing <code>java.util.Iterable</code>, copying its contents.
+     */
     public static <T> AList<T> create(Iterable<T> elements) {
         AList<T> result = nil();
 
@@ -36,6 +47,9 @@ abstract public class AList<T> implements Iterable<T> {
         return result.reverse();
     }
 
+    /**
+     * Creates an AList based on the contents of an existing <code>java.util.List</code>, copying its contents.
+     */
     public static <T> AList<T> create(List<T> elements) {
         AList<T> result = nil();
 
@@ -45,17 +59,39 @@ abstract public class AList<T> implements Iterable<T> {
         return result;
     }
 
+    /**
+     * Returns a read-only <code>java.util.List </code> view of this AList.
+     */
     public java.util.List<T> asJavaUtilList() {
         return new JuListWrapper<>(this);
     }
 
+    /**
+     * Returns this AList's head, if any.
+     */
+    public abstract AOption<T> optHead();
+
+    /**
+     * Returns the list's head, i.e. its first element. If called on the empty list, it throws a <code>NoSuchElementException</code>.
+     */
     public abstract T head();
+
+    /**
+     * Returns the list's tail, i.e. the list without its first element. If called on the empty list, it throws a
+     *  <code>NoSuchElementException</code>.
+     */
     public abstract AList<T> tail();
 
+    /**
+     * Returns a new AList with the new element prepended. This is the only operation to 'add' elements to an AList.
+     */
     public AList<T> cons(T el) {
         return new AHead<>(el, this);
     }
 
+    /**
+     * Returns a copy of this AList with elements in reversed order.
+     */
     public AList<T> reverse() {
         AList<T> remaining = this;
         AList<T> result = nil();
@@ -79,32 +115,39 @@ abstract public class AList<T> implements Iterable<T> {
         return size;
     }
 
-    public String mkString(String prefix, String infix, String postfix) {
-        final StringBuilder result = new StringBuilder(prefix);
-
-        boolean first = true;
-        for(T o: this) {
-            if(first) {
-                first = false;
-            }
-            else {
-                result.append(infix);
-            }
-            result.append(o);
-        }
-
-        result.append(postfix);
-        return result.toString();
+    /**
+     * Returns a string representation of this AList, placing <code>prefix</code> before the first element and
+     *  <code>suffix</code> after the last element. The <code>separator</code> is placed between elements.
+     */
+    public String mkString(String prefix, String separator, String suffix) {
+        return ACollectionHelper.mkString(this, prefix, separator, suffix);
     }
 
-    public String mkString(String infix) {
-        return mkString("", infix, "");
+    /**
+     * Returns a string representation of this AList, without prefix or suffix.
+     */
+    public String mkString(String separator) {
+        return ACollectionHelper.mkString(this, separator);
     }
 
+    /**
+     * Returns an AHashSet with this AList's elements and default (i.e. equals-based) equality.
+     */
     public AHashSet<T> toSet() {
-        return AHashSet.create(this);
+        return toSet(AEquality.EQUALS);
     }
 
+    /**
+     * Returns an AHashSet with this AList's elements and the given equality.
+     */
+    public AHashSet<T> toSet(AEquality equality) {
+        return AHashSet.create(equality, this);
+    }
+
+    /**
+     * Filters this AList's elements, this method returns a new AList comprised of only those elements that match
+     *  a given predicate.
+     */
     public <E extends Exception> AList<T> filter (APredicate<T,E> cond) throws E {
         final List<T> result = new ArrayList<>();
 
@@ -117,7 +160,10 @@ abstract public class AList<T> implements Iterable<T> {
         return create(result);
     }
 
-    public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E{
+    /**
+     * Searches through this AList's elements and returns the first element matching a given predicate. if any.
+     */
+    public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E {
         for(T el: this) {
             if(cond.apply(el)) {
                 return AOption.some(el);
@@ -126,7 +172,11 @@ abstract public class AList<T> implements Iterable<T> {
         return AOption.none();
     }
 
-    public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E{
+    /**
+     * Applies a transformation function to each element, creating a new AList instance from the results. For an AList
+     *  of strings, this could e.g. be used to create an AList of integer values with each string's length.
+     */
+    public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E {
         final List<X> result = new ArrayList<>(size());
 
         for(T el: this) {
@@ -171,6 +221,10 @@ abstract public class AList<T> implements Iterable<T> {
         return result;
     }
 
+    /**
+     * Returns a <code>java.util.Iterator</code> over this AList's elements, allowing ALists to be used with Java's
+     *  <code>for(...: list)</code> syntax introduced in version 1.5.
+     */
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
@@ -206,13 +260,15 @@ abstract public class AList<T> implements Iterable<T> {
             this.tail = tail;
         }
 
-        @Override
-        public T head() {
+        @Override public AOption<T> optHead() {
+            return AOption.some(head);
+        }
+
+        @Override public T head() {
             return head;
         }
 
-        @Override
-        public AList<T> tail() {
+        @Override public AList<T> tail() {
             return tail;
         }
     }
@@ -224,13 +280,15 @@ abstract public class AList<T> implements Iterable<T> {
 
         public static final Nil INSTANCE = new Nil();
 
-        @Override
-        public Object head() {
+        @Override public AOption<Object> optHead() {
+            return AOption.none();
+        }
+
+        @Override public Object head() {
             throw new NoSuchElementException("no 'head' for an empty list.");
         }
 
-        @Override
-        public AList<Object> tail() {
+        @Override public AList<Object> tail() {
             throw new NoSuchElementException("no 'tail' for an empty list.");
         }
     }
