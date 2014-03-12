@@ -1,4 +1,4 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.immutable;
 
 /**
  * @author arno

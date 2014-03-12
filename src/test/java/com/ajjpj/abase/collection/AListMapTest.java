@@ -1,5 +1,7 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.AListMap;
+import com.ajjpj.abase.collection.immutable.AMap;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.function.AFunction1NoThrow;
 

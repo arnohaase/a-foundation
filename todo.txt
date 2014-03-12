@@ -6,7 +6,6 @@ todo
   * ASoftlyLimited[Blocking]Queue
   * AEquality.IDENTITY
   * ArrayStack.reverseIterator()
-  * AMap.withDefault(), .withDefaultValue()
   * AMap.fromMutable(juMap), .fromKeysAndValues(), .fromKeysAndFunction
   * ACollectionHelper.mkString
 

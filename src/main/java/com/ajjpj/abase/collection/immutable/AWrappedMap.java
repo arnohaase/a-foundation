@@ -1,5 +1,7 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.immutable;
 
+import com.ajjpj.abase.collection.AOption;
+import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.Collection;

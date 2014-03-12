@@ -1,4 +1,6 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.mutable;
+
+import com.ajjpj.abase.collection.AOption;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

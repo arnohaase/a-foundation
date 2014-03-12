@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 import org.junit.Test;

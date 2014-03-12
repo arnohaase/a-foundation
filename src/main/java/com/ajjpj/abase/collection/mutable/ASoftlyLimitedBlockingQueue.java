@@ -1,4 +1,4 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.mutable;
 
 import java.util.Collection;
 import java.util.Iterator;

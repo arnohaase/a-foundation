@@ -1,6 +1,6 @@
 package com.ajjpj.abase.io;
 
-import com.ajjpj.abase.collection.ArrayStack;
+import com.ajjpj.abase.collection.mutable.ArrayStack;
 
 import java.io.IOException;
 import java.io.OutputStream;
