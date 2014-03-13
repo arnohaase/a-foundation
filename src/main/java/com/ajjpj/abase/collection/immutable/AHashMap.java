@@ -2,7 +2,6 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACompositeIterator;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.AOption;
 import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.AFunction1NoThrow;
@@ -12,7 +11,10 @@ import java.util.*;
 
 /**
  * This is an immutable hash map based on 32-way hash tries. Its implementation is optimized to minimize copying when
- *  the map is modified.
+ *  the map is modified.<p />
+ *
+ * The code in this class is essentially a port of the HashMap class from the Scala standard library. Thank you for
+ *  the excellent code, Scala team!
  *
  * @author arno
  */

@@ -1,6 +1,9 @@
 package com.ajjpj.abase.collection;
 
+
 /**
+ * This class is a tuple of two values of different types.
+ *
  * @author arno
  */
 public class APair<T1,T2> {

@@ -2,7 +2,6 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.AOption;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
@@ -20,7 +19,7 @@ import java.util.List;
  *
  * @author arno
  */
-public class AHashSet<T> implements Iterable<T> {
+public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
     private final AHashMap<T, Boolean> inner;
 
     private static final AHashSet<Object> emptyEquals = new AHashSet<>(AHashMap.<Object, Boolean>empty(AEquality.EQUALS));
@@ -120,10 +119,6 @@ public class AHashSet<T> implements Iterable<T> {
         return inner.asJavaUtilMap().keySet();
     }
 
-    /**
-     * Returns a <code>java.util.Iterator</code> through the set's elements, allowing the set to be used with Java's
-     *  <code>for(...: set)</code> syntax introduced with version 1.5.
-     */
     @Override
     public Iterator<T> iterator() {
         return asJavaUtilSet().iterator();
@@ -146,31 +141,51 @@ public class AHashSet<T> implements Iterable<T> {
         return inner.equals(((AHashSet)o).inner);
     }
 
-    /**
-     * Creates an AList with this set's elements
-     */
     public AList<T> toList() {
         return AList.create(this);
     }
 
-    /**
-     * Returns a string representation of this AList, placing <code>prefix</code> before the first element and
-     *  <code>suffix</code> after the last element. The <code>separator</code> is placed between elements.
-     */
-    public String mkString(String prefix, String separator, String suffix) {
+    @Override public String mkString() {
+        return ACollectionHelper.mkString(this);
+    }
+
+    @Override public String mkString(String prefix, String separator, String suffix) {
         return ACollectionHelper.mkString(this, prefix, separator, suffix);
     }
 
-    /**
-     * Returns a string representation of this AList, without prefix or suffix.
-     */
-    public String mkString(String separator) {
+    @Override public String mkString(String separator) {
         return ACollectionHelper.mkString(this, separator);
     }
 
-    /**
-     * Searches through this AHashSet's elements and returns the first element matching a given predicate. if any.
-     */
+    @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit test
+        for(T o: this) {
+            if(! pred.apply(o)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
+        for(T o: this) {
+            if(pred.apply(o)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override public AHashSet<T> toSet() {
+        return this;
+    }
+
+    @Override public AHashSet<T> toSet(AEquality equality) {
+        if(equality == inner.equality) {
+            return this;
+        }
+        return AHashSet.<T>create(equality, this);
+    }
+
     public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
         for(T el: this) {
             if(pred.apply(el)) {
@@ -180,10 +195,6 @@ public class AHashSet<T> implements Iterable<T> {
         return AOption.none();
     }
 
-    /**
-     * Applies a transformation function to each element, creating a new AHashSet instance from the results. For an AHashSet
-     *  of strings, this could e.g. be used to create an AHashSet of integer values with each string's length.
-     */
     public <X, E extends Exception> AHashSet<X> map(AFunction1<X, T, E> f) throws E {
         final List<X> result = new ArrayList<>(); // list instead of set to support arbitrary equality implementations
         for(T el: this) {
@@ -192,10 +203,6 @@ public class AHashSet<T> implements Iterable<T> {
         return create(inner.equality, result);
     }
 
-    /**
-     * Filters this AHashSet's elements, this method returns a new AList comprised of only those elements that match
-     *  a given predicate.
-     */
     public <E extends Exception> AHashSet<T> filter(APredicate<T, E> pred) throws E {
         final List<T> result = new ArrayList<>();
         for(T el: this) {

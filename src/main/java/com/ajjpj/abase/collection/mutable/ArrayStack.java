@@ -1,13 +1,15 @@
 package com.ajjpj.abase.collection.mutable;
 
-import com.ajjpj.abase.collection.AOption;
+import com.ajjpj.abase.collection.ACollectionHelper;
+import com.ajjpj.abase.collection.immutable.AOption;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
 /**
- * This is a mutable array-based implementation of a stack.
+ * This is a mutable array-based implementation of a LIFO stack. It is intended as a replacement of Java's
+ *  <code>java.util.Stack</code> that is broken in many ways.
  *
  * @author arno
  */
@@ -28,6 +30,9 @@ public class ArrayStack<T> implements Iterable<T> {
         data = (T[]) new Object[initialSize];
     }
 
+    /**
+     * Adds an element to the top of the stack.
+     */
     @SuppressWarnings("unchecked")
     public void push(T el) {
         if(size >= data.length) {
@@ -40,6 +45,10 @@ public class ArrayStack<T> implements Iterable<T> {
         size += 1;
     }
 
+    /**
+     * Removes and returns the element at the top of the stack, throwing a <code>NoSuchElementException</code> if the
+     *  stack is empty.
+     */
     public T pop() {
         if(isEmpty()) {
             throw new NoSuchElementException("stack is empty");
@@ -50,6 +59,10 @@ public class ArrayStack<T> implements Iterable<T> {
         return result;
     }
 
+    /**
+     * Returns the element at the top of the stack without removing it, throwing a <code>NoSuchElementException</code>
+     *  if the stack is empty.
+     */
     public T peek() {
         if(isEmpty()) {
             throw new NoSuchElementException("stack is empty");
@@ -57,6 +70,10 @@ public class ArrayStack<T> implements Iterable<T> {
         return data[size-1];
     }
 
+    /**
+     * Removes the element at the top of the stack and returns it in an <code>AOption.some(...)</code> if the stack
+     *  is non-empty, and returns <code>AOption.none()</code> otherwise.
+     */
     public AOption<T> tryPop() {
         if(isEmpty()) {
             return AOption.none();
@@ -64,12 +81,17 @@ public class ArrayStack<T> implements Iterable<T> {
         return AOption.some(pop());
     }
 
+    /**
+     * Returns the element at the top of the stack in an <code>AOption.some(...)</code> without removing it, or returns
+     *  <code>AOption.none()</code> if the stack is empty.
+     */
     public AOption<T> tryPeek() {
         if(isEmpty()) {
             return AOption.none();
         }
         return AOption.some(data[size-1]);
     }
+
 
     public boolean contains(T el) {
         for(int i=0; i<size; i++) {
@@ -90,7 +112,7 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * iterates through the stack's elements in pop() order without modifying the stack
+     * iterates through the stack's elements in <code>pop()</code> order without modifying the stack
      */
     public Iterator<T> iterator() {
         return new Iterator<T>() {
@@ -111,6 +133,10 @@ public class ArrayStack<T> implements Iterable<T> {
         };
     }
 
+    /**
+     * iterates through the stack's elements in reverse <code>pop()</code> order, i.e. starting with the element that
+     *  was added first end finishing with the most recently added element.
+     */
     public Iterator<T> reverseIterator() {
         return new Iterator<T>() {
             int idx = 0;
@@ -143,14 +169,6 @@ public class ArrayStack<T> implements Iterable<T> {
 
     @Override
     public String toString() {
-        final StringBuilder result = new StringBuilder("[");
-        for(int i=0; i<size; i++) {
-            if(i>0) {
-                result.append(", ");
-            }
-            result.append(data[i]);
-        }
-        result.append("]");
-        return result.toString();
+        return ACollectionHelper.mkString(this, "[", ", ", "]");
     }
 }

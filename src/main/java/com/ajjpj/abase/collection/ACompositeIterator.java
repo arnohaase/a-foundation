@@ -2,8 +2,10 @@ package com.ajjpj.abase.collection;
 
 import java.util.Iterator;
 
+
 /**
- * This iterator concatenates other iterators.
+ * This is an iterator that 'concatenates' other iterators. When it reaches the end of one of the contained iterators,
+ *  it continues with the first element of the next iterator.
  *
  * @author arno
  */

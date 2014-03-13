@@ -2,7 +2,6 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.AOption;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
@@ -20,7 +19,7 @@ import java.util.*;
  *
  * @author arno
  */
-abstract public class AList<T> implements Iterable<T> {
+abstract public class AList<T> implements ACollection<T, AList<T>> {
     private final int size;
 
     protected AList(int size) {
@@ -104,10 +103,10 @@ abstract public class AList<T> implements Iterable<T> {
         return result;
     }
 
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return size == 0;
     }
-    public boolean nonEmpty() {
+    @Override public boolean nonEmpty() {
         return size != 0;
     }
 
@@ -115,40 +114,31 @@ abstract public class AList<T> implements Iterable<T> {
         return size;
     }
 
-    /**
-     * Returns a string representation of this AList, placing <code>prefix</code> before the first element and
-     *  <code>suffix</code> after the last element. The <code>separator</code> is placed between elements.
-     */
-    public String mkString(String prefix, String separator, String suffix) {
+    @Override public String mkString(String prefix, String separator, String suffix) {
         return ACollectionHelper.mkString(this, prefix, separator, suffix);
     }
 
-    /**
-     * Returns a string representation of this AList, without prefix or suffix.
-     */
-    public String mkString(String separator) {
+    @Override public String mkString() {
+        return ACollectionHelper.mkString(this);
+    }
+
+    @Override public String mkString(String separator) {
         return ACollectionHelper.mkString(this, separator);
     }
 
-    /**
-     * Returns an AHashSet with this AList's elements and default (i.e. equals-based) equality.
-     */
-    public AHashSet<T> toSet() {
+    @Override public AHashSet<T> toSet() {
         return toSet(AEquality.EQUALS);
     }
 
-    /**
-     * Returns an AHashSet with this AList's elements and the given equality.
-     */
-    public AHashSet<T> toSet(AEquality equality) {
+    @Override public AHashSet<T> toSet(AEquality equality) {
         return AHashSet.create(equality, this);
     }
 
-    /**
-     * Filters this AList's elements, this method returns a new AList comprised of only those elements that match
-     *  a given predicate.
-     */
-    public <E extends Exception> AList<T> filter (APredicate<T,E> cond) throws E {
+    @Override public AList<T> toList() {
+        return this;
+    }
+
+    @Override public <E extends Exception> AList<T> filter (APredicate<T,E> cond) throws E {
         final List<T> result = new ArrayList<>();
 
         for(T el: this) {
@@ -160,10 +150,7 @@ abstract public class AList<T> implements Iterable<T> {
         return create(result);
     }
 
-    /**
-     * Searches through this AList's elements and returns the first element matching a given predicate. if any.
-     */
-    public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E {
+    @Override public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E {
         for(T el: this) {
             if(cond.apply(el)) {
                 return AOption.some(el);
@@ -172,11 +159,7 @@ abstract public class AList<T> implements Iterable<T> {
         return AOption.none();
     }
 
-    /**
-     * Applies a transformation function to each element, creating a new AList instance from the results. For an AList
-     *  of strings, this could e.g. be used to create an AList of integer values with each string's length.
-     */
-    public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E {
+    @Override public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E {
         final List<X> result = new ArrayList<>(size());
 
         for(T el: this) {
@@ -185,13 +168,29 @@ abstract public class AList<T> implements Iterable<T> {
         return create(result);
     }
 
-    @Override
-    public String toString() {
+    @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit
+        for(T o: this) {
+            if(!pred.apply(o)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
+        for(T o: this) {
+            if(pred.apply(o)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override public String toString() {
         return mkString("[", ", ", "]");
     }
 
-    @Override
-    public boolean equals (Object o) {
+    @Override public boolean equals (Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -290,6 +289,14 @@ abstract public class AList<T> implements Iterable<T> {
 
         @Override public AList<Object> tail() {
             throw new NoSuchElementException("no 'tail' for an empty list.");
+        }
+
+        @Override public <E extends Exception> boolean forAll(APredicate<Object, E> pred) throws E {
+            return true;
+        }
+
+        @Override public <E extends Exception> boolean exists(APredicate<Object, E> pred) throws E {
+            return false;
         }
     }
 
