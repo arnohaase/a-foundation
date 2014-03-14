@@ -162,7 +162,7 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
         return create(ACollectionHelper.map(this, f));
     }
 
-    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> AList<X> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
         return create(ACollectionHelper.flatMap(this, f));
     }
 

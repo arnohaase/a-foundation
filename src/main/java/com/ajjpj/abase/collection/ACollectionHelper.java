@@ -230,7 +230,7 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
         }
 
-        @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X, ? extends ACollection<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
         }
 
