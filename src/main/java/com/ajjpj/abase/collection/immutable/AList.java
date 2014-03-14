@@ -2,6 +2,7 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
+import com.ajjpj.abase.collection.AEqualsWrapper;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
@@ -38,6 +39,9 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
      * Creates an AList based on the contents of an existing <code>java.util.Iterable</code>, copying its contents.
      */
     public static <T> AList<T> create(Iterable<T> elements) {
+        if(elements instanceof List) {
+            return create((List<T>) elements);
+        }
         AList<T> result = nil();
 
         for(T el: elements) {
@@ -47,7 +51,7 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
     }
 
     /**
-     * Creates an AList based on the contents of an existing <code>java.util.List</code>, copying its contents.
+     * Creates an AList based on the contents of an existing <code>java.util.List</code>, copying its content.
      */
     public static <T> AList<T> create(List<T> elements) {
         AList<T> result = nil();
@@ -56,6 +60,14 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
             result = result.cons(elements.get(i));
         }
         return result;
+    }
+
+    /**
+     * Creates an AList from a given list of elements.
+     */
+    @SafeVarargs
+    public static <T> AList<T> create(T... elements) {
+        return create(Arrays.asList(elements));
     }
 
     /**
@@ -139,51 +151,46 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
     }
 
     @Override public <E extends Exception> AList<T> filter (APredicate<T,E> cond) throws E {
-        final List<T> result = new ArrayList<>();
-
-        for(T el: this) {
-            if(cond.apply(el)) {
-                result.add(el);
-            }
-        }
-
-        return create(result);
+        return create(ACollectionHelper.filter(this, cond));
     }
 
     @Override public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E {
-        for(T el: this) {
-            if(cond.apply(el)) {
-                return AOption.some(el);
-            }
-        }
-        return AOption.none();
+        return ACollectionHelper.find(this, cond);
     }
 
-    @Override public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E {
-        final List<X> result = new ArrayList<>(size());
+    @Override public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E { //TODO junit
+        return create(ACollectionHelper.map(this, f));
+    }
 
-        for(T el: this) {
-            result.add(f.apply(el));
-        }
-        return create(result);
+    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+        return create(ACollectionHelper.flatMap(this, f));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public <X> AList<X> flatten() {
+        return (AList<X>) create(ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
     }
 
     @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit
-        for(T o: this) {
-            if(!pred.apply(o)) {
-                return false;
-            }
-        }
-        return true;
+        return ACollectionHelper.forAll(this, pred);
     }
 
     @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
-        for(T o: this) {
-            if(pred.apply(o)) {
-                return true;
-            }
+        return ACollectionHelper.exists(this, pred);
+    }
+
+    @Override public <X, E extends Exception> AMap<X, AList<T>> groupBy(AFunction1<X, T, E> f) throws E {//TODO junit
+        return groupBy(f, AEquality.EQUALS);
+    }
+
+    @Override public <X, E extends Exception> AMap<X, AList<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO junit
+        final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(this, f, keyEquality);
+
+        AMap<X, AList<T>> result = AHashMap.empty(keyEquality);
+        for(Map.Entry<AEqualsWrapper<X>, Collection<T>> entry: raw.entrySet()) {
+            result = result.updated(entry.getKey().value, AList.create(entry.getValue()));
         }
-        return false;
+        return result;
     }
 
     @Override public String toString() {

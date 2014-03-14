@@ -57,6 +57,14 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
         return isDefined() ? get() : el;
     }
 
+    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+        throw new UnsupportedOperationException("AOption can not be flattened");
+    }
+
+    @Override public <X> ACollection<X, ? extends ACollection<X, ?>> flatten() {
+        throw new UnsupportedOperationException("AOption can not be flattened");
+    }
+
     @Override public String mkString() {
         return ACollectionHelper.mkString(this);
     }
@@ -117,6 +125,15 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
 
         @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E {
             return find(pred).isDefined();
+        }
+
+        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<X, T, E> f) throws E {
+            return groupBy(f, AEquality.EQUALS);
+        }
+
+        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO junit
+            final AMap<X, AOption<T>> result = AHashMap.empty(keyEquality);
+            return result.updated(f.apply(el), this);
         }
 
         @Override public AList<T> toList() {
@@ -194,6 +211,14 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
 
         @Override public <E extends Exception> boolean exists(APredicate<Object, E> pred) throws E {
             return false;
+        }
+
+        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<X, Object, E> f) throws E {
+            return AHashMap.empty(); //TODO junit
+        }
+
+        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<X, Object, E> f, AEquality keyEquality) throws E {
+            return AHashMap.empty(keyEquality); //TODO junit
         }
 
         @Override public AList<Object> toList() {

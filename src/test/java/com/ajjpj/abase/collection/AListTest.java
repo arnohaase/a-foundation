@@ -1,13 +1,16 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -114,5 +117,19 @@ public class AListTest {
 
         assertEquals(AList.<Integer>nil(), AList.<String>nil().map(lenFunc));
         assertEquals(AList.<Integer>nil().cons(1).cons(3).cons(2), AList.<String>nil().cons("a").cons("bcd").cons("ef").map(lenFunc));
+    }
+
+    @Test
+    public void testFlatten() {
+        AList<AHashSet<String>> list = AList.nil();
+        list = list.cons(AHashSet.create("a", "b"));
+        list = list.cons(AHashSet.create("b", "c", "d"));
+
+        final AList<String> flattened = list.flatten();
+
+        assertEquals(5, flattened.size());
+        final List<String> juList = new ArrayList<>(flattened.asJavaUtilList());
+        Collections.sort(juList);
+        assertEquals(Arrays.asList("a", "b", "b", "c", "d"), juList);
     }
 }

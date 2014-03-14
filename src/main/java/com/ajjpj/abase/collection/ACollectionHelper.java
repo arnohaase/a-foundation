@@ -1,20 +1,14 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.collection.immutable.ACollection;
-import com.ajjpj.abase.collection.immutable.AHashSet;
-import com.ajjpj.abase.collection.immutable.AList;
-import com.ajjpj.abase.collection.immutable.AOption;
+import com.ajjpj.abase.collection.immutable.*;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
- * This class holds a number of useful methods that operate on all kinds of collections (or Iterables, more specifically).
+ * This class consists of a number of useful methods that operate on a variety of collection types.
  *
  * @author arno
  */
@@ -82,7 +76,7 @@ public class ACollectionHelper {
         return false;
     }
 
-    public static <T, X, E extends Exception> Collection<X> map(Collection<T> coll, AFunction1<X, T, E> f) throws E { //TODO junit, javadoc
+    public static <T, X, E extends Exception> Collection<X> map(Iterable<T> coll, AFunction1<X, T, E> f) throws E { //TODO junit, javadoc
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -92,7 +86,29 @@ public class ACollectionHelper {
         return result;
     }
 
-    public static <T, E extends Exception> Collection<T> filter(Collection<T> coll, APredicate<T, E> pred) throws E { //TODO junit
+    public static <T, X, E extends Exception> Collection<X> flatMap(Iterable<T> coll, AFunction1<Iterable<X>, T, E> f) throws E { //TODO junit, javadoc
+        final List<X> result = new ArrayList<>();
+
+        for(T o: coll) {
+            for(X el: f.apply(o)) {
+                result.add(el);
+            }
+        }
+
+        return result;
+    }
+
+    public static <T> Collection<T> flatten(Iterable<? extends Iterable<T>> coll) { //TODO junit, javadoc
+        final List<T> result = new ArrayList<>();
+        for(Iterable<T> o: coll) {
+            for(T el: o) {
+                result.add(el);
+            }
+        }
+        return result;
+    }
+
+    public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<T, E> pred) throws E { //TODO junit
         final List<T> result = new ArrayList<>();
         for(T o: coll) {
             if(pred.apply(o)) {
@@ -102,14 +118,41 @@ public class ACollectionHelper {
         return result;
     }
 
+    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy(Iterable<T> coll, AFunction1<X, T, E> f) throws E { //TOD javadoc, junit
+        final Map<X, Collection<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final X key = f.apply(o);
+            Collection<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = new ArrayList<>();
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
 
-        /**
-         * Copies the content of an <code>Iterable</code> into an (immutable) <code>ACollection</code> instance. Subsequent
-         *  changes to the underlying collection have no effect on the returned <code>ACollection</code> instance.<p />
-         *
-         * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
-         *  duplicate values are allowed.
-         */
+    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Collection<T>> groupBy(Iterable<T> coll, AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO javadoc, junit
+        final Map<AEqualsWrapper<X>, Collection<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
+            Collection<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = new ArrayList<>();
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
+
+    /**
+     * Copies the content of an <code>Iterable</code> into an (immutable) <code>ACollection</code> instance. Subsequent
+     *  changes to the underlying collection have no effect on the returned <code>ACollection</code> instance.<p />
+     *
+     * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
+     *  duplicate values are allowed.
+     */
     public static <T> ACollection<T, ? extends ACollection<T, ?>> asACollectionCopy(Collection<T> c) { //TODO Junit
         return asACollectionView(asJavaUtilCollection(c));
     }
@@ -127,7 +170,7 @@ public class ACollectionHelper {
         return new ACollectionWrapper(c);
     }
 
-    private static class ACollectionWrapper<T, X extends ACollection<T, X>> implements ACollection<T, X> {
+    private static class ACollectionWrapper<T, X extends ACollection<T, X>> implements ACollection<T, X> { //TODO rename X to C --> why does that cause compiler errors?
         private final Collection<T> inner;
 
         ACollectionWrapper(Collection<T> inner) {
@@ -146,8 +189,16 @@ public class ACollectionHelper {
             return !inner.isEmpty();
         }
 
-        @Override public <X1, E extends Exception> ACollection<X1, ? extends ACollection<X1, ?>> map(AFunction1<X1, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X, ? extends ACollection<X, ?>> map(AFunction1<X, T, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
+        }
+
+        @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+            return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
+        }
+
+        @Override public <X1> ACollection<X1, ? extends ACollection<X1, ?>> flatten() {
+            return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X1>>) inner));
         }
 
         @SuppressWarnings("unchecked")
@@ -165,6 +216,21 @@ public class ACollectionHelper {
 
         @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E {
             return ACollectionHelper.exists(inner, pred);
+        }
+
+        @Override public <X1, E extends Exception> AMap<X1, X> groupBy(AFunction1<X1, T, E> f) throws E { //TODO junit
+            return groupBy(f, AEquality.EQUALS);
+        }
+
+        @Override public <X1, E extends Exception> AMap<X1, X> groupBy(AFunction1<X1, T, E> f, AEquality keyEquality) throws E { //TODO junit
+            final Map<AEqualsWrapper<X1>, Collection<T>> raw = ACollectionHelper.groupBy(inner, f, keyEquality);
+
+            AMap<X1, X> result = AHashMap.empty(keyEquality);
+            for(Map.Entry<AEqualsWrapper<X1>, Collection<T>> entry: raw.entrySet()) {
+                final X value = (X) new ACollectionWrapper<T, X>(entry.getValue());
+                result = result.updated(entry.getKey().value, value);
+            }
+            return result;
         }
 
         @Override public AList<T> toList() {

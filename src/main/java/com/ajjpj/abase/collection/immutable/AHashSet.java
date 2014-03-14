@@ -2,12 +2,13 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
+import com.ajjpj.abase.collection.AEqualsWrapper;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -54,6 +55,23 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
      * Creates an AHashSet instance with a given equality strategy that is initialized with the elements from a given collection.
      */
     public static <T> AHashSet<T> create(AEquality equality, Iterable<T> elements) {
+        AHashSet<T> result = empty(equality);
+        for(T el: elements) {
+            result = result.added(el);
+        }
+        return result;
+    }
+
+    /**
+     * Creates an AHashSet instance with default (i.e. equals-based) equality that is initialized with the elements from a given collection.
+     */
+    public static <T> AHashSet<T> create(T... elements) {
+        return create(AEquality.EQUALS, elements);
+    }
+    /**
+     * Creates an AHashSet instance with a given equality strategy that is initialized with the elements from a given collection.
+     */
+    public static <T> AHashSet<T> create(AEquality equality, T... elements) {
         AHashSet<T> result = empty(equality);
         for(T el: elements) {
             result = result.added(el);
@@ -158,21 +176,11 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
     }
 
     @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit test
-        for(T o: this) {
-            if(! pred.apply(o)) {
-                return false;
-            }
-        }
-        return true;
+        return ACollectionHelper.forAll(this, pred);
     }
 
     @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
-        for(T o: this) {
-            if(pred.apply(o)) {
-                return true;
-            }
-        }
-        return false;
+        return ACollectionHelper.exists(this, pred);
     }
 
     @Override public AHashSet<T> toSet() {
@@ -186,30 +194,39 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         return AHashSet.<T>create(equality, this);
     }
 
-    public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
-        for(T el: this) {
-            if(pred.apply(el)) {
-                return AOption.some(el);
-            }
-        }
-        return AOption.none();
+    @Override public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
+        return ACollectionHelper.find(this, pred);
     }
 
-    public <X, E extends Exception> AHashSet<X> map(AFunction1<X, T, E> f) throws E {
-        final List<X> result = new ArrayList<>(); // list instead of set to support arbitrary equality implementations
-        for(T el: this) {
-            result.add(f.apply(el));
-        }
-        return create(inner.equality, result);
+    @Override public <X, E extends Exception> AHashSet<X> map(AFunction1<X, T, E> f) throws E {
+        // list instead of set to support arbitrary equality implementations
+        return create(inner.equality, ACollectionHelper.map(this, f));
     }
 
-    public <E extends Exception> AHashSet<T> filter(APredicate<T, E> pred) throws E {
-        final List<T> result = new ArrayList<>();
-        for(T el: this) {
-            if(pred.apply(el)) {
-                result.add(el);
-            }
+    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+        return create(inner.equality, ACollectionHelper.flatMap(this, f));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public <X> AHashSet<X> flatten() {
+        return (AHashSet<X>) create(inner.equality, ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
+    }
+
+    @Override public <E extends Exception> AHashSet<T> filter(APredicate<T, E> pred) throws E {
+        return create(inner.equality, ACollectionHelper.filter(this, pred));
+    }
+
+    @Override public <X, E extends Exception> AMap<X, AHashSet<T>> groupBy(AFunction1<X, T, E> f) throws E { //TODO javadoc: *equals* based (and *not* the same as here!)
+        return groupBy(f, AEquality.EQUALS);
+    }
+
+    @Override public <X, E extends Exception> AMap<X, AHashSet<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E {
+        final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(this, f, keyEquality);
+
+        AMap<X, AHashSet<T>> result = AHashMap.empty(keyEquality);
+        for(Map.Entry<AEqualsWrapper<X>, Collection<T>> entry: raw.entrySet()) {
+            result = result.updated(entry.getKey().value, AHashSet.create(entry.getValue()));
         }
-        return create(inner.equality, result);
+        return result;
     }
 }

@@ -1,6 +1,7 @@
 package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.collection.immutable.AHashSet;
+import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
@@ -121,6 +122,21 @@ public class AHashSetTest {
 
         assertEquals(AHashSet.<Integer>empty(), AHashSet.<String>empty().map(lenFunc));
         assertEquals(AHashSet.<Integer>empty().added(1).added(3).added(2), AHashSet.<String>empty().added("a").added("bcd").added("ef").map(lenFunc));
+    }
+
+    @Test
+    public void testFlatten() {
+        AHashSet<AList<String>> set = AHashSet.empty();
+        set = set.added(AList.create("a", "b"));
+        set = set.added(AList.create("b", "c", "d"));
+
+        final AHashSet<String> flattened = set.flatten();
+
+        assertEquals(4, flattened.size());
+        assertTrue(flattened.contains("a"));
+        assertTrue(flattened.contains("b"));
+        assertTrue(flattened.contains("c"));
+        assertTrue(flattened.contains("d"));
     }
 
     //TODO testEquality

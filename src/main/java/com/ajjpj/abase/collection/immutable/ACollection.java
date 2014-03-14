@@ -14,16 +14,10 @@ import com.ajjpj.abase.function.APredicate;
  *
  * @author arno
  */
-public interface ACollection<T, C extends ACollection<T, C>> extends Iterable<T> {
+public interface ACollection<T, C extends ACollection<T, C>> extends AFilterMonadic<T, C> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
-
-    /**
-     * Applies a transformation function to each element, creating a new collection instance from the results. For a
-     *  collection of strings, this could e.g. be used to create a collection of integer values with each string's length.
-     */
-    <X,E extends Exception> ACollection<X, ? extends ACollection<X, ?>> map(AFunction1<X, T, E> f) throws E;
 
     /**
      * Filters this collection's elements, this method returns a new collection comprised of only those elements that match
@@ -32,32 +26,11 @@ public interface ACollection<T, C extends ACollection<T, C>> extends Iterable<T>
     <E extends Exception> C filter(APredicate<T, E> pred) throws E;
 
     /**
-     * Wraps a filter around the existing collection, making creation of the result a constant time operation. This comes
-     *  at the price that the actual filtering is done for every iteration.
+     * Turns a collection of collections into a 'flat' collection, removing one layer of collections.
      */
-//    <E extends Exception> ACollection<T, ? extends ACollection<T, ?>> withFilter(APredicate<T, E> pred) throws E; //TODO withFilter
+    <X> ACollection<X, ? extends ACollection<X, ?>> flatten();
 
-    /**
-     * Searches through this collection's elements and returns the first element matching a given predicate. if any.
-     */
-    <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E;
-
-    /**
-     * Returns true iff all elements of the collection match the predicate.
-     */
-    <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E;
-
-    /**
-     * Returns true iff at least one element of the collection matches the predicate.
-     */
-    <E extends Exception> boolean exists(APredicate<T, E> pred) throws E;
-
-    AList<T> toList();
-    AHashSet<T> toSet();
-    AHashSet<T> toSet(AEquality equality);
-
-    String mkString();
-    String mkString(String separator);
-    String mkString(String prefix, String separator, String suffix);
+    <X, E extends Exception> AMap<X, C> groupBy(AFunction1<X,T,E> f) throws E; //TODO javadoc, junit
+    <X, E extends Exception> AMap<X, C> groupBy(AFunction1<X,T,E> f, AEquality keyEquality) throws E; //TODO javadoc, junit
 }
-//TODO javadoc
+

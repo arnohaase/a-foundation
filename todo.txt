@@ -9,6 +9,11 @@ todo
   * AMap.fromMutable(juMap), .fromKeysAndValues(), .fromKeysAndFunction
   * ACollectionHelper.mkString
 
+* documentation tests
+
+* Arrays as collections
+* Mail an TG --> flatten
+
 * TODO comments
 * warnings
   * "unused"
