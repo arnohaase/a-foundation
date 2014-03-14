@@ -11,10 +11,35 @@
 
     <groupId>com.ajjpj.a-base</groupId>
     <artifactId>a-base</artifactId>
-    <version>1.0-pre1-SNAPSHOT</version>
+    <version>1.0-pre1</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
+    <description>a-base is a library of basic (hence the name) classes, most notably immutable collection classes with copy-on-write operations</description>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git@github.com:arnohaase/a-base.git</connection>
+        <developerConnection>scm:git:git@github.com:arnohaase/a-base.git</developerConnection>
+        <url>git@github.com:arnohaase/a-base.git</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>arnohaase</id>
+            <name>Arno Haase</name>
+            <email>github@haase-consulting.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -47,3 +72,4 @@
         </plugins>
     </build>
 </project>
+
