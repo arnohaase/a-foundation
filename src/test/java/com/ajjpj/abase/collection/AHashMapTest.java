@@ -310,6 +310,11 @@ public class AHashMapTest {
     }
 
     @Test
+    public void testEqualityIdentity() {
+        fail("todo");
+    }
+
+    @Test
     public void testShotgun() {
         final Random rand = new Random(12345);
 

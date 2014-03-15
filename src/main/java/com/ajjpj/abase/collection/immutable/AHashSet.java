@@ -159,7 +159,11 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         return inner.equals(((AHashSet)o).inner);
     }
 
-    public AList<T> toList() {
+    @Override public String toString() {
+        return mkString("[", ", ", "]");
+    }
+
+    @Override public AList<T> toList() {
         return AList.create(this);
     }
 
@@ -203,7 +207,7 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         return create(inner.equality, ACollectionHelper.map(this, f));
     }
 
-    @Override public <X, E extends Exception> AHashSet<X> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> AHashSet<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
         return create(inner.equality, ACollectionHelper.flatMap(this, f));
     }
 

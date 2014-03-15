@@ -57,7 +57,7 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
         return isDefined() ? get() : el;
     }
 
-    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
 

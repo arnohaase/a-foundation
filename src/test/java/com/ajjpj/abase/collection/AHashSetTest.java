@@ -1,13 +1,10 @@
 package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.collection.immutable.AHashSet;
-import com.ajjpj.abase.collection.immutable.AList;
-import com.ajjpj.abase.collection.immutable.AOption;
-import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.APredicate;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 import static org.junit.Assert.*;
@@ -16,7 +13,24 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
-public class AHashSetTest {
+public class AHashSetTest extends AbstractCollectionTest<AHashSet<String>, AHashSet<Integer>, AHashSet<Iterable<String>>> {
+    public AHashSetTest() {
+        super(true);
+    }
+
+    @Override public AHashSet<String> create(String... elements) {
+        return AHashSet.create(elements);
+    }
+
+    @Override public AHashSet<Integer> createInts(Integer... elements) {
+        return AHashSet.create(elements);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public AHashSet<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
+        return (AHashSet<Iterable<String>>) AHashSet.create(elements);
+    }
+
     @Test
     public void testEmpty() {
         assertEquals(0, AHashSet.empty().size());
@@ -46,7 +60,7 @@ public class AHashSetTest {
     }
 
     @Test
-    public void testEquals() {
+    public void testEquals2() {
         assertEquals(AHashSet.empty(),
                      AHashSet.empty());
         assertEquals(AHashSet.empty().added("a"),
@@ -81,62 +95,6 @@ public class AHashSetTest {
 
         final String s2 = AHashSet.empty().added("a").added("b").mkString("#");
         assertTrue("b#a".equals(s2) || "a#b".equals(s2));
-    }
-
-    @Test
-    public void testFind() {
-        final APredicate<String, RuntimeException> fun = new APredicate<String, RuntimeException>() {
-            @Override
-            public boolean apply(String o) throws RuntimeException {
-                return o.length() > 1;
-            }
-        };
-
-        assertEquals(AOption.<String>none(), AHashSet.<String>empty().find(fun));
-        assertEquals(AOption.<String>none(), AHashSet.<String>empty().added("a").added("b").added("c").find(fun));
-        assertEquals(AOption.some("bc"), AHashSet.<String>empty().added("a").added("bc").added("d").find(fun));
-    }
-
-    @Test
-    public void testFilter() {
-        final APredicate<String, RuntimeException> fun = new APredicate<String, RuntimeException>() {
-            @Override
-            public boolean apply(String o) throws RuntimeException {
-                return o.length() > 1;
-            }
-        };
-
-        assertEquals(AHashSet.<String>empty(), AHashSet.<String>empty().filter(fun));
-        assertEquals(AHashSet.<String>empty(), AHashSet.<String>empty().added("a").added("b").added("c").filter(fun));
-        assertEquals(AHashSet.<String>empty().added("bc").added("ef"), AHashSet.<String>empty().added("a").added("bc").added("d").added("ef").added("g").filter(fun));
-    }
-
-    @Test
-    public void testMap() {
-        final AFunction1<Integer, String, RuntimeException> lenFunc = new AFunction1<Integer, String, RuntimeException>() {
-            @Override
-            public Integer apply(String param) throws RuntimeException {
-                return param.length();
-            }
-        };
-
-        assertEquals(AHashSet.<Integer>empty(), AHashSet.<String>empty().map(lenFunc));
-        assertEquals(AHashSet.<Integer>empty().added(1).added(3).added(2), AHashSet.<String>empty().added("a").added("bcd").added("ef").map(lenFunc));
-    }
-
-    @Test
-    public void testFlatten() {
-        AHashSet<AList<String>> set = AHashSet.empty();
-        set = set.added(AList.create("a", "b"));
-        set = set.added(AList.create("b", "c", "d"));
-
-        final AHashSet<String> flattened = set.flatten();
-
-        assertEquals(4, flattened.size());
-        assertTrue(flattened.contains("a"));
-        assertTrue(flattened.contains("b"));
-        assertTrue(flattened.contains("c"));
-        assertTrue(flattened.contains("d"));
     }
 
     //TODO testEquality

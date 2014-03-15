@@ -1,16 +1,11 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
-import com.ajjpj.abase.collection.immutable.AOption;
-import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.APredicate;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -18,7 +13,24 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
-public class AListTest {
+public class AListTest extends AbstractCollectionTest<AList<String>, AList<Integer>, AList<Iterable<String>>> {
+    public AListTest() {
+        super(false);
+    }
+
+    @Override public AList<String> create(String... elements) {
+        return AList.create(elements);
+    }
+
+    @Override public AList<Integer> createInts(Integer... elements) {
+        return AList.create(elements);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public AList<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
+        return AList.create((Collection<Iterable<String>>) elements);
+    }
+
     @Test
     public void testNil() {
         assertEquals(0, AList.nil().size());
@@ -53,7 +65,7 @@ public class AListTest {
     }
 
     @Test
-    public void testEquals() {
+    public void testEquals2() {
         assertEquals(AList.nil(), AList.nil());
         assertEquals(AList.nil().cons("a"), AList.nil().cons("a"));
 
@@ -76,60 +88,5 @@ public class AListTest {
         assertEquals("",    AList.nil()                    .mkString("#"));
         assertEquals("a",   AList.nil().cons("a")          .mkString("#"));
         assertEquals("b#a", AList.nil().cons("a").cons("b").mkString("#"));
-    }
-
-    @Test
-    public void testFind() {
-        final APredicate<String, RuntimeException> fun = new APredicate<String, RuntimeException>() {
-            @Override
-            public boolean apply(String o) throws RuntimeException {
-                return o.length() > 1;
-            }
-        };
-
-        assertEquals(AOption.<String>none(), AList.<String>nil().find(fun));
-        assertEquals(AOption.<String>none(), AList.<String>nil().cons("a").cons("b").cons("c").find(fun));
-        assertEquals(AOption.some("ef"), AList.<String>nil().cons("a").cons("bc").cons("d").cons("ef").cons("g").find(fun));
-    }
-
-    @Test
-    public void testFilter() {
-        final APredicate<String, RuntimeException> fun = new APredicate<String, RuntimeException>() {
-            @Override
-            public boolean apply(String o) throws RuntimeException {
-                return o.length() > 1;
-            }
-        };
-
-        assertEquals(AList.<String>nil(), AList.<String>nil().filter(fun));
-        assertEquals(AList.<String>nil(), AList.<String>nil().cons("a").cons("b").cons("c").filter(fun));
-        assertEquals(AList.<String>nil().cons("bc").cons("ef"), AList.<String>nil().cons("a").cons("bc").cons("d").cons("ef").cons("g").filter(fun));
-    }
-
-    @Test
-    public void testMap() {
-        final AFunction1<Integer, String, RuntimeException> lenFunc = new AFunction1<Integer, String, RuntimeException>() {
-            @Override
-            public Integer apply(String param) throws RuntimeException {
-                return param.length();
-            }
-        };
-
-        assertEquals(AList.<Integer>nil(), AList.<String>nil().map(lenFunc));
-        assertEquals(AList.<Integer>nil().cons(1).cons(3).cons(2), AList.<String>nil().cons("a").cons("bcd").cons("ef").map(lenFunc));
-    }
-
-    @Test
-    public void testFlatten() {
-        AList<AHashSet<String>> list = AList.nil();
-        list = list.cons(AHashSet.create("a", "b"));
-        list = list.cons(AHashSet.create("b", "c", "d"));
-
-        final AList<String> flattened = list.flatten();
-
-        assertEquals(5, flattened.size());
-        final List<String> juList = new ArrayList<>(flattened.asJavaUtilList());
-        Collections.sort(juList);
-        assertEquals(Arrays.asList("a", "b", "b", "c", "d"), juList);
     }
 }

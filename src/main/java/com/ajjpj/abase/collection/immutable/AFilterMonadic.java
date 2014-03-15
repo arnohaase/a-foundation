@@ -20,7 +20,7 @@ public interface AFilterMonadic<T, C extends AFilterMonadic<T, C>> extends Itera
      *  collection of strings. Calling <code>flatMap</code> with a function that splits a string into tokens, the result
      *  would be a collection of all tokens of all original strings.
      */
-    <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E;
+    <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E;
 
     /**
      * Wraps a filter around the existing collection, making creation of the result a constant time operation. This comes

@@ -1,9 +1,11 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.ACollection;
+import com.ajjpj.abase.collection.immutable.AHashSet;
+import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import com.ajjpj.abase.function.APredicateNoThrow;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
@@ -157,14 +159,135 @@ public class ACollectionHelperTest {
     }
 
     @Test
-    @Ignore
-    public void testGroupBy() {
-        fail("todo (2x)");
+    public void testGroupByEquals() {
+        final AFunction1NoThrow<Integer, String> len = new AFunction1NoThrow<Integer, String>() {
+            @Override public Integer apply(String param) {
+                return param.length();
+            }
+        };
+
+        final Map<Integer, Collection<String>> grouped = ACollectionHelper.groupBy(Arrays.asList("a", "bc", "d", "efg", "hi", "j"), len);
+        assertEquals(3, grouped.size());
+        assertEquals(Arrays.asList("a", "d", "j"), grouped.get(1));
+        assertEquals(Arrays.asList("bc", "hi"), grouped.get(2));
+        assertEquals(Arrays.asList("efg"), grouped.get(3));
     }
 
     @Test
-    @Ignore
+    public void testGroupByCustomEquality() {
+        final AEquality equality = new AEquality() {
+            @Override public boolean equals(Object o1, Object o2) {
+                return ((Integer)o1)%2 == ((Integer)o2)%2;
+            }
+
+            @Override public int hashCode(Object o) {
+                return 0;
+            }
+        };
+
+        final AFunction1NoThrow<Integer, String> len = new AFunction1NoThrow<Integer, String>() {
+            @Override public Integer apply(String param) {
+                return param.length();
+            }
+        };
+
+        final Map<AEqualsWrapper<Integer>, Collection<String>> grouped = ACollectionHelper.groupBy(Arrays.asList("a", "bc", "d", "efg", "hi", "j"), len, equality);
+        assertEquals(2, grouped.size());
+        assertEquals(Arrays.asList("a", "d", "efg", "j"), grouped.get(new AEqualsWrapper<>(equality, 1)));
+        assertEquals(Arrays.asList("bc", "hi"),           grouped.get(new AEqualsWrapper<>(equality, 2)));
+    }
+
+    @Test
     public void testAsCollectionCopy() {
+        final List<String> list = new ArrayList<>(Arrays.asList("a", "b"));
+
+        final ACollection<String, ?> copied = ACollectionHelper.asACollectionCopy(list);
+        assertEquals(2, copied.size());
+        assertEquals(true, copied.nonEmpty());
+        assertEquals(false, copied.isEmpty());
+
+        assertEquals(AList.create("a", "b"), copied.toList());
+        assertEquals(AHashSet.create("a", "b"), copied.toSet());
+
+        list.clear();
+
+        assertEquals(2, copied.size());
+        assertEquals(true, copied.nonEmpty());
+        assertEquals(false, copied.isEmpty());
+
+        assertEquals(AList.create("a", "b"), copied.toList());
+        assertEquals(AHashSet.create("a", "b"), copied.toSet());
+
+        final ACollection<String, ?> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
+        assertEquals(0, copiedEmpty.size());
+        assertEquals(true, copiedEmpty.isEmpty());
+        assertEquals(false, copiedEmpty.nonEmpty());
+
+        assertEquals(AList.<String>nil(), copiedEmpty.toList());
+        assertEquals(AHashSet.<String>empty(), copiedEmpty.toSet());
+    }
+
+    @Test
+    public void testAsCollectionCopyMkStringNoArgs() {
+        assertEquals("",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList())));
+        assertEquals("a",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a"))));
+        assertEquals("a, b, c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c"))));
+    }
+
+    @Test
+    public void testAsCollectionCopyMkStringSeparator() {
+        assertEquals("",      ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "#"));
+        assertEquals("a",     ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "#"));
+        assertEquals("a#b#c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "#"));
+
+        assertEquals("",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "?!"));
+        assertEquals("a",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "?!"));
+        assertEquals("a?!b?!c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "?!"));
+    }
+
+    @Test
+    public void testAsCollectionCopyMkStringFull() {
+        assertEquals("[]",      ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "[", "#", "]"));
+        assertEquals("[a]",     ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "[", "#", "]"));
+        assertEquals("[a#b#c]", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "[", "#", "]"));
+
+        assertEquals("<<>>",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "<<", "?!", ">>"));
+        assertEquals("<<a>>",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "<<", "?!", ">>"));
+        assertEquals("<<a?!b?!c>>", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "<<", "?!", ">>"));
+    }
+
+    @Test
+    public void testAsCollectionCopyOperations() {
         fail("todo");
+    }
+
+    @Test
+    public void testAsCollectionView() {
+        final List<String> list = new ArrayList<>(Arrays.asList("a", "b"));
+
+        final ACollection<String, ?> copied = ACollectionHelper.asACollectionView(list);
+        assertEquals(2, copied.size());
+        assertEquals(true, copied.nonEmpty());
+        assertEquals(false, copied.isEmpty());
+
+        assertEquals(AList.create("a", "b"), copied.toList());
+        assertEquals(AHashSet.create("a", "b"), copied.toSet());
+
+        list.clear();
+
+        assertEquals(0, copied.size());
+        assertEquals(false, copied.nonEmpty());
+        assertEquals(true, copied.isEmpty());
+
+        assertEquals(AList.<String>nil(), copied.toList());
+        assertEquals(AHashSet.<String>empty(), copied.toSet());
+
+        final ACollection<String, ?> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
+        assertEquals(0, copiedEmpty.size());
+        assertEquals(true, copiedEmpty.isEmpty());
+        assertEquals(false, copiedEmpty.nonEmpty());
+
+        assertEquals(AList.<String>nil(), copiedEmpty.toList());
+        assertEquals(AHashSet.<String>empty(), copiedEmpty.toSet());
     }
 }

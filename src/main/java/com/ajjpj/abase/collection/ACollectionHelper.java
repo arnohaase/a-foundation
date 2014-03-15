@@ -190,7 +190,7 @@ public class ACollectionHelper {
      * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
      *  duplicate values are allowed.
      */
-    public static <T> ACollection<T, ? extends ACollection<T, ?>> asACollectionCopy(Collection<T> c) { //TODO Junit
+    public static <T> ACollectionWrapper<T> asACollectionCopy(Collection<T> c) {
         return asACollectionView(asJavaUtilCollection(c));
     }
 
@@ -203,14 +203,14 @@ public class ACollectionHelper {
      *  values are allowed.
      */
     @SuppressWarnings("unchecked")
-    public static <T> ACollection<T, ? extends ACollection<T, ?>> asACollectionView(Collection<T> c) { //TODO junit
+    public static <T> ACollectionWrapper<T> asACollectionView(Collection<T> c) { //TODO junit
         return new ACollectionWrapper(c);
     }
 
-    private static class ACollectionWrapper<T, X extends ACollection<T, X>> implements ACollection<T, X> { //TODO rename X to C --> why does that cause compiler errors?
+    public static class ACollectionWrapper<T> implements ACollection<T, ACollectionWrapper<T>> { //TODO rename X to C --> why does that cause compiler errors?
         private final Collection<T> inner;
 
-        ACollectionWrapper(Collection<T> inner) {
+        private ACollectionWrapper(Collection<T> inner) {
             this.inner = inner;
         }
 
@@ -226,21 +226,21 @@ public class ACollectionHelper {
             return !inner.isEmpty();
         }
 
-        @Override public <X, E extends Exception> ACollection<X, ? extends ACollection<X, ?>> map(AFunction1<X, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<X, T, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
         }
 
-        @Override public <X, E extends Exception> ACollection<X, ? extends ACollection<X, ?>> flatMap(AFunction1<Iterable<X>, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
         }
 
-        @Override public <X1> ACollection<X1, ? extends ACollection<X1, ?>> flatten() {
-            return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X1>>) inner));
+        @Override public <X> ACollectionWrapper<X> flatten() {
+            return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
         }
 
         @SuppressWarnings("unchecked")
-        @Override public <E extends Exception> X filter(APredicate<T, E> pred) throws E {
-            return (X) new ACollectionWrapper(ACollectionHelper.filter(inner, pred));
+        @Override public <E extends Exception> ACollectionWrapper<T> filter(APredicate<T, E> pred) throws E {
+            return new ACollectionWrapper(ACollectionHelper.filter(inner, pred));
         }
 
         @Override public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
@@ -255,17 +255,16 @@ public class ACollectionHelper {
             return ACollectionHelper.exists(inner, pred);
         }
 
-        @Override public <X1, E extends Exception> AMap<X1, X> groupBy(AFunction1<X1, T, E> f) throws E { //TODO junit
+        @Override public <X, E extends Exception> AMap<X, ACollectionWrapper<T>> groupBy(AFunction1<X, T, E> f) throws E { //TODO junit
             return groupBy(f, AEquality.EQUALS);
         }
 
-        @Override public <X1, E extends Exception> AMap<X1, X> groupBy(AFunction1<X1, T, E> f, AEquality keyEquality) throws E { //TODO junit
-            final Map<AEqualsWrapper<X1>, Collection<T>> raw = ACollectionHelper.groupBy(inner, f, keyEquality);
+        @Override public <X, E extends Exception> AMap<X, ACollectionWrapper<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO junit
+            final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(inner, f, keyEquality);
 
-            AMap<X1, X> result = AHashMap.empty(keyEquality);
-            for(Map.Entry<AEqualsWrapper<X1>, Collection<T>> entry: raw.entrySet()) {
-                final X value = (X) new ACollectionWrapper<T, X>(entry.getValue());
-                result = result.updated(entry.getKey().value, value);
+            AMap<X, ACollectionWrapper<T>> result = AHashMap.empty(keyEquality);
+            for(Map.Entry<AEqualsWrapper<X>, Collection<T>> entry: raw.entrySet()) {
+                result = result.updated(entry.getKey().value, new ACollectionWrapper<T>(entry.getValue()));
             }
             return result;
         }
@@ -296,6 +295,25 @@ public class ACollectionHelper {
 
         @Override public Iterator<T> iterator() {
             return inner.iterator();
+        }
+
+        @Override public String toString() {
+            return ACollectionHelper.mkString(this, "[", ", " , "]");
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ACollectionWrapper that = (ACollectionWrapper) o;
+
+            if (inner != null ? !inner.equals(that.inner) : that.inner != null) return false;
+
+            return true;
+        }
+
+        @Override public int hashCode() {
+            return inner != null ? inner.hashCode() : 0;
         }
     }
 
