@@ -229,11 +229,4 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
         assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c").toSet());
         assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
     }
-
-    @Test
-    public void testToSetIdentity() {
-        assertEquals(AHashSet.<String>empty(AEquality.IDENTITY), create().toSet(AEquality.IDENTITY));
-        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c").toSet(AEquality.IDENTITY)); //TODO there appears to be a bug in AHashMap wrt AEquality.IDENTITY
-        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet(AEquality.IDENTITY));
-    }
 }

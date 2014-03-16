@@ -1,6 +1,11 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.AHashSet;
+import org.junit.Test;
+
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author arno
@@ -25,5 +30,12 @@ public class AsCollectionCopyTest extends AbstractCollectionTest<ACollectionHelp
         }
 
         return ACollectionHelper.asACollectionCopy(result);
+    }
+
+    @Test
+    public void testToSetIdentity() { //TODO
+        assertEquals(AHashSet.<String>empty(AEquality.IDENTITY), create().toSet(AEquality.IDENTITY));
+        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c").toSet(AEquality.IDENTITY)); //TODO there appears to be a bug in AHashMap wrt AEquality.IDENTITY
+        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet(AEquality.IDENTITY));
     }
 }

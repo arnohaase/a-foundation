@@ -205,7 +205,12 @@ public class AHashMap<K, V> implements AMap<K,V> {
         }
 
         for(APair<K,V> el: this) {
-            if(! equality.equals(other.get(el._1), AOption.some(el._2))) {
+            final AOption<V> otherValue = other.get(el._1);
+            if(otherValue.isEmpty()) {
+                return false;
+            }
+
+            if(! equality.equals(el._2, otherValue.get())) {
                 return false;
             }
         }

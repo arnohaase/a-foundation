@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
 import org.junit.Test;
 
@@ -8,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -88,5 +90,13 @@ public class AListTest extends AbstractCollectionTest<AList<String>, AList<Integ
         assertEquals("",    AList.nil()                    .mkString("#"));
         assertEquals("a",   AList.nil().cons("a")          .mkString("#"));
         assertEquals("b#a", AList.nil().cons("a").cons("b").mkString("#"));
+    }
+
+
+    @Test
+    public void testToSetIdentity() { //TODO
+        assertEquals(AHashSet.<String>empty(AEquality.IDENTITY), create().toSet(AEquality.IDENTITY));
+        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c").toSet(AEquality.IDENTITY)); //TODO there appears to be a bug in AHashMap wrt AEquality.IDENTITY
+        assertEquals(AHashSet.create(AEquality.IDENTITY, "a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet(AEquality.IDENTITY));
     }
 }
