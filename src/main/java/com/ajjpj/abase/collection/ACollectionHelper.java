@@ -1,10 +1,10 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.collection.immutable.*;
+import com.ajjpj.abase.collection.immutable.AOption;
+import com.ajjpj.abase.collection.immutable.AbstractACollection;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
-import javax.swing.*;
 import java.util.*;
 
 
@@ -216,7 +216,7 @@ public class ACollectionHelper {
         }
 
         @Override protected ACollectionWrapper<T> createInternal(Collection<T> elements) {
-            return new ACollectionWrapper<T>(elements);
+            return new ACollectionWrapper<>(elements);
         }
 
         @Override
@@ -236,10 +236,12 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
         }
 
+        @SuppressWarnings("unchecked")
         @Override public <X> ACollectionWrapper<X> flatten() {
             return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override public Iterator<T> iterator() {
             return inner.iterator();
         }

@@ -62,12 +62,14 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
     /**
      * Creates an AHashSet instance with default (i.e. equals-based) equalityForEquals that is initialized with the elements from a given collection.
      */
+    @SuppressWarnings("unchecked")
     public static <T> AHashSet<T> create(T... elements) {
         return create(AEquality.EQUALS, elements);
     }
     /**
      * Creates an AHashSet instance with a given equalityForEquals strategy that is initialized with the elements from a given collection.
      */
+    @SuppressWarnings("unchecked")
     public static <T> AHashSet<T> create(AEquality equality, T... elements) {
         AHashSet<T> result = empty(equality);
         for(T el: elements) {
@@ -92,8 +94,14 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
         return inner.size();
     }
 
-    public boolean contains(T el) {
-        return inner.containsKey(el);
+    @SuppressWarnings("unchecked")
+    /**
+     * The parameter is of type <code>Object</code> rather than <code>T</code> to conform to the signature
+     *  inherited from <code>java.util.Collection</code>. Passing a reference that is not assignable to
+     *  <code>T</code> causes an exception at runtime.
+     */
+    @Override public boolean contains(Object el) {
+        return inner.containsKey((T) el);
     }
 
     /**

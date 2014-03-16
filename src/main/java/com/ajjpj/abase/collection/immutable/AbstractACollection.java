@@ -5,7 +5,9 @@ import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.AEqualsWrapper;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
+import com.ajjpj.abase.function.APredicateNoThrow;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -16,6 +18,8 @@ import java.util.Map;
  * TODO javadoc - flatten, map, flatMap not here --> signature
  *
  * TODO javadoc - toString, hashCode, equals --> equalityForEquals()
+ *
+ * TODO javadoc - contains(*Object*)
  *
  * @author arno
  */
@@ -120,6 +124,84 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         }
 
         return result;
+    }
+
+    //--------------------- java.util.Collection methods
+
+    @Override public boolean contains(final Object o) {
+        return find(new APredicateNoThrow<T>() {
+            @Override public boolean apply(T candidate) {
+                return equalityForEquals().equals(o, candidate);
+            }
+        }).isDefined();
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override public Object[] toArray() {
+        final Object[] result = new Object[size()];
+        int i = 0;
+        for(T o: this) {
+            result[i++] = o;
+        }
+        return result;
+    }
+
+    @SuppressWarnings({"unchecked", "NullableProblems"})
+    @Override public <T1> T1[] toArray(T1[] a) {
+        if(a.length < size()) {
+            a = (T1[]) Array.newInstance(a.getClass().getComponentType());
+        }
+        int i = 0;
+        for(T o: this) {
+            a[i++] = (T1) o;
+        }
+        if(a.length > size()) {
+            a[size()] = null;
+        }
+
+        return a;
+    }
+
+    @Override public boolean add(T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        for(Object o: c) {
+            if(! contains(o)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
     }
 }
 

@@ -244,4 +244,15 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
 
         assertEquals(AHashSet.create(1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
     }
+
+    @Test
+    public void testContains() {
+        assertEquals(false, create().contains("a"));
+        assertEquals(true, create("a").contains("a"));
+        assertEquals(false, create("a").contains("b"));
+        assertEquals(true, create("a", "b", "c").contains("a"));
+        assertEquals(true, create("a", "b", "c").contains("b"));
+        assertEquals(true, create("a", "b", "c").contains("c"));
+        assertEquals(false, create("a", "b", "c").contains("d"));
+    }
 }

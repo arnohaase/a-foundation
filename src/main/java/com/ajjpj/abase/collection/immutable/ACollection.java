@@ -4,6 +4,8 @@ import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
+import java.util.Collection;
+
 
 /**
  * This interface contains methods provided by all a-base collections. Implementing <code>Iterable</code> allows
@@ -14,7 +16,7 @@ import com.ajjpj.abase.function.APredicate;
  *
  * @author arno
  */
-public interface ACollection<T, C extends ACollection<T, C>> extends AFilterMonadic<T, C> {
+public interface ACollection<T, C extends ACollection<T, C>> extends AFilterMonadic<T, C>, Collection<T> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
