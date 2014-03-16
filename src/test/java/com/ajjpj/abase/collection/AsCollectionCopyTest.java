@@ -1,6 +1,13 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.ACollection;
+import com.ajjpj.abase.collection.immutable.AHashSet;
+import com.ajjpj.abase.collection.immutable.AList;
+import org.junit.Test;
+
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author arno
@@ -25,5 +32,35 @@ public class AsCollectionCopyTest extends AbstractCollectionTest<ACollectionHelp
         }
 
         return ACollectionHelper.asACollectionCopy(result);
+    }
+
+    @Test
+    public void testAsCollectionCopy() {
+        final List<String> list = new ArrayList<>(Arrays.asList("a", "b"));
+
+        final ACollection<String, ?> copied = ACollectionHelper.asACollectionCopy(list);
+        assertEquals(2, copied.size());
+        assertEquals(true, copied.nonEmpty());
+        assertEquals(false, copied.isEmpty());
+
+        assertEquals(AList.create("a", "b"), copied.toList());
+        assertEquals(AHashSet.create("a", "b"), copied.toSet());
+
+        list.clear();
+
+        assertEquals(2, copied.size());
+        assertEquals(true, copied.nonEmpty());
+        assertEquals(false, copied.isEmpty());
+
+        assertEquals(AList.create("a", "b"), copied.toList());
+        assertEquals(AHashSet.create("a", "b"), copied.toSet());
+
+        final ACollection<String, ?> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
+        assertEquals(0, copiedEmpty.size());
+        assertEquals(true, copiedEmpty.isEmpty());
+        assertEquals(false, copiedEmpty.nonEmpty());
+
+        assertEquals(AList.<String>nil(), copiedEmpty.toList());
+        assertEquals(AHashSet.<String>empty(), copiedEmpty.toSet());
     }
 }

@@ -5,6 +5,7 @@ import com.ajjpj.abase.collection.immutable.AbstractACollection;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -208,6 +209,32 @@ public class ACollectionHelper {
         return new ACollectionWrapper(c);
     }
 
+    /**
+     * Copies the content of an array into an (immutable) <code>ACollection</code> instance. Subsequent
+     *  changes to the underlying array have no effect on the returned <code>ACollection</code> instance.<p />
+     *
+     * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
+     *  duplicate values are allowed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> AArrayWrapper<T> asArrayCopy(T[] c) {
+        final T[] newArray = (T[]) Array.newInstance(c.getClass().getComponentType(), c.length);
+        System.arraycopy(c, 0, newArray, 0, c.length);
+        return new AArrayWrapper<>(newArray);
+    }
+
+    /**
+     * Wraps the content of an array in an <code>ACollection</code> instance. While the returned
+     *  instance itself has no mutator methods, changes to the underlying array are reflected in the wrapping
+     *  <code>ACollection</code> instance.<p />
+     *
+     * The returned collection has list semantics with regard to <code>map()</code> and other modifying methods; duplicate
+     *  values are allowed.
+     */
+    public static <T> AArrayWrapper<T> asArrayView(T[] c) {
+        return new AArrayWrapper<>(c);
+    }
+
     public static class ACollectionWrapper<T> extends AbstractACollection<T, ACollectionWrapper<T>> {
         private final Collection<T> inner;
 
@@ -244,6 +271,79 @@ public class ACollectionHelper {
         @SuppressWarnings("NullableProblems")
         @Override public Iterator<T> iterator() {
             return inner.iterator();
+        }
+    }
+
+    public static class AArrayWrapper<T> extends AbstractACollection<T, AArrayWrapper<T>> {
+        private final T[] inner;
+
+        private AArrayWrapper(T[] inner) {
+            this.inner = inner;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override protected AArrayWrapper<T> createInternal(Collection<T> elements) {
+            final T[] result = (T[]) Array.newInstance(inner.getClass().getComponentType(), elements.size());
+            int idx = 0;
+            for(T o: elements) {
+                result[idx++] = o;
+            }
+            return new AArrayWrapper<>(result);
+        }
+
+        @Override protected AEquality equalityForEquals() {
+            return AEquality.EQUALS;
+        }
+
+        @Override public int size() {
+            return inner.length;
+        }
+
+        /**
+         * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
+         */
+        @SuppressWarnings("unchecked")
+        @Override public <X> ACollectionWrapper<X> flatten() {
+            return new ACollectionWrapper<>(ACollectionHelper.flatten(Arrays.asList((Iterable<X>[]) inner)));
+        }
+
+        /**
+         * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
+         */
+        @Override
+        public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<X, T, E> f) throws E {
+            return new ACollectionWrapper<>(ACollectionHelper.map(Arrays.asList(inner), f));
+        }
+
+        /**
+         * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
+         */
+        @Override
+        public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+            return new ACollectionWrapper<>(ACollectionHelper.flatMap(Arrays.asList(inner), f));
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Iterator<T> iterator() {
+            return new Iterator<T>() {
+                int idx = 0;
+
+                @Override public boolean hasNext() {
+                    return idx < inner.length;
+                }
+
+                @Override public T next() {
+                    final T result = inner[idx];
+                    idx += 1;
+                    return result;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 

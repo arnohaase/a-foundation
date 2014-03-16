@@ -350,6 +350,7 @@ public class AHashMapTest {
     }
 
     @Test
+    @Ignore
     public void testEqualityIdentity() {
         fail("todo");
     }

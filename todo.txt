@@ -13,9 +13,7 @@ todo
 
 * documentation tests
 
-* ACollection extends juCollection
-
-* Arrays as collections
+* withFilter
 
 * TODO comments
 * warnings
