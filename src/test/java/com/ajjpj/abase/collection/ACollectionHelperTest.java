@@ -228,40 +228,6 @@ public class ACollectionHelperTest {
     }
 
     @Test
-    public void testAsCollectionCopyMkStringNoArgs() {
-        assertEquals("",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList())));
-        assertEquals("a",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a"))));
-        assertEquals("a, b, c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c"))));
-    }
-
-    @Test
-    public void testAsCollectionCopyMkStringSeparator() {
-        assertEquals("",      ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "#"));
-        assertEquals("a",     ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "#"));
-        assertEquals("a#b#c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "#"));
-
-        assertEquals("",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "?!"));
-        assertEquals("a",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "?!"));
-        assertEquals("a?!b?!c", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "?!"));
-    }
-
-    @Test
-    public void testAsCollectionCopyMkStringFull() {
-        assertEquals("[]",      ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "[", "#", "]"));
-        assertEquals("[a]",     ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "[", "#", "]"));
-        assertEquals("[a#b#c]", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "[", "#", "]"));
-
-        assertEquals("<<>>",        ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList()),              "<<", "?!", ">>"));
-        assertEquals("<<a>>",       ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a")),           "<<", "?!", ">>"));
-        assertEquals("<<a?!b?!c>>", ACollectionHelper.mkString(ACollectionHelper.asACollectionCopy(Arrays.asList("a", "b", "c")), "<<", "?!", ">>"));
-    }
-
-    @Test
-    public void testAsCollectionCopyOperations() {
-        fail("todo");
-    }
-
-    @Test
     public void testAsCollectionView() {
         final List<String> list = new ArrayList<>(Arrays.asList("a", "b"));
 

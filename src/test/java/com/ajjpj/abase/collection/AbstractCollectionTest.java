@@ -229,4 +229,19 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
         assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c").toSet());
         assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
     }
+
+    @Test
+    public void testToSetCustom() {
+        final AEquality equality = new AEquality() {
+            @Override public boolean equals(Object o1, Object o2) {
+                return ((Integer)o1)%2 == ((Integer)o2)%2;
+            }
+
+            @Override public int hashCode(Object o) {
+                return 0;
+            }
+        };
+
+        assertEquals(AHashSet.create(1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
+    }
 }

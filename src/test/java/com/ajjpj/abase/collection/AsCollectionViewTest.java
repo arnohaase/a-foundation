@@ -5,17 +5,17 @@ import java.util.*;
 /**
  * @author arno
  */
-public class AsCollectionCopyTest extends AbstractCollectionTest<ACollectionHelper.ACollectionWrapper<String>, ACollectionHelper.ACollectionWrapper<Integer>, ACollectionHelper.ACollectionWrapper<Iterable<String>>> {
-    public AsCollectionCopyTest() {
+public class AsCollectionViewTest extends AbstractCollectionTest<ACollectionHelper.ACollectionWrapper<String>, ACollectionHelper.ACollectionWrapper<Integer>, ACollectionHelper.ACollectionWrapper<Iterable<String>>> {
+    public AsCollectionViewTest() {
         super(false);
     }
 
     @Override public ACollectionHelper.ACollectionWrapper<String> create(String... elements) {
-        return ACollectionHelper.asACollectionCopy(Arrays.asList(elements));
+        return ACollectionHelper.asACollectionView(Arrays.asList(elements));
     }
 
     @Override public ACollectionHelper.ACollectionWrapper<Integer> createInts(Integer... elements) {
-        return ACollectionHelper.asACollectionCopy(Arrays.asList(elements));
+        return ACollectionHelper.asACollectionView(Arrays.asList(elements));
     }
 
     @Override public ACollectionHelper.ACollectionWrapper<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
@@ -24,6 +24,6 @@ public class AsCollectionCopyTest extends AbstractCollectionTest<ACollectionHelp
             result.add(new HashSet<>(ACollectionHelper.asJavaUtilCollection(iter)));
         }
 
-        return ACollectionHelper.asACollectionCopy(result);
+        return ACollectionHelper.asACollectionView(result);
     }
 }
