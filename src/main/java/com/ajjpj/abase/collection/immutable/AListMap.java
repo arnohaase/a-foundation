@@ -360,7 +360,7 @@ public class AListMap <K,V> implements AMap<K,V> {
                 remaining = remaining.tail();
             }
 
-            return AListMap.fromKeysAndValues(raw.reverse().asJavaUtilList());
+            return AListMap.fromKeysAndValues(equality, raw.reverse().asJavaUtilList());
         }
     }
 

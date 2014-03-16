@@ -358,7 +358,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
         @Override
         AOption<V> doGet(K key, int hash, int level) {
-            if(this.key.equals (key)) {
+            if(equality.equals(this.key, key)) {
                 return AOption.some(value);
             }
             return AOption.none();
@@ -366,7 +366,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
         @Override
         AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
-            if (hash == this.hash && key.equals(this.key)) {
+            if (hash == this.hash && equality.equals(key, this.key)) {
                 if(this.value == value) {
                     return this;
                 }
@@ -389,7 +389,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
         @Override
         AHashMap<K,V> doRemoved(K key, int hash, int level) {
-            if (hash == this.hash && key.equals(this.key)) {
+            if (hash == this.hash && equality.equals(key, this.key)) {
                 return empty(equality);
             }
             else {

@@ -310,6 +310,46 @@ public class AHashMapTest {
     }
 
     @Test
+    public void testHashCollision() {
+        final Long withHash1 = 0x100000000L;
+
+        assertEquals(1, withHash1.hashCode());
+        assertEquals(1, Long.valueOf(1).hashCode());
+
+        AMap<Long, Long> map = AHashMap.empty();
+        map = map.updated(1L, 1L);
+        map = map.updated(withHash1, withHash1);
+
+        assertEquals(2, map.size());
+
+        assertEquals(AOption.some(1L), map.get(1L));
+        assertEquals(AOption.some(withHash1), map.get(withHash1));
+    }
+
+    @Test
+    public void testCustomEquality() {
+        final AEquality equality = new AEquality() {
+            @Override public boolean equals(Object o1, Object o2) {
+                return ((Integer) o1)%2 == ((Integer) o2)%2;
+            }
+
+            @Override public int hashCode(Object o) {
+                return 0;
+            }
+        };
+
+        AMap<Integer, Integer> map = AHashMap.empty(equality);
+        map = map.updated(1, 1);
+        map = map.updated(2, 2);
+        map = map.updated(3, 3);
+
+        assertEquals(2, map.size());
+        assertEquals(AOption.some(3), map.get(1));
+        assertEquals(AOption.some(2), map.get(2));
+        assertEquals(AOption.some(3), map.get(3));
+    }
+
+    @Test
     public void testEqualityIdentity() {
         fail("todo");
     }
