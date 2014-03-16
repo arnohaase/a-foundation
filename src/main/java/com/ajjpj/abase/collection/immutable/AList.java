@@ -2,7 +2,6 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.AEqualsWrapper;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
@@ -20,7 +19,7 @@ import java.util.*;
  *
  * @author arno
  */
-abstract public class AList<T> implements ACollection<T, AList<T>> {
+abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
     private final int size;
 
     protected AList(int size) {
@@ -77,6 +76,14 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
         return new JuListWrapper<>(this);
     }
 
+    @Override protected AList<T> createInternal(Collection<T> elements) {
+        return AList.create(elements);
+    }
+
+    @Override protected AEquality equalityForEquals() {
+        return AEquality.EQUALS;
+    }
+
     /**
      * Returns this AList's head, if any.
      */
@@ -115,47 +122,13 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
         return result;
     }
 
-    @Override public boolean isEmpty() {
-        return size == 0;
-    }
-    @Override public boolean nonEmpty() {
-        return size != 0;
-    }
-
     public int size() {
         return size;
     }
 
-    @Override public String mkString(String prefix, String separator, String suffix) {
-        return ACollectionHelper.mkString(this, prefix, separator, suffix);
-    }
-
-    @Override public String mkString() {
-        return ACollectionHelper.mkString(this);
-    }
-
-    @Override public String mkString(String separator) {
-        return ACollectionHelper.mkString(this, separator);
-    }
-
-    @Override public AHashSet<T> toSet() {
-        return toSet(AEquality.EQUALS);
-    }
-
-    @Override public AHashSet<T> toSet(AEquality equality) {
-        return AHashSet.create(equality, this);
-    }
-
     @Override public AList<T> toList() {
+        // override as an optimization
         return this;
-    }
-
-    @Override public <E extends Exception> AList<T> filter (APredicate<T,E> cond) throws E {
-        return create(ACollectionHelper.filter(this, cond));
-    }
-
-    @Override public <E extends Exception> AOption<T> find (APredicate<T,E> cond) throws E {
-        return ACollectionHelper.find(this, cond);
     }
 
     @Override public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E { //TODO junit
@@ -169,62 +142,6 @@ abstract public class AList<T> implements ACollection<T, AList<T>> {
     @SuppressWarnings("unchecked")
     @Override public <X> AList<X> flatten() {
         return (AList<X>) create(ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
-    }
-
-    @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit
-        return ACollectionHelper.forAll(this, pred);
-    }
-
-    @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
-        return ACollectionHelper.exists(this, pred);
-    }
-
-    @Override public <X, E extends Exception> AMap<X, AList<T>> groupBy(AFunction1<X, T, E> f) throws E {//TODO junit
-        return groupBy(f, AEquality.EQUALS);
-    }
-
-    @Override public <X, E extends Exception> AMap<X, AList<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO junit
-        final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(this, f, keyEquality);
-
-        AMap<X, AList<T>> result = AHashMap.empty(keyEquality);
-        for(Map.Entry<AEqualsWrapper<X>, Collection<T>> entry: raw.entrySet()) {
-            result = result.updated(entry.getKey().value, AList.create(entry.getValue()));
-        }
-        return result;
-    }
-
-    @Override public String toString() {
-        return mkString("[", ", ", "]");
-    }
-
-    @Override public boolean equals (Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AList<?> _this = this;
-        AList<?> _that = (AList<?>) o;
-        if(size() != _that.size()) return false;
-
-        while(_this.nonEmpty()) {
-            if(! AEquality.EQUALS.equals(_this.head(), _that.head())) {
-                return false;
-            }
-
-            _this = _this.tail();
-            _that = _that.tail();
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 0;
-
-        for(T o: this) {
-            result = 31*result + (o != null ? o.hashCode() : 0);
-        }
-
-        return result;
     }
 
     /**

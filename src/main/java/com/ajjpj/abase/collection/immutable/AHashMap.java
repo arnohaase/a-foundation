@@ -31,26 +31,26 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
 
     /**
-     * Returns an empty AHashMap instance with default (i.e. equals-based) equality. Calling this factory method instead
+     * Returns an empty AHashMap instance with default (i.e. equals-based) equalityForEquals. Calling this factory method instead
      *  of the constructor allows internal reuse of empty map instances since they are immutable.
      */
     public static <K,V> AHashMap<K,V> empty() {
         return empty(DEFAULT_EQUALITY);
     }
     /**
-     * Returns an empty AHashMap instance with the given equality strategy. Calling this factory method instead of
+     * Returns an empty AHashMap instance with the given equalityForEquals strategy. Calling this factory method instead of
      *  the constructor allows internal reuse of empty map instances since they are immutable.
      */
     @SuppressWarnings("unchecked")
     public static <K,V> AHashMap<K,V> empty(AEquality equality) {
-        // for typical equality implementations, return pre-instantiated objects
+        // for typical equalityForEquals implementations, return pre-instantiated objects
         if(equality == AEquality.EQUALS) return (AHashMap<K, V>) emptyEquals;
         if(equality == AEquality.IDENTITY) return (AHashMap<K, V>) emptyIdentity;
         return new AHashMap<>(equality);
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from the contents of
+     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from the contents of
      *  a given <code>java.util.Map</code>.
      */
     @SuppressWarnings("unused")
@@ -58,7 +58,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return fromJavaUtilMap(DEFAULT_EQUALITY, map);
     }
     /**
-     * Returns an AHashMap instance for a given equality, initializing it from the contents of a given
+     * Returns an AHashMap instance for a given equalityForEquals, initializing it from the contents of a given
      *  <code>java.util.Map</code>.
      */
     public static <K,V> AHashMap<K,V> fromJavaUtilMap(AEquality equality, Map<K,V> map) {
@@ -72,7 +72,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from separate 'keys'
+     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
     @SuppressWarnings("unused")
@@ -80,7 +80,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
     }
     /**
-     * Returns an AHashMap instance with a given equality, initializing it from separate 'keys'
+     * Returns an AHashMap instance with a given equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
     public static <K,V> AHashMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
@@ -99,7 +99,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from a collection of
+     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from a collection of
      *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
      *  determine the corresponding value, and the pair is then stored in the map.
      */
@@ -108,7 +108,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
     }
     /**
-     * Returns an AHashMap instance with a given equality, initializing it from a collection of
+     * Returns an AHashMap instance with a given equalityForEquals, initializing it from a collection of
      *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
      *  determine the corresponding value, and the pair is then stored in the map.
      */

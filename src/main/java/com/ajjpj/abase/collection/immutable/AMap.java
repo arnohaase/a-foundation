@@ -18,7 +18,7 @@ import java.util.Set;
  *  take <code>java.util.Map</code> instances.<p />
  *
  * The AMap contract is <em>not</em> hard-wired to <code>equals()</code> and <code>hashCode()</code> methods.
- *  Implementations are configurable through a pluggable equality strategy, which defaults to equals() and hashCode()
+ *  Implementations are configurable through a pluggable equalityForEquals strategy, which defaults to equals() and hashCode()
  *  however. That allows e.g. using all AMap implementations based on object identity ('==') along the lines of what
  *  <code>java.util.IdentityHashMap</code> does.<p />
  *
@@ -33,13 +33,13 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
 
     /**
      * Returns true iff the map contains the specified key. The containment check is based on the implementation's
-     *  equality strategy, which may or may not use <code>equals()</code>.
+     *  equalityForEquals strategy, which may or may not use <code>equals()</code>.
      */
     boolean containsKey(K key);
 
     /**
      * Returns true iff the map contains the specified value. The containment check is based on the implementation's
-     *  equality strategy, which may or may not use <code>equals()</code>.
+     *  equalityForEquals strategy, which may or may not use <code>equals()</code>.
      */
     boolean containsValue(V value);
 
@@ -60,7 +60,7 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
      *  <code>UnsupportedOperationException</code> for all modifying operations.<p />
      *
      * The returned set is <em>not</em> guaranteed to provide uniqueness with regard to <code>equals()</code>. If the
-     *  map's equality strategy treats two objects as different even if their <code>equals</code> methods return true,
+     *  map's equalityForEquals strategy treats two objects as different even if their <code>equals</code> methods return true,
      *  then the returned set may contain both.
      */
     Set<K> keys();

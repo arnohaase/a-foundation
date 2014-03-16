@@ -7,12 +7,15 @@ todo
   * AEquality.IDENTITY
   * ArrayStack.reverseIterator()
   * AMap.fromMutable(juMap), .fromKeysAndValues(), .fromKeysAndFunction
-  * ACollectionHelper.mkString
+  * AMap.keys(), AMap.values()
+
+* AMap.keys(), AMap.values(): ACollection
 
 * documentation tests
 
+* ACollection extends juCollection
+
 * Arrays as collections
-* Mail an TG --> flatten
 
 * TODO comments
 * warnings

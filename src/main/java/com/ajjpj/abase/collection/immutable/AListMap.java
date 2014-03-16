@@ -23,14 +23,14 @@ public class AListMap <K,V> implements AMap<K,V> {
     private static final AListMap<Object, Object> emptyIdentity = new AListMap<>(AEquality.IDENTITY);
 
     /**
-     * Returns an empty AListMap instance with default (i.e. equals-based) equality. Calling this factory method instead
+     * Returns an empty AListMap instance with default (i.e. equals-based) equalityForEquals. Calling this factory method instead
      *  of the constructor allows internal reuse of empty map instances since they are immutable.
      */
     public static <K,V> AListMap<K,V> empty() {
         return empty(DEFAULT_EQUALITY);
     }
     /**
-     * Returns an empty AListMap instance with a given equality. Calling this factory method instead
+     * Returns an empty AListMap instance with a given equalityForEquals. Calling this factory method instead
      *  of the constructor allows internal reuse of empty map instances since they are immutable.
      */
     @SuppressWarnings("unchecked")
@@ -42,14 +42,14 @@ public class AListMap <K,V> implements AMap<K,V> {
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equality, initializing it from separate 'keys'
+     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
     public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<APair<K,V>> elements) {
         return fromKeysAndValues(DEFAULT_EQUALITY, elements);
     }
     /**
-     * Returns an AHashMap instance with a given equality, initializing it from separate 'keys'
+     * Returns an AHashMap instance with a given equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
     public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<APair<K,V>> elements) {

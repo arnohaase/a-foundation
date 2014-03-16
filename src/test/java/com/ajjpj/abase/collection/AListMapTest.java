@@ -214,7 +214,7 @@ public class AListMapTest {
                         AListMap.empty().updated("b", "1").hashCode());
     }
 
-    //TODO equality
+    //TODO equalityForEquals
 
     @Test
     public void testShotgun() {

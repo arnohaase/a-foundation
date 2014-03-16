@@ -2,7 +2,7 @@ package com.ajjpj.abase.collection;
 
 
 /**
- * This interface represents a strategy for handling equality, typically between elements of a collection. It contains
+ * This interface represents a strategy for handling equalityForEquals, typically between elements of a collection. It contains
  *  both <code>equals()</code> and <code>hashCode</code> methods because in general collections rely on both, and these
  *  two methods must be consistent with each other.<p />
  *
@@ -11,7 +11,7 @@ package com.ajjpj.abase.collection;
  * <ul>
  *     <li>EQUALS: Delegates to <code>Object.equals()</code> and <code>Object.hashCode()</code> of the elements in
  *                 question. This is the default behavior of standard library collections.</li>
- *     <li>IDENTITY: Uses same-ness '==' to decide equality, and <code>System.identityHashCode()</code> for hash code
+ *     <li>IDENTITY: Uses same-ness '==' to decide equalityForEquals, and <code>System.identityHashCode()</code> for hash code
  *                   calculation. This is the behavior exhibited by <code>IdentityHashMap</code>.</li>
  * </ul>
  *

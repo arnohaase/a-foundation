@@ -2,13 +2,10 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.AEqualsWrapper;
 import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.APredicate;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 
 
 /**
@@ -16,18 +13,18 @@ import java.util.Map;
  *  does <em>not</em> implement <code>java.util.Set</code> because that interface is inherently mutable. It does however
  *  provide a method to return an immutable view implementing <code>java.util.Set</code>.<p />
  *
- * It provides uniqueness guarantees based on a configurable equality strategy which defaults to "equals-based".
+ * It provides uniqueness guarantees based on a configurable equalityForEquals strategy which defaults to "equals-based".
  *
  * @author arno
  */
-public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
+public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
     private final AHashMap<T, Boolean> inner;
 
     private static final AHashSet<Object> emptyEquals = new AHashSet<>(AHashMap.<Object, Boolean>empty(AEquality.EQUALS));
     private static final AHashSet<Object> emptyIdentity = new AHashSet<>(AHashMap.<Object, Boolean>empty(AEquality.IDENTITY));
 
     /**
-     * Returns an empty AHashSet instance with default (i.e. equals-based) equality. Using a factory method instead of
+     * Returns an empty AHashSet instance with default (i.e. equals-based) equalityForEquals. Using a factory method instead of
      *  a constructor allows AHashSet to return a cached implementation.
      */
     @SuppressWarnings("unchecked")
@@ -35,7 +32,7 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         return (AHashSet<T>) emptyEquals;
     }
     /**
-     * Returns an empty AHashSet instance with a given equality strategy. Using a factory method instead of
+     * Returns an empty AHashSet instance with a given equalityForEquals strategy. Using a factory method instead of
      *  a constructor allows AHashSet to return a cached implementation.
      */
     @SuppressWarnings("unchecked")
@@ -46,13 +43,13 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
     }
 
     /**
-     * Creates an AHashSet instance with default (i.e. equals-based) equality that is initialized with the elements from a given collection.
+     * Creates an AHashSet instance with default (i.e. equals-based) equalityForEquals that is initialized with the elements from a given collection.
      */
     public static <T> AHashSet<T> create(Iterable<T> elements) {
         return create(AEquality.EQUALS, elements);
     }
     /**
-     * Creates an AHashSet instance with a given equality strategy that is initialized with the elements from a given collection.
+     * Creates an AHashSet instance with a given equalityForEquals strategy that is initialized with the elements from a given collection.
      */
     public static <T> AHashSet<T> create(AEquality equality, Iterable<T> elements) {
         AHashSet<T> result = empty(equality);
@@ -63,13 +60,13 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
     }
 
     /**
-     * Creates an AHashSet instance with default (i.e. equals-based) equality that is initialized with the elements from a given collection.
+     * Creates an AHashSet instance with default (i.e. equals-based) equalityForEquals that is initialized with the elements from a given collection.
      */
     public static <T> AHashSet<T> create(T... elements) {
         return create(AEquality.EQUALS, elements);
     }
     /**
-     * Creates an AHashSet instance with a given equality strategy that is initialized with the elements from a given collection.
+     * Creates an AHashSet instance with a given equalityForEquals strategy that is initialized with the elements from a given collection.
      */
     public static <T> AHashSet<T> create(AEquality equality, T... elements) {
         AHashSet<T> result = empty(equality);
@@ -83,14 +80,16 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         this.inner = inner;
     }
 
+    @Override protected AHashSet<T> createInternal(Collection<T> elements) {
+        return create(elements);
+    }
+
+    @Override protected AEquality equalityForEquals() {
+        return inner.equality;
+    }
+
     public int size() {
         return inner.size();
-    }
-    public boolean isEmpty() {
-        return inner.isEmpty();
-    }
-    public boolean nonEmpty() {
-        return inner.nonEmpty();
     }
 
     public boolean contains(T el) {
@@ -99,7 +98,7 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
 
     /**
      * This method creates and returns a new AHashSet instance that is guaranteed to contain the given new element.
-     *  'Containment' is relative to the configured equality strategy - if e.g. the set uses AEquality.IDENTITY, it
+     *  'Containment' is relative to the configured equalityForEquals strategy - if e.g. the set uses AEquality.IDENTITY, it
      *   can contain two objects that are equal without being the same.<p />
      *
      * This is the only method to add elements to the set.
@@ -115,7 +114,7 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
 
     /**
      * This method creates and returns a new AHashSet instance that is guaranteed not to contain the given element.
-     *  'Containment' is relative to the configured equality strategy - if e.g. the set uses AEquality.IDENTITY, it
+     *  'Containment' is relative to the configured equalityForEquals strategy - if e.g. the set uses AEquality.IDENTITY, it
      *  might not remove an element that is equal to the object that is passed to the <code>removed()</code> method
      *  if they are not the same.<p />
      *
@@ -144,50 +143,25 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
 
     @Override
     public int hashCode() {
+        // overridden as an optimization
         return inner.hashCode();
     }
 
     @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
+        // overridden as an optimization
         if(o == this) {
             return true;
         }
         if(! (o instanceof AHashSet)) {
             return false;
         }
-        return inner.equals(((AHashSet)o).inner);
-    }
-
-    @Override public String toString() {
-        return mkString("[", ", ", "]");
-    }
-
-    @Override public AList<T> toList() {
-        return AList.create(this);
-    }
-
-    @Override public String mkString() {
-        return ACollectionHelper.mkString(this);
-    }
-
-    @Override public String mkString(String prefix, String separator, String suffix) {
-        return ACollectionHelper.mkString(this, prefix, separator, suffix);
-    }
-
-    @Override public String mkString(String separator) {
-        return ACollectionHelper.mkString(this, separator);
-    }
-
-    @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E { //TODO junit test
-        return ACollectionHelper.forAll(this, pred);
-    }
-
-    @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E { //TODO junit
-        return ACollectionHelper.exists(this, pred);
+        return inner.equals(((AHashSet) o).inner);
     }
 
     @Override public AHashSet<T> toSet() {
+        // overridden as an optimization
         return this;
     }
 
@@ -198,12 +172,8 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
         return AHashSet.<T>create(equality, this);
     }
 
-    @Override public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
-        return ACollectionHelper.find(this, pred);
-    }
-
     @Override public <X, E extends Exception> AHashSet<X> map(AFunction1<X, T, E> f) throws E {
-        // list instead of set to support arbitrary equality implementations
+        // list instead of set to support arbitrary equalityForEquals implementations
         return create(inner.equality, ACollectionHelper.map(this, f));
     }
 
@@ -214,23 +184,5 @@ public class AHashSet<T> implements ACollection<T, AHashSet<T>> {
     @SuppressWarnings("unchecked")
     @Override public <X> AHashSet<X> flatten() {
         return (AHashSet<X>) create(inner.equality, ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
-    }
-
-    @Override public <E extends Exception> AHashSet<T> filter(APredicate<T, E> pred) throws E {
-        return create(inner.equality, ACollectionHelper.filter(this, pred));
-    }
-
-    @Override public <X, E extends Exception> AMap<X, AHashSet<T>> groupBy(AFunction1<X, T, E> f) throws E { //TODO javadoc: *equals* based (and *not* the same as here!)
-        return groupBy(f, AEquality.EQUALS);
-    }
-
-    @Override public <X, E extends Exception> AMap<X, AHashSet<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E {
-        final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(this, f, keyEquality);
-
-        AMap<X, AHashSet<T>> result = AHashMap.empty(keyEquality);
-        for(Map.Entry<AEqualsWrapper<X>, Collection<T>> entry: raw.entrySet()) {
-            result = result.updated(entry.getKey().value, AHashSet.create(entry.getValue()));
-        }
-        return result;
     }
 }
