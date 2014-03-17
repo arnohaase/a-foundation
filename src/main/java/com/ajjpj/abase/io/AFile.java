@@ -1,7 +1,11 @@
 package com.ajjpj.abase.io;
 
+import com.ajjpj.abase.collection.ACollectionHelper;
+import com.ajjpj.abase.collection.immutable.AOption;
+import com.ajjpj.abase.collection.immutable.ATraversable;
 import com.ajjpj.abase.function.AFunction0;
 import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.APredicate;
 import com.ajjpj.abase.function.AStatement1;
 import com.ajjpj.abase.util.AUnchecker;
 
@@ -15,7 +19,7 @@ import java.util.List;
 /**
  * @author arno
  */
-public class AFile {
+public class AFile implements ATraversable<String> {
     private final File file;
     private final Charset encoding;
 
@@ -106,5 +110,114 @@ public class AFile {
 
             return callback.apply(iter);
         }
+    }
+
+
+
+
+    private Iterator<String> iterator(final BufferedReader r) throws IOException {
+        return new Iterator<String>() {
+            private String line = r.readLine();
+
+            @Override
+            public boolean hasNext() {
+                return line != null;
+            }
+
+            @Override
+            public String next() {
+                return AUnchecker.executeUnchecked(new AFunction0<String, IOException>() {
+                    @Override
+                    public String apply() throws IOException {
+                        final String result = line;
+                        line = r.readLine();
+                        return result;
+                    }
+                });
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    @Override public <E extends Exception> void forEach(AStatement1<? super String, E> f) throws E {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
+            final Iterator<String> iter = iterator(r);
+            while(iter.hasNext()) {
+                f.apply(iter.next());
+            }
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+        }
+    }
+
+    @Override
+    public <E extends Exception> ATraversable<String> filter(APredicate<? super String, E> pred) throws E {
+        try {
+            return ACollectionHelper.asACollectionView(ACollectionHelper.filter(lines(), pred));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+            return null; // for the compiler
+        }
+    }
+
+    @Override
+    public <X, E extends Exception> ATraversable<X> map(AFunction1<? super String, ? extends X, E> f) throws E {
+        try {
+            return ACollectionHelper.asACollectionView(ACollectionHelper.map(lines(), f));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+            return null; // for the compiler
+        }
+    }
+
+    @Override
+    public <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super String, ? extends Iterable<X>, E> f) throws E {
+        try {
+            return ACollectionHelper.asACollectionView(ACollectionHelper.flatMap(lines(), f));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+            return null; // for the compiler
+        }
+    }
+
+    @Override public <E extends Exception> AOption<String> find(APredicate<? super String, E> pred) throws E {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
+            final Iterator<String> iter = iterator(r);
+            while(iter.hasNext()) {
+                final String candidate = iter.next();
+                if(pred.apply(candidate)) {
+                    return AOption.some(candidate);
+                }
+            }
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+        }
+        return AOption.none();
+    }
+
+    @Override public <X> ATraversable<X> flatten() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <E extends Exception> boolean forAll(APredicate<? super String, E> pred) throws E {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
+            final Iterator<String> iter = iterator(r);
+            while(iter.hasNext()) {
+                if(! pred.apply(iter.next())) {
+                    return false;
+                }
+            }
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+        }
+        return true;
+    }
+
+    @Override public <E extends Exception> boolean exists(APredicate<? super String, E> pred) throws E {
+        return find(pred).isDefined();
     }
 }
