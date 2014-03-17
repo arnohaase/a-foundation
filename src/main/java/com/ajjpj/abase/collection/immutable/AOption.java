@@ -32,7 +32,7 @@ import java.util.*;
  *
  * @author arno
  */
-public abstract class AOption<T> implements ACollection<T, AOption<T>> {
+public abstract class AOption<T> implements ACollection<T> {
     public static <T> AOption<T> some(T el) {
         return new ASome<>(el);
     }
@@ -60,7 +60,7 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
 
-    @Override public <X> ACollection<X, ? extends ACollection<X, ?>> flatten() {
+    @Override public <X> ACollection<X> flatten() {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
 

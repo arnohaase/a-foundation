@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * @author arno
  */
-public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>> implements ACollection<T, C> {
+public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>> implements ACollection<T> {
     protected abstract C createInternal(Collection<T> elements);
     protected abstract AEquality equalityForEquals();
 
@@ -125,10 +125,10 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        if(size() != ((ACollection<?,?>)o).size()) return false;
+        if(size() != ((ACollection<?>)o).size()) return false;
 
         final Iterator<?> _this = iterator();
-        final Iterator<?> _that = ((ACollection<?,?>)o).iterator();
+        final Iterator<?> _that = ((ACollection<?>)o).iterator();
 
         while(_this.hasNext()) {
             if(! AEquality.EQUALS.equals(_this.next(), _that.next())) {

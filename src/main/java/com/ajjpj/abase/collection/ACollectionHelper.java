@@ -256,16 +256,16 @@ public class ACollectionHelper {
             return inner.size();
         }
 
-        @Override public <X, E extends Exception> ACollection<X, ?> map(AFunction1<? super T, ? extends X, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
         }
 
-        @Override public <X, E extends Exception> ACollection<X, ?> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
         }
 
         @SuppressWarnings("unchecked")
-        @Override public <X> ACollection<X, ?> flatten() {
+        @Override public <X> ACollection<X> flatten() {
             return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
         }
 

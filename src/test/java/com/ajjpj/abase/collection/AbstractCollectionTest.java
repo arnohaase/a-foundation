@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
-public abstract class AbstractCollectionTest<C extends ACollection<String, C>, CI extends ACollection<Integer, CI>, CC extends ACollection<Iterable<String>, CC>> {
+public abstract class AbstractCollectionTest<C extends ACollection<String>, CI extends ACollection<Integer>, CC extends ACollection<Iterable<String>>> {
     private final boolean removesDuplicates;
 
     protected AbstractCollectionTest(boolean removesDuplicates) {
@@ -72,7 +72,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
         assertEquals(create("a", "b", "c"), create(fromForEach(create("a", "b", "c"))));
     }
 
-    private String[] fromForEach(ACollection<String, ?> raw) {
+    private String[] fromForEach(ACollection<String> raw) {
         final Collection<String> result = new ArrayList<>();
         raw.forEach(new AStatement1NoThrow<String>() {
             @Override public void apply(String param) {
@@ -171,7 +171,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
 
     @Test
     public void testFlatten() {
-        final ACollection<String, ? extends ACollection<String, ?>> flattened = createIter(Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("b", "c", "d"))).flatten();
+        final ACollection<String> flattened = createIter(Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("b", "c", "d"))).flatten();
 
         assertEquals(AHashSet.create("a", "b", "c", "d"), flattened.toSet());
         if(!removesDuplicates) {
@@ -204,7 +204,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
             }
         };
 
-        final AMap<Integer, C> grouped = create("a", "bc", "d", "efg", "hi", "j").groupBy(len);
+        final AMap<Integer, ? extends ACollection<String>> grouped = create("a", "bc", "d", "efg", "hi", "j").groupBy(len);
         assertEquals(3, grouped.size());
         assertEquals(create("a", "d", "j"), grouped.getRequired(1));
         assertEquals(create("bc", "hi"), grouped.getRequired(2));
@@ -229,7 +229,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
             }
         };
 
-        final AMap<Integer, C> grouped = create("a", "bc", "d", "efg", "hi", "j").groupBy(len, equality);
+        final AMap<Integer, ? extends ACollection<String>> grouped = create("a", "bc", "d", "efg", "hi", "j").groupBy(len, equality);
         assertEquals(2, grouped.size());
         assertEquals(create("a", "d", "efg", "j"), grouped.getRequired(1));
         assertEquals(create("bc", "hi"),           grouped.getRequired(2));

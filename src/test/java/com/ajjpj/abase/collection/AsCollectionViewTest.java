@@ -12,20 +12,20 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author arno
  */
-public class AsCollectionViewTest extends AbstractCollectionTest<ACollectionHelper.ACollectionWrapper<String>, ACollectionHelper.ACollectionWrapper<Integer>, ACollectionHelper.ACollectionWrapper<Iterable<String>>> {
+public class AsCollectionViewTest extends AbstractCollectionTest<ACollection<String>, ACollection<Integer>, ACollection<Iterable<String>>> {
     public AsCollectionViewTest() {
         super(false);
     }
 
-    @Override public ACollectionHelper.ACollectionWrapper<String> create(String... elements) {
+    @Override public ACollection<String> create(String... elements) {
         return ACollectionHelper.asACollectionView(Arrays.asList(elements));
     }
 
-    @Override public ACollectionHelper.ACollectionWrapper<Integer> createInts(Integer... elements) {
+    @Override public ACollection<Integer> createInts(Integer... elements) {
         return ACollectionHelper.asACollectionView(Arrays.asList(elements));
     }
 
-    @Override public ACollectionHelper.ACollectionWrapper<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
+    @Override public ACollection<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
         final List<Iterable<String>> result = new ArrayList<>(); // create inner collections with the opposite set/list semantics from the outer collection
         for(Iterable<String> iter: elements) {
             result.add(new HashSet<>(ACollectionHelper.asJavaUtilCollection(iter)));
@@ -38,7 +38,7 @@ public class AsCollectionViewTest extends AbstractCollectionTest<ACollectionHelp
     public void testAsCollectionView() {
         final List<String> list = new ArrayList<>(Arrays.asList("a", "b"));
 
-        final ACollection<String, ?> copied = ACollectionHelper.asACollectionView(list);
+        final ACollection<String> copied = ACollectionHelper.asACollectionView(list);
         assertEquals(2, copied.size());
         assertEquals(true, copied.nonEmpty());
         assertEquals(false, copied.isEmpty());
@@ -55,7 +55,7 @@ public class AsCollectionViewTest extends AbstractCollectionTest<ACollectionHelp
         assertEquals(AList.<String>nil(), copied.toList());
         assertEquals(AHashSet.<String>empty(), copied.toSet());
 
-        final ACollection<String, ?> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
+        final ACollection<String> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
         assertEquals(0, copiedEmpty.size());
         assertEquals(true, copiedEmpty.isEmpty());
         assertEquals(false, copiedEmpty.nonEmpty());
