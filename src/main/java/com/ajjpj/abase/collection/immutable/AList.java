@@ -131,11 +131,11 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
         return this;
     }
 
-    @Override public <X,E extends Exception> AList<X> map (AFunction1<X, T, E> f) throws E { //TODO junit
+    @Override public <X,E extends Exception> AList<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
         return create(ACollectionHelper.map(this, f));
     }
 
-    @Override public <X, E extends Exception> AList<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> AList<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         return create(ACollectionHelper.flatMap(this, f));
     }
 
@@ -215,11 +215,11 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
             throw new NoSuchElementException("no 'tail' for an empty list.");
         }
 
-        @Override public <E extends Exception> boolean forAll(APredicate<Object, E> pred) throws E {
+        @Override public <E extends Exception> boolean forAll(APredicate<? super Object, E> pred) throws E {
             return true;
         }
 
-        @Override public <E extends Exception> boolean exists(APredicate<Object, E> pred) throws E {
+        @Override public <E extends Exception> boolean exists(APredicate<? super Object, E> pred) throws E {
             return false;
         }
     }

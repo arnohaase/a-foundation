@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.ACollection;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Test;
@@ -15,21 +16,21 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
-public class AsArrayViewTest extends AbstractCollectionTest<ACollectionHelper.AArrayWrapper<String>, ACollectionHelper.ACollectionWrapper<Integer>, ACollectionHelper.AArrayWrapper<Iterable<String>>> {
+public class AsArrayViewTest extends AbstractCollectionTest<ACollection<String>, ACollection<Integer>, ACollection<Iterable<String>>> {
     public AsArrayViewTest() {
         super(false);
     }
 
-    @Override public ACollectionHelper.AArrayWrapper<String> create(String... elements) {
+    @Override public ACollection<String> create(String... elements) {
         return ACollectionHelper.asArrayView(elements);
     }
 
-    @Override public ACollectionHelper.ACollectionWrapper<Integer> createInts(Integer... elements) {
+    @Override public ACollection<Integer> createInts(Integer... elements) {
         return ACollectionHelper.asACollectionCopy(Arrays.asList(elements));
     }
 
     @SuppressWarnings("unchecked")
-    @Override public ACollectionHelper.AArrayWrapper<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
+    @Override public ACollection<Iterable<String>> createIter(Collection<? extends Iterable<String>> elements) {
         final Iterable<String>[] result = new Iterable[elements.size()];
 
         int idx=0;
@@ -43,7 +44,7 @@ public class AsArrayViewTest extends AbstractCollectionTest<ACollectionHelper.AA
     @Test
     public void testIsolation() {
         final String[] raw = new String[]{"a", "b"};
-        final ACollectionHelper.AArrayWrapper<String> wrapped = ACollectionHelper.asArrayView(raw);
+        final ACollection<String> wrapped = ACollectionHelper.asArrayView(raw);
 
         raw[0] = "x";
         raw[1] = "y";
@@ -51,7 +52,7 @@ public class AsArrayViewTest extends AbstractCollectionTest<ACollectionHelper.AA
         assertEquals("x, y", wrapped.mkString());
     }
 
-    private ACollectionHelper.ACollectionWrapper<String> createColl(String... elements) {
+    private ACollection<String> createColl(String... elements) {
         return ACollectionHelper.asACollectionCopy(Arrays.asList(elements));
     }
 

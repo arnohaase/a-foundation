@@ -4,7 +4,6 @@ import com.ajjpj.abase.collection.ACompositeIterator;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.*;
 
@@ -104,7 +103,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
      *  determine the corresponding value, and the pair is then stored in the map.
      */
     @SuppressWarnings("unused")
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<V, K, E> f) throws E {
+    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
     }
     /**
@@ -112,7 +111,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
      *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
      *  determine the corresponding value, and the pair is then stored in the map.
      */
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<V, K, E> f) throws E {
+    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
         AHashMap<K,V> result = AHashMap.empty(equality);
@@ -185,7 +184,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
     }
 
     @Override
-    public AMap<K, V> withDefault(AFunction1NoThrow<V, K> function) {
+    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<>(this, function);
     }
 
@@ -281,7 +280,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
         return this;
     }
 
-    private static int computeHash(Object key, AEquality equality) {
+    private static int computeHash(Object key, AEquality equality) { //TODO ask why this algorithm is used
         int h = equality.hashCode(key);
         h = h + ~(h << 9);
         h = h ^ (h >>> 14);

@@ -13,7 +13,9 @@ todo
 
 * documentation tests
 
-* withFilter
+* collect(), withFilter()
+* file: asMap; ATraversable
+* (infinite) streams
 
 * TODO comments
 * warnings

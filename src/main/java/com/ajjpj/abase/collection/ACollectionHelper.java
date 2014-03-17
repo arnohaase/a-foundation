@@ -1,5 +1,6 @@
 package com.ajjpj.abase.collection;
 
+import com.ajjpj.abase.collection.immutable.ACollection;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.collection.immutable.AbstractACollection;
 import com.ajjpj.abase.function.AFunction1;
@@ -54,7 +55,7 @@ public class ACollectionHelper {
     /**
      * Returns an element of a collection that matches a predicate, if any, or AOption.none() if there is no match.
      */
-    public static <T, E extends Exception> AOption<T> find(Iterable<T> coll, APredicate<T, E> pred) throws E {
+    public static <T, E extends Exception> AOption<T> find(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(pred.apply(o)) {
                 return AOption.some(o);
@@ -66,7 +67,7 @@ public class ACollectionHelper {
     /**
      * Matches a predicate against collection elements, and returns true iff it matches them all.
      */
-    public static <T, E extends Exception> boolean forAll(Iterable<T> coll, APredicate<T, E> pred) throws E {
+    public static <T, E extends Exception> boolean forAll(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(!pred.apply(o)) {
                 return false;
@@ -78,7 +79,7 @@ public class ACollectionHelper {
     /**
      * Matches a predicate against collection elements, and returns true iff it matches at least one of them.
      */
-    public static <T, E extends Exception> boolean exists(Iterable<T> coll, APredicate<T, E> pred) throws E {
+    public static <T, E extends Exception> boolean exists(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(pred.apply(o)) {
                 return true;
@@ -90,7 +91,7 @@ public class ACollectionHelper {
     /**
      * Applies a transformation function to all elements of a collection, creating a new collection from the results.
      */
-    public static <T, X, E extends Exception> Collection<X> map(Iterable<T> coll, AFunction1<X, T, E> f) throws E {
+    public static <T, X, E extends Exception> Collection<X> map(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -104,7 +105,7 @@ public class ACollectionHelper {
      * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
      *  flattened into a single collection.
      */
-    public static <T, X, E extends Exception> Collection<X> flatMap(Iterable<T> coll, AFunction1<? extends Iterable<X>, T, E> f) throws E {
+    public static <T, X, E extends Exception> Collection<X> flatMap(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -133,7 +134,7 @@ public class ACollectionHelper {
     /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
-    public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<T, E> pred) throws E {
+    public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         final List<T> result = new ArrayList<>();
         for(T o: coll) {
             if(pred.apply(o)) {
@@ -147,7 +148,7 @@ public class ACollectionHelper {
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
-    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy(Iterable<T> coll, AFunction1<X, T, E> f) throws E {
+    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, Collection<T>> result = new HashMap<>();
         for(T o: coll) {
             final X key = f.apply(o);
@@ -171,7 +172,7 @@ public class ACollectionHelper {
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
      */
-    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Collection<T>> groupBy(Iterable<T> coll, AFunction1<X, T, E> f, AEquality keyEquality) throws E {
+    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Collection<T>> groupBy(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
         final Map<AEqualsWrapper<X>, Collection<T>> result = new HashMap<>();
         for(T o: coll) {
             final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
@@ -235,7 +236,7 @@ public class ACollectionHelper {
         return new AArrayWrapper<>(c);
     }
 
-    public static class ACollectionWrapper<T> extends AbstractACollection<T, ACollectionWrapper<T>> {
+    private static class ACollectionWrapper<T> extends AbstractACollection<T, ACollectionWrapper<T>> {
         private final Collection<T> inner;
 
         private ACollectionWrapper(Collection<T> inner) {
@@ -255,16 +256,16 @@ public class ACollectionHelper {
             return inner.size();
         }
 
-        @Override public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<X, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X, ?> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
         }
 
-        @Override public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+        @Override public <X, E extends Exception> ACollection<X, ?> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
         }
 
         @SuppressWarnings("unchecked")
-        @Override public <X> ACollectionWrapper<X> flatten() {
+        @Override public <X> ACollection<X, ?> flatten() {
             return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
         }
 
@@ -274,7 +275,7 @@ public class ACollectionHelper {
         }
     }
 
-    public static class AArrayWrapper<T> extends AbstractACollection<T, AArrayWrapper<T>> {
+    private static class AArrayWrapper<T> extends AbstractACollection<T, AArrayWrapper<T>> {
         private final T[] inner;
 
         private AArrayWrapper(T[] inner) {
@@ -311,7 +312,7 @@ public class ACollectionHelper {
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
         @Override
-        public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<X, T, E> f) throws E {
+        public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(Arrays.asList(inner), f));
         }
 
@@ -319,7 +320,7 @@ public class ACollectionHelper {
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
         @Override
-        public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+        public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(Arrays.asList(inner), f));
         }
 
@@ -348,9 +349,13 @@ public class ACollectionHelper {
     }
 
     /**
-     * Copies an <code>Iterable</code> into a <code>Collection</code>.
+     * Returns a <code>Collection</code> with the exact same elements as an <code>Iterable</code>, copying only if the parameter is not a collection.
      */
-    public static <T> Collection<T> asJavaUtilCollection(Iterable<T> c) { //TODO JUnit
+    public static <T> Collection<T> asJavaUtilCollection(Iterable<T> c) {
+        if(c instanceof Collection) {
+            return (Collection<T>) c;
+        }
+
         return asJavaUtilCollection(c.iterator());
     }
 

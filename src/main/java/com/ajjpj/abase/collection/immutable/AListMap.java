@@ -2,6 +2,7 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.APair;
+import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 
 import java.util.*;
@@ -218,7 +219,7 @@ public class AListMap <K,V> implements AMap<K,V> {
     }
 
     @Override
-    public AMap<K, V> withDefault(AFunction1NoThrow<V, K> function) {
+    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<>(this, function);
     }
 
@@ -355,7 +356,7 @@ public class AListMap <K,V> implements AMap<K,V> {
 
             while(remaining.nonEmpty()) {
                 if(! equality.equals(remaining.key(), key)) {
-                    raw = raw.cons(new APair<>(remaining.key(), remaining.value())); //TODO terminate - the key should have been unique
+                    raw = raw.cons(new APair<>(remaining.key(), remaining.value()));
                 }
                 remaining = remaining.tail();
             }

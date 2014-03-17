@@ -4,6 +4,7 @@ import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
+import com.ajjpj.abase.function.AStatement1;
 
 import java.util.*;
 
@@ -55,7 +56,7 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
         return isDefined() ? get() : el;
     }
 
-    @Override public <X, E extends Exception> AFilterMonadic<X, ? extends AFilterMonadic<X, ?>> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
 
@@ -94,15 +95,19 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
             return true;
         }
 
-        @Override public <E extends Exception> AOption<T> find(APredicate<T, E> pred) throws E {
+        @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E {
+            f.apply(el);
+        }
+
+        @Override public <E extends Exception> AOption<T> find(APredicate<? super T, E> pred) throws E {
             return filter(pred);
         }
 
-        @Override public <X,E extends Exception> AOption<X> map(AFunction1<X, T, E> f) throws E {
+        @Override public <X,E extends Exception> AOption<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return some(f.apply(el));
         }
 
-        @Override public <E extends Exception> AOption<T> filter(APredicate<T, E> pred) throws E {
+        @Override public <E extends Exception> AOption<T> filter(APredicate<? super T, E> pred) throws E {
             if(pred.apply(el))
                 return this;
             else
@@ -117,19 +122,19 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
             return true;
         }
 
-        @Override public <E extends Exception> boolean forAll(APredicate<T, E> pred) throws E {
+        @Override public <E extends Exception> boolean forAll(APredicate<? super T, E> pred) throws E {
             return find(pred).isDefined();
         }
 
-        @Override public <E extends Exception> boolean exists(APredicate<T, E> pred) throws E {
+        @Override public <E extends Exception> boolean exists(APredicate<? super T, E> pred) throws E {
             return find(pred).isDefined();
         }
 
-        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<X, T, E> f) throws E {
+        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<? super T, ? extends X, E> f) throws E {
             return groupBy(f, AEquality.EQUALS);
         }
 
-        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<X, T, E> f, AEquality keyEquality) throws E { //TODO junit
+        @Override public <X, E extends Exception> AMap<X, AOption<T>> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E { //TODO junit
             final AMap<X, AOption<T>> result = AHashMap.empty(keyEquality);
             return result.updated(f.apply(el), this);
         }
@@ -234,15 +239,19 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
             return false;
         }
 
-        @Override public <E extends Exception> AOption<Object> find(APredicate<Object, E> pred) throws E {
+        @Override public <E extends Exception> void forEach(AStatement1<? super Object, E> f) {
+            // nothing to be done
+        }
+
+        @Override public <E extends Exception> AOption<Object> find(APredicate<? super Object, E> pred) throws E {
             return none();
         }
 
-        @Override public <X,E extends Exception> AOption<X> map(AFunction1<X, Object, E> f) {
+        @Override public <X,E extends Exception> AOption<X> map(AFunction1<? super Object, ? extends X, E> f) {
             return none();
         }
 
-        @Override public <E extends Exception> AOption<Object> filter(APredicate<Object, E> pred) {
+        @Override public <E extends Exception> AOption<Object> filter(APredicate<? super Object, E> pred) {
             return none();
         }
 
@@ -254,19 +263,19 @@ public abstract class AOption<T> implements ACollection<T, AOption<T>> {
             return 0;
         }
 
-        @Override public <E extends Exception> boolean forAll(APredicate<Object, E> pred) throws E {
+        @Override public <E extends Exception> boolean forAll(APredicate<? super Object, E> pred) throws E {
             return true;
         }
 
-        @Override public <E extends Exception> boolean exists(APredicate<Object, E> pred) throws E {
+        @Override public <E extends Exception> boolean exists(APredicate<? super Object, E> pred) throws E {
             return false;
         }
 
-        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<X, Object, E> f) throws E {
+        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<? super Object, ? extends X, E> f) throws E {
             return AHashMap.empty(); //TODO junit
         }
 
-        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<X, Object, E> f, AEquality keyEquality) throws E {
+        @Override public <X, E extends Exception> AMap<X, AOption<Object>> groupBy(AFunction1<? super Object, ? extends X, E> f, AEquality keyEquality) throws E {
             return AHashMap.empty(keyEquality); //TODO junit
         }
 

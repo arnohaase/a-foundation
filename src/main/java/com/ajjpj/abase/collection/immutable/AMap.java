@@ -1,7 +1,7 @@
 package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.APair;
-import com.ajjpj.abase.function.AFunction1NoThrow;
+import com.ajjpj.abase.function.AFunction1;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -110,5 +110,5 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
      * NB: This does <em>not</em> cause the calculated value to be stored in the map; repeated calls for the same
      *  key trigger the value's calculation anew each time.
      */
-    AMap<K,V> withDefault(AFunction1NoThrow<V,K> function);
+    AMap<K,V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function);
 }

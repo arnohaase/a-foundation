@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+
 /**
  * @author arno
  */
@@ -74,7 +75,8 @@ public class AFile {
             callback.apply(iter);
         }
     }
-    public <R, E extends Exception> R iterate(AFunction1<R, Iterator<String>, E> callback) throws E, IOException {
+
+    public <R, E extends Exception> R iterate(AFunction1<? super Iterator<String>, ? extends R, E> callback) throws E, IOException {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = new Iterator<String>() {
                 private String line = r.readLine();

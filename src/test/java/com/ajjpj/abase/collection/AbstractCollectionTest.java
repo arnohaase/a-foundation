@@ -3,6 +3,7 @@ package com.ajjpj.abase.collection;
 import com.ajjpj.abase.collection.immutable.*;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import com.ajjpj.abase.function.APredicateNoThrow;
+import com.ajjpj.abase.function.AStatement1NoThrow;
 import org.junit.Test;
 
 import java.util.*;
@@ -62,6 +63,23 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
         assertEquals("<<>>",        create().             mkString("<<", "?!", ">>"));
         assertEquals("<<a>>",       create("a").          mkString("<<", "?!", ">>"));
         assertEquals("<<a?!b?!c>>", create("a", "b", "c").mkString("<<", "?!", ">>"));
+    }
+
+    @Test
+    public void testForEach() {
+        assertEquals(create(), create(fromForEach(create())));
+        assertEquals(create("a"), create(fromForEach(create("a"))));
+        assertEquals(create("a", "b", "c"), create(fromForEach(create("a", "b", "c"))));
+    }
+
+    private String[] fromForEach(ACollection<String, ?> raw) {
+        final Collection<String> result = new ArrayList<>();
+        raw.forEach(new AStatement1NoThrow<String>() {
+            @Override public void apply(String param) {
+                result.add(param);
+            }
+        });
+        return result.toArray(new String[0]);
     }
 
     @Test
@@ -194,7 +212,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String, C>, C
     }
 
     @Test
-    public void testGroupByCustomEquality() { //TODO there appears to be a bug in AHashMap if non-equal values with the same hash code are used as keys
+    public void testGroupByCustomEquality() {
         final AEquality equality = new AEquality() {
             @Override public boolean equals(Object o1, Object o2) {
                 return ((Integer)o1)%2 == ((Integer)o2)%2;

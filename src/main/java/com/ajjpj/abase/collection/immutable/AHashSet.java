@@ -180,12 +180,12 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
         return AHashSet.<T>create(equality, this);
     }
 
-    @Override public <X, E extends Exception> AHashSet<X> map(AFunction1<X, T, E> f) throws E {
+    @Override public <X, E extends Exception> AHashSet<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
         // list instead of set to support arbitrary equalityForEquals implementations
         return create(inner.equality, ACollectionHelper.map(this, f));
     }
 
-    @Override public <X, E extends Exception> AHashSet<X> flatMap(AFunction1<? extends Iterable<X>, T, E> f) throws E {
+    @Override public <X, E extends Exception> AHashSet<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         return create(inner.equality, ACollectionHelper.flatMap(this, f));
     }
 

@@ -1,14 +1,14 @@
 package com.ajjpj.abase.collection.immutable;
 
-import com.ajjpj.abase.function.AFunction1NoThrow;
+import com.ajjpj.abase.function.AFunction1;
 
 /**
  * @author arno
  */
 class AMapWithDefault<K,V> extends AWrappedMap<K,V> {
-    private final AFunction1NoThrow<V,K> defaultFunction;
+    private final AFunction1<? super K, ? extends V, ? extends RuntimeException> defaultFunction;
 
-    AMapWithDefault(AMap<K, V> inner, AFunction1NoThrow<V,K> defaultFunction) {
+    AMapWithDefault(AMap<K, V> inner, AFunction1<? super K, ? extends V, ? extends RuntimeException> defaultFunction) {
         super(inner);
         this.defaultFunction = defaultFunction;
     }

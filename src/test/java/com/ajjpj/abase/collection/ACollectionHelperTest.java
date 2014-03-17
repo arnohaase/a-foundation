@@ -1,8 +1,5 @@
 package com.ajjpj.abase.collection;
 
-import com.ajjpj.abase.collection.immutable.ACollection;
-import com.ajjpj.abase.collection.immutable.AHashSet;
-import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import com.ajjpj.abase.function.APredicateNoThrow;
@@ -195,5 +192,34 @@ public class ACollectionHelperTest {
         assertEquals(2, grouped.size());
         assertEquals(Arrays.asList("a", "d", "efg", "j"), grouped.get(new AEqualsWrapper<>(equality, 1)));
         assertEquals(Arrays.asList("bc", "hi"),           grouped.get(new AEqualsWrapper<>(equality, 2)));
+    }
+
+    @Test
+    public void testAsJavaUtilCollection() {
+        assertEquals(true, ACollectionHelper.asJavaUtilCollection(new ArrayList<>()           ).isEmpty());
+        assertEquals(true, ACollectionHelper.asJavaUtilCollection(new ArrayList<>().iterator()).isEmpty());
+
+        assertEquals(true, ACollectionHelper.asJavaUtilCollection(new Iterable<String>() {
+            @Override public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    @Override public boolean hasNext() {
+                        return false;
+                    }
+
+                    @Override public String next() {
+                        return null;
+                    }
+
+                    @Override public void remove() {
+                    }
+                };
+            }
+        }).isEmpty());
+
+        assertEquals(Arrays.asList("a"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a")           ));
+        assertEquals(Arrays.asList("a"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a").iterator()));
+
+        assertEquals(Arrays.asList("a", "b"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a", "b")           ));
+        assertEquals(Arrays.asList("a", "b"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a", "b").iterator()));
     }
 }

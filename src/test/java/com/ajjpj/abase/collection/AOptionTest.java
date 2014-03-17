@@ -32,7 +32,7 @@ public class AOptionTest {
             }
         }));
 
-        assertEquals(AOption.some(1), s.map(new AFunction1<Integer, String, Exception>() {
+        assertEquals(AOption.some(1), s.map(new AFunction1<String, Integer, Exception>() {
             @Override public Integer apply(String param) throws Exception {
                 return param.length();
             }
@@ -65,7 +65,7 @@ public class AOptionTest {
             }
         }));
 
-        assertEquals(AOption.<Integer>none(), s.map(new AFunction1<Integer, String, Exception>() {
+        assertEquals(AOption.<Integer>none(), s.map(new AFunction1<String, Integer, Exception>() {
             @Override
             public Integer apply(String param) throws Exception {
                 return param.length();

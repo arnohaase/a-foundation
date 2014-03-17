@@ -3,11 +3,17 @@ package com.ajjpj.abase.collection.mutable;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
- * This is a fixed-size data structure that is optimized for concurrent write performance with less frequent reads. Once
- *  the buffer is full, the least recent elements are overwritten.
+ * This is a fixed-size data structure that is optimized for write performance with concurrent reads. Once
+ *  the buffer is full, the least recent elements are overwritten.<p />
+ *
+ * Implementation note: This class uses <code>synchronized</code> instead of <code>ReentrantLock</code> or <code>ReentrantReadWriteLock</code>. The reason
+ *  is that read access - even from several threads concurrently - leads to little lock contention, while single threaded write access can significantly
+ *  profit from biased locking. A performance test with one writer thread and ten reader threads ran an order of magnitude faster with <code>synchronized</code>.
  *
  * @author arno
  */
@@ -20,6 +26,8 @@ public class ARingBuffer<T> implements Iterable<T> {
     private final int bufSize;
 
     private final T[] buffer;
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      * points to the offset with the first (oldest) element, which is also the next one to be overwritten
@@ -34,19 +42,23 @@ public class ARingBuffer<T> implements Iterable<T> {
         buffer = allocate();
     }
 
-    public synchronized void put(T o) {
-        buffer[next] = o;
-        next = asBufIndex(next+1);
+    public void put(T o) {
+        synchronized(this) {
+            buffer[next] = o;
+            next = asBufIndex(next+1);
 
-        if(next == 0) {
-            isFull = true;
+            if(next == 0) {
+                isFull = true;
+            }
         }
     }
 
-    public synchronized void clear() {
-        next = 0;
-        isFull = false;
-        Arrays.fill(buffer, null);
+    public void clear() {
+        synchronized(this) {
+            next = 0;
+            isFull = false;
+            Arrays.fill(buffer, null);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -62,38 +74,40 @@ public class ARingBuffer<T> implements Iterable<T> {
      * Iterators returned via this method are stable with regard to changes, i.e. changes may occur during iteration,
      *  but they do not affect the elements returned by the iterator.
      */
-    @Override public synchronized Iterator<T> iterator() {
-        return new Iterator<T>() {
-            final T[] snapshot = allocate();
+    @Override public Iterator<T> iterator() {
+        synchronized(this) {
+            return new Iterator<T>() {
+                final T[] snapshot = allocate();
 
-            final int end = next;
-            int curPos;
-            boolean hasNext;
+                final int end = next;
+                int curPos;
+                boolean hasNext;
 
-            {
-                System.arraycopy(buffer, 0, snapshot, 0, bufSize);
-                curPos = isFull ? next : 0;
-                hasNext = isFull || end != 0;
-            }
-
-            @Override public boolean hasNext() {
-                return hasNext;
-            }
-
-            @Override public T next() {
-                if(! hasNext) {
-                    throw new IndexOutOfBoundsException();
+                {
+                    System.arraycopy(buffer, 0, snapshot, 0, bufSize);
+                    curPos = isFull ? next : 0;
+                    hasNext = isFull || end != 0;
                 }
 
-                final T result = snapshot[curPos];
-                curPos = asBufIndex(curPos + 1);
-                hasNext = curPos != end;
-                return result;
-            }
+                @Override public boolean hasNext() {
+                    return hasNext;
+                }
 
-            @Override public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+                @Override public T next() {
+                    if(! hasNext) {
+                        throw new IndexOutOfBoundsException();
+                    }
+
+                    final T result = snapshot[curPos];
+                    curPos = asBufIndex(curPos + 1);
+                    hasNext = curPos != end;
+                    return result;
+                }
+
+                @Override public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 }

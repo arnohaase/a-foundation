@@ -16,7 +16,7 @@ import java.util.Collection;
  *
  * @author arno
  */
-public interface ACollection<T, C extends ACollection<T, C>> extends AFilterMonadic<T, C>, Collection<T> {
+public interface ACollection<T> extends ATraversable<T>, Collection<T> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
@@ -25,14 +25,62 @@ public interface ACollection<T, C extends ACollection<T, C>> extends AFilterMona
      * Filters this collection's elements, this method returns a new collection comprised of only those elements that match
      *  a given predicate.
      */
-    <E extends Exception> C filter(APredicate<T, E> pred) throws E;
+    <E extends Exception> ACollection<T> filter(APredicate<? super T, E> pred) throws E;
 
     /**
      * Turns a collection of collections into a 'flat' collection, removing one layer of collections.
      */
-    <X> ACollection<X, ? extends ACollection<X, ?>> flatten();
+    <X> ACollection<X> flatten();
 
-    <X, E extends Exception> AMap<X, C> groupBy(AFunction1<X,T,E> f) throws E; //TODO javadoc, junit
-    <X, E extends Exception> AMap<X, C> groupBy(AFunction1<X,T,E> f, AEquality keyEquality) throws E; //TODO javadoc, junit
+    /**
+     * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
+     *  elements with the same key (more precisely, with equal keys) are stored in a collection, and the resulting map
+     *  holds that collection of elements for every key.<p />
+     *
+     * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
+     *  given length.
+     */
+    <X, E extends Exception> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f) throws E;
+
+    /**
+     * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
+     *  elements with the same key (in terms of the provided equality strategy) are stored in a collection, and the resulting map
+     *  holds that collection of elements for every key.<p />
+     *
+     * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
+     *  given length.
+     */
+    <X, E extends Exception> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E;
+
+    /**
+     * Returns an AList instance with this collection's elements.
+     */
+    AList<T> toList();
+
+    /**
+     * Returns an AHashSet instance with this collection's elements.
+     */
+    AHashSet<T> toSet();
+
+    /**
+     * Returns an AHashSet instance with this collection's elements.
+     */
+    AHashSet<T> toSet(AEquality equality);
+
+    /**
+     * Creates a string with all elements of this collections, separated by commas.
+     */
+    String mkString();
+
+    /**
+     * Creates a string with all elements of this collections, separated by a provided separator.
+     */
+    String mkString(String separator);
+
+    /**
+     * Creates a string with all elements of this collections, separated by a configurable separator and
+     *  delimited by a provided prefix and suffix.
+     */
+    String mkString(String prefix, String separator, String suffix);
 }
 

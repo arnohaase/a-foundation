@@ -1,7 +1,7 @@
 package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.APair;
-import com.ajjpj.abase.function.AFunction1NoThrow;
+import com.ajjpj.abase.function.AFunction1;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -87,7 +87,7 @@ abstract class AWrappedMap<K,V> implements AMap<K,V> {
     }
 
     @Override
-    public AMap<K, V> withDefault(AFunction1NoThrow<V, K> function) {
+    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
         return inner.withDefault(function);
     }
 
