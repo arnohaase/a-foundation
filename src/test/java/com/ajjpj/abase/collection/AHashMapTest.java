@@ -230,7 +230,7 @@ public class AHashMapTest {
     @Test
     public void testWithDefault() {
         AMap<Integer, String> map = AHashMap.empty();
-        map = map.withDefault(new AFunction1NoThrow<String, Integer>() {
+        map = map.withDefault(new AFunction1NoThrow<Integer, String>() {
             @Override public String apply(Integer param) {
                 return String.valueOf(param);
             }

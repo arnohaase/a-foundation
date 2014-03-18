@@ -16,6 +16,8 @@ todo
 * collect(), withFilter()
 * (infinite) streams
 
+* rename to 'a-foundation'
+
 * TODO comments
 * warnings
   * "unused"

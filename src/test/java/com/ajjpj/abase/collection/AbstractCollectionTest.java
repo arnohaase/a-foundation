@@ -128,7 +128,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testMap() {
-        final AFunction1NoThrow<Integer, String> len = new AFunction1NoThrow<Integer, String>() {
+        final AFunction1NoThrow<String, Integer> len = new AFunction1NoThrow<String, Integer>() {
             @Override public Integer apply(String param) {
                 return param.length();
             }
@@ -141,7 +141,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testFlatMapTokens() {
-        final AFunction1NoThrow<List<String>, String> tokens = new AFunction1NoThrow<List<String>, String>() {
+        final AFunction1NoThrow<String, List<String>> tokens = new AFunction1NoThrow<String, List<String>>() {
             @Override public List<String> apply(String param) {
                 return Arrays.asList(param.split(" "));
             }
@@ -155,7 +155,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testFlatMapOption() {
-        final AFunction1NoThrow<AOption<String>, String> uppercaseFirst = new AFunction1NoThrow<AOption<String>, String>() {
+        final AFunction1NoThrow<String, AOption<String>> uppercaseFirst = new AFunction1NoThrow<String, AOption<String>>() {
             @Override public AOption<String> apply(String param) {
                 if(Character.isUpperCase(param.charAt(0)))
                     return AOption.some(param.substring(0, 1));
@@ -198,7 +198,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testGroupByEquals() {
-        final AFunction1NoThrow<Integer, String> len = new AFunction1NoThrow<Integer, String>() {
+        final AFunction1NoThrow<String, Integer> len = new AFunction1NoThrow<String, Integer>() {
             @Override public Integer apply(String param) {
                 return param.length();
             }
@@ -223,7 +223,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        final AFunction1NoThrow<Integer, String> len = new AFunction1NoThrow<Integer, String>() {
+        final AFunction1NoThrow<String, Integer> len = new AFunction1NoThrow<String, Integer>() {
             @Override public Integer apply(String param) {
                 return param.length();
             }

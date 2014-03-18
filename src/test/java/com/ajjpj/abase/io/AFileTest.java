@@ -66,7 +66,7 @@ public class AFileTest {
         });
         assertEquals(Arrays.asList("a", "b", "c", "d\täöü"), parsed);
 
-        final List<String> parsed2 = af.iterate(new AFunction1NoThrow<List<String>, Iterator<String>>() {
+        final List<String> parsed2 = af.iterate(new AFunction1NoThrow<Iterator<String>, List<String>>() {
             @Override public List<String> apply(Iterator<String> param) {
                 final List<String> result = new ArrayList<>();
                 while(param.hasNext()) {
