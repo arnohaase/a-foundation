@@ -11,7 +11,7 @@
 
     <groupId>com.ajjpj.a-base</groupId>
     <artifactId>a-base</artifactId>
-    <version>1.0-pre4-SNAPSHOT</version>
+    <version>1.0-pre4</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
