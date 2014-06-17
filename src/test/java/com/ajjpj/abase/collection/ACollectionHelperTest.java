@@ -2,6 +2,7 @@ package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.function.AFunction1NoThrow;
+import com.ajjpj.abase.function.AFunction2;
 import com.ajjpj.abase.function.APredicateNoThrow;
 import org.junit.Test;
 
@@ -222,4 +223,30 @@ public class ACollectionHelperTest {
         assertEquals(Arrays.asList("a", "b"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a", "b")           ));
         assertEquals(Arrays.asList("a", "b"), ACollectionHelper.asJavaUtilCollection(Arrays.asList("a", "b").iterator()));
     }
+
+    @Test public void testFoldLeft() throws Exception {
+        assertEquals (ACollectionHelper.foldLeft (
+                          Arrays.asList (1, 2, 3, 4, 5),
+                          new AFunction2<Integer, Integer, Integer, Exception> () {
+                              @Override public Integer apply (Integer param1, Integer param2) throws Exception {
+                                  return param1 * 2 + param2;
+                              }
+                          }, 0).intValue(),
+                      ((((1*2+2)*2+3)*2+4)*2+5)
+        );
+    }
+
+    @Test
+    public void testFoldRight () throws Exception {
+        assertEquals (ACollectionHelper.foldRight (
+                          Arrays.asList (1, 2, 3, 4, 5),
+                          new AFunction2<Integer, Integer, Integer, Exception> () {
+                              @Override public Integer apply (Integer param1, Integer param2) throws Exception {
+                                  return param1 * 2 + param2;
+                              }
+                          }, 0).intValue (),
+                      ((((5 * 2 + 4) * 2 + 3) * 2 + 2) * 2 + 1)
+        );
+    }
+
 }

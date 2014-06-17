@@ -4,6 +4,7 @@ import com.ajjpj.abase.collection.immutable.ACollection;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.collection.immutable.AbstractACollection;
 import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.AFunction2;
 import com.ajjpj.abase.function.APredicate;
 
 import java.lang.reflect.Array;
@@ -367,6 +368,33 @@ public class ACollectionHelper {
 
         while(c.hasNext()) {
             result.add(c.next());
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a binary operator to a start value and all elements of this sequence, going left to right.
+     */
+    public static <T, S, E extends Exception> S foldLeft (Iterable<T> c, AFunction2<S, T, S, E> f, S z) throws E {
+        S result = z;
+
+        for (T e: c) {
+            result = f.apply (result, e);
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a binary operator to a start value and all elements of this list, going left to right.
+     */
+    public static <T, S, E extends Exception> S foldRight (List<T> c, AFunction2<S, T, S, E> f, S z) throws E {
+        S result = z;
+
+        ListIterator<T> i = c.listIterator (c.size());
+        while ( i.hasPrevious() ) {
+            result = f.apply (result, i.previous());
         }
 
         return result;
