@@ -3,10 +3,7 @@ package com.ajjpj.abase.io;
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.immutable.AOption;
 import com.ajjpj.abase.collection.immutable.ATraversable;
-import com.ajjpj.abase.function.AFunction0;
-import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.APredicate;
-import com.ajjpj.abase.function.AStatement1;
+import com.ajjpj.abase.function.*;
 import com.ajjpj.abase.util.AUnchecker;
 
 import java.io.*;
@@ -178,6 +175,15 @@ public class AFile implements ATraversable<String> {
     public <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super String, ? extends Iterable<X>, E> f) throws E {
         try {
             return ACollectionHelper.asACollectionView(ACollectionHelper.flatMap(lines(), f));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+            return null; // for the compiler
+        }
+    }
+
+    @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super String, R, E> f) throws E {
+        try {
+            return ACollectionHelper.foldLeft (lines(), startValue, f);
         } catch (IOException e) {
             AUnchecker.throwUnchecked(e);
             return null; // for the compiler

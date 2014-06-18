@@ -3,10 +3,7 @@ package com.ajjpj.abase.collection.immutable;
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.AEqualsWrapper;
-import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.APredicate;
-import com.ajjpj.abase.function.APredicateNoThrow;
-import com.ajjpj.abase.function.AStatement1;
+import com.ajjpj.abase.function.*;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -79,6 +76,10 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
             result = result.updated(entry.getKey().value, createInternal(entry.getValue()));
         }
         return result;
+    }
+
+    @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+        return ACollectionHelper.foldLeft (this, startValue, f);
     }
 
     @Override public <E extends Exception> AOption<T> find(APredicate<? super T, E> pred) throws E {

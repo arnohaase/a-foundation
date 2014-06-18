@@ -1,6 +1,7 @@
 package com.ajjpj.abase.io;
 
 import com.ajjpj.abase.function.AFunction1NoThrow;
+import com.ajjpj.abase.function.AFunction2NoThrow;
 import com.ajjpj.abase.function.AStatement1NoThrow;
 import org.junit.After;
 import org.junit.Before;
@@ -55,6 +56,11 @@ public class AFileTest {
         final AFile af = new AFile(file("a.txt"), encoding);
         assertEquals(file("a.txt"), af.getFile());
         assertEquals(Arrays.asList("a", "b", "c", "d\täöü"), af.lines());
+        assertEquals (3, (int) af.foldLeft (0, new AFunction2NoThrow<Integer, String, Integer> () {
+            @Override public Integer apply (Integer param1, String param2) {
+                return param1 + ((param2.matches ("[a-c]")) ? 1 : 0);
+            }
+        }));
 
         final List<String> parsed = new ArrayList<>();
         af.iterate(new AStatement1NoThrow<Iterator<String>>() {

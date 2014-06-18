@@ -3,6 +3,7 @@ package com.ajjpj.abase.collection.immutable;
 import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.function.AFunction1;
+import com.ajjpj.abase.function.AFunction2;
 import com.ajjpj.abase.function.APredicate;
 import com.ajjpj.abase.function.AStatement1;
 
@@ -112,6 +113,10 @@ public abstract class AOption<T> implements ACollection<T> {
                 return this;
             else
                 return none();
+        }
+
+        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+            return f.apply(startValue, el);
         }
 
         @Override public int size() {
@@ -249,6 +254,10 @@ public abstract class AOption<T> implements ACollection<T> {
 
         @Override public <X,E extends Exception> AOption<X> map(AFunction1<? super Object, ? extends X, E> f) {
             return none();
+        }
+
+        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super Object, R, E> f) throws E {
+            return startValue;
         }
 
         @Override public <E extends Exception> AOption<Object> filter(APredicate<? super Object, E> pred) {

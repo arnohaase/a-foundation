@@ -1,9 +1,7 @@
 package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.collection.immutable.*;
-import com.ajjpj.abase.function.AFunction1NoThrow;
-import com.ajjpj.abase.function.APredicateNoThrow;
-import com.ajjpj.abase.function.AStatement1NoThrow;
+import com.ajjpj.abase.function.*;
 import org.junit.Test;
 
 import java.util.*;
@@ -272,5 +270,16 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
         assertEquals(true, create("a", "b", "c").contains("b"));
         assertEquals(true, create("a", "b", "c").contains("c"));
         assertEquals(false, create("a", "b", "c").contains("d"));
+    }
+
+    @Test
+    public void testFoldLeft() {
+        assertEquals( 2, (int) create("a", "b", "1"). foldLeft (0,
+                new AFunction2NoThrow<Integer, String, Integer> () {
+                    @Override public Integer apply (Integer param1, String param2) {
+                        return param1 + (param2.matches ("[a-z]") ? 1 : 0);
+                    }
+                })
+        );
     }
 }
