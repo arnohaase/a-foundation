@@ -103,11 +103,87 @@ public class ACollectionHelper {
     }
 
     /**
+     * Applies a transformation function to all elements of a collection, creating a new collection from the results.
+     */
+    public static <T, X, E extends Exception> List<X> map(List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+        final List<X> result = createEmptyListOfType (coll, true);
+
+        for(T o: coll) {
+            result.add(f.apply(o));
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a transformation function to all elements of a collection, creating a new collection from the results.
+     */
+    public static <T, X, E extends Exception> Set<X> map (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+        final Set<X> result = createEmptySetOfType(coll, true);
+
+        for(T o: coll) {
+            result.add(f.apply(o));
+        }
+
+        return result;
+    }
+
+    private static <T> List<T> createEmptyListOfType (List<?> original, boolean sameSize) {
+        if(sameSize) {
+            return new ArrayList<> (original.size()); //TODO distinguish based on original's type
+        }
+        else {
+            return new ArrayList<>();
+        }
+    }
+
+    private static <T> Set<T> createEmptySetOfType (Set<?> original, boolean sameSize) {
+        if(sameSize) {
+            return new HashSet<> (original.size()); //TODO distinguish based on original's type
+        }
+        else {
+            return new HashSet<>();
+        }
+    }
+
+    /**
      * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
      *  flattened into a single collection.
      */
     public static <T, X, E extends Exception> Collection<X> flatMap(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         final List<X> result = new ArrayList<>();
+
+        for(T o: coll) {
+            for(X el: f.apply(o)) {
+                result.add(el);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
+     *  flattened into a single collection.
+     */
+    public static <T, X, E extends Exception> List<X> flatMapList(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        final List<X> result = new ArrayList<>();
+
+        for(T o: coll) {
+            for(X el: f.apply(o)) {
+                result.add(el);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
+     *  flattened into a single collection.
+     */
+    public static <T, X, E extends Exception> Set<X> flatMapSet(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        final Set<X> result = new HashSet<>();
 
         for(T o: coll) {
             for(X el: f.apply(o)) {
@@ -133,6 +209,34 @@ public class ACollectionHelper {
     }
 
     /**
+     * Takes a collection of collections and creates a new collection from the elements, leaving out the innermost
+     *  level of collection.
+     */
+    public static <T> List<T> flattenList(Iterable<? extends Iterable<T>> coll) {
+        final List<T> result = new ArrayList<>();
+        for(Iterable<T> o: coll) {
+            for(T el: o) {
+                result.add(el);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Takes a collection of collections and creates a new collection from the elements, leaving out the innermost
+     *  level of collection.
+     */
+    public static <T> Set<T> flattenSet(Iterable<? extends Iterable<T>> coll) {
+        final Set<T> result = new HashSet<>();
+        for(Iterable<T> o: coll) {
+            for(T el: o) {
+                result.add(el);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
     public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
@@ -146,16 +250,78 @@ public class ACollectionHelper {
     }
 
     /**
+     * Matches all elements of a collection against a predicate, creating a new collection from those that match.
+     */
+    public static <T, E extends Exception> List<T> filter(List<T> coll, APredicate<? super T, E> pred) throws E {
+        final List<T> result = createEmptyListOfType (coll, false);
+        for(T o: coll) {
+            if(pred.apply(o)) {
+                result.add(o);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Matches all elements of a collection against a predicate, creating a new collection from those that match.
+     */
+    public static <T, E extends Exception> Set<T> filter(Set<T> coll, APredicate<? super T, E> pred) throws E {
+        final Set<T> result = createEmptySetOfType(coll, false);
+        for(T o: coll) {
+            if(pred.apply(o)) {
+                result.add(o);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
-    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy (Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, Collection<T>> result = new HashMap<>();
         for(T o: coll) {
             final X key = f.apply(o);
             Collection<T> perKey = result.get(key);
             if(perKey == null) {
                 perKey = new ArrayList<>();
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
+     *  elements with the same key are stored as that key's value in the returned Map.
+     */
+    public static <T, X, E extends Exception> Map<X, List<T>> groupBy (List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+        final Map<X, List<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final X key = f.apply(o);
+            List<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = createEmptyListOfType (coll, false);
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
+     *  elements with the same key are stored as that key's value in the returned Map.
+     */
+    public static <T, X, E extends Exception> Map<X, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+        final Map<X, Set<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final X key = f.apply(o);
+            Set<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = createEmptySetOfType(coll, false);
                 result.put(key, perKey);
             }
             perKey.add(o);
@@ -186,6 +352,88 @@ public class ACollectionHelper {
         }
         return result;
     }
+
+    /**
+     * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
+     *  elements with the same key are stored as that key's value in the returned Map.<p />
+     *
+     * This method gives control over the equalityForEquals strategy used to determine if two keys are 'equal'. To accomodate that,
+     *  the keys are wrapped in AEqualsWrapper. <p />
+     *
+     * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
+     *  for direct use by applications.
+     */
+    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, List<T>> groupBy(List<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+        final Map<AEqualsWrapper<X>, List<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
+            List<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = createEmptyListOfType (coll, false);
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
+     *  elements with the same key are stored as that key's value in the returned Map.<p />
+     *
+     * This method gives control over the equalityForEquals strategy used to determine if two keys are 'equal'. To accomodate that,
+     *  the keys are wrapped in AEqualsWrapper. <p />
+     *
+     * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
+     *  for direct use by applications.
+     */
+    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+        final Map<AEqualsWrapper<X>, Set<T>> result = new HashMap<>();
+        for(T o: coll) {
+            final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
+            Set<T> perKey = result.get(key);
+            if(perKey == null) {
+                perKey = createEmptySetOfType(coll, false);
+                result.put(key, perKey);
+            }
+            perKey.add(o);
+        }
+        return result;
+    }
+
+    /**
+     * Applies a binary operator to a start value and all elements of this sequence, going left to right.
+     *
+     * @param <T> element type of the collection
+     * @param <R> result type
+     */
+    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+        R result = startValue;
+
+        for (T e: coll) {
+            result = f.apply (result, e);
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a binary operator to a start value and all elements of this list, going left to right.
+     *
+     * @param <T> element type of the collection
+     * @param <R> result type
+     */
+    public static <T, R, E extends Exception> R foldRight (List<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+        R result = startValue;
+
+        ListIterator<T> i = coll.listIterator(coll.size());
+        while ( i.hasPrevious() ) {
+            result = f.apply (result, i.previous());
+        }
+
+        return result;
+    }
+
 
     /**
      * Copies the content of an <code>Iterable</code> into an (immutable) <code>ACollection</code> instance. Subsequent
@@ -372,32 +620,4 @@ public class ACollectionHelper {
 
         return result;
     }
-
-    /**
-     * Applies a binary operator to a start value and all elements of this sequence, going left to right.
-     */
-    public static <T, S, E extends Exception> S foldLeft (Iterable<T> c, AFunction2<S, T, S, E> f, S z) throws E {
-        S result = z;
-
-        for (T e: c) {
-            result = f.apply (result, e);
-        }
-
-        return result;
-    }
-
-    /**
-     * Applies a binary operator to a start value and all elements of this list, going left to right.
-     */
-    public static <T, S, E extends Exception> S foldRight (List<T> c, AFunction2<S, T, S, E> f, S z) throws E {
-        S result = z;
-
-        ListIterator<T> i = c.listIterator (c.size());
-        while ( i.hasPrevious() ) {
-            result = f.apply (result, i.previous());
-        }
-
-        return result;
-    }
-
 }
