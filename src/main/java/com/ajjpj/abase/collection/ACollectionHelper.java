@@ -407,7 +407,7 @@ public class ACollectionHelper {
      * @param <T> element type of the collection
      * @param <R> result type
      */
-    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, R startValue, AFunction2<R, T, R, E> f) throws E {
         R result = startValue;
 
         for (T e: coll) {
@@ -423,7 +423,7 @@ public class ACollectionHelper {
      * @param <T> element type of the collection
      * @param <R> result type
      */
-    public static <T, R, E extends Exception> R foldRight (List<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+    public static <T, R, E extends Exception> R foldRight (List<T> coll, R startValue, AFunction2<R, T, R, E> f) throws E {
         R result = startValue;
 
         ListIterator<T> i = coll.listIterator(coll.size());
