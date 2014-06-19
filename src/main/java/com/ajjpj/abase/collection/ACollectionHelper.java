@@ -407,7 +407,7 @@ public class ACollectionHelper {
      * @param <T> element type of the collection
      * @param <R> result type
      */
-    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
         R result = startValue;
 
         for (T e: coll) {
@@ -422,8 +422,9 @@ public class ACollectionHelper {
      *
      * @param <T> element type of the collection
      * @param <R> result type
+     *
      */
-    public static <T, R, E extends Exception> R foldRight (List<T> coll, AFunction2<R, T, R, E> f, R startValue) throws E {
+    public static <T, R, E extends Exception> R foldRight (List<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
         R result = startValue;
 
         ListIterator<T> i = coll.listIterator(coll.size());
@@ -518,6 +519,10 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
         }
 
+        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+            return ACollectionHelper.foldLeft (inner, startValue, f);
+        }
+
         @SuppressWarnings("NullableProblems")
         @Override public Iterator<T> iterator() {
             return inner.iterator();
@@ -571,6 +576,10 @@ public class ACollectionHelper {
         @Override
         public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap(Arrays.asList(inner), f));
+        }
+
+        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+            return ACollectionHelper.foldLeft (Arrays.asList (inner), startValue, f);
         }
 
         @SuppressWarnings("NullableProblems")
