@@ -8,10 +8,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * This is a wrapper around a Queue. It limits the queue's size by <em>discarding</em> elements when adding a new
  *  element would exceed the queue's maximum size. Oldest elements are discarded first, i.e. when an element is
- *  added to the queue's tail, element(s) are discarded from the queue's head.<p />
+ *  added to the queue's tail, element(s) are discarded from the queue's head.<p>
  *
  * It is possible to register a callback that is triggered whenever an element is discarded. This is intended for
- *  logging / warning behavior, <em>not</em> for actually handling that element.<p />
+ *  logging / warning behavior, <em>not</em> for actually handling that element.<p>
  *
  * This is a non-blocking implementation, trading atomic behavior for performance. Its implementation first discards
  *  elements until there is room for a new element, then adds the new element. Since that is done without locking,

@@ -341,10 +341,10 @@ public class ACollectionHelper {
 
     /**
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
-     *  elements with the same key are stored as that key's value in the returned Map.<p />
+     *  elements with the same key are stored as that key's value in the returned Map.<p>
      *
      * This method gives control over the equalityForEquals strategy used to determine if two keys are 'equal'. To accomodate that,
-     *  the keys are wrapped in AEqualsWrapper. <p />
+     *  the keys are wrapped in AEqualsWrapper. <p>
      *
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
@@ -365,10 +365,10 @@ public class ACollectionHelper {
 
     /**
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
-     *  elements with the same key are stored as that key's value in the returned Map.<p />
+     *  elements with the same key are stored as that key's value in the returned Map.<p>
      *
      * This method gives control over the equalityForEquals strategy used to determine if two keys are 'equal'. To accomodate that,
-     *  the keys are wrapped in AEqualsWrapper. <p />
+     *  the keys are wrapped in AEqualsWrapper. <p>
      *
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
@@ -389,10 +389,10 @@ public class ACollectionHelper {
 
     /**
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
-     *  elements with the same key are stored as that key's value in the returned Map.<p />
+     *  elements with the same key are stored as that key's value in the returned Map.<p>
      *
      * This method gives control over the equalityForEquals strategy used to determine if two keys are 'equal'. To accomodate that,
-     *  the keys are wrapped in AEqualsWrapper. <p />
+     *  the keys are wrapped in AEqualsWrapper. <p>
      *
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
@@ -448,9 +448,9 @@ public class ACollectionHelper {
 
     /**
      * Copies the content of an <code>Iterable</code> into an (immutable) <code>ACollection</code> instance. Subsequent
-     *  changes to the underlying collection have no effect on the returned <code>ACollection</code> instance.<p />
+     *  changes to the underlying collection have no effect on the returned <code>ACollection</code> instance.<p>
      *
-     * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
+     * The returned collection has list semantics with regard to <code>map()</code> and other modifying methods;
      *  duplicate values are allowed.
      */
     public static <T> ACollectionWrapper<T> asACollectionCopy(Collection<T> c) {
@@ -460,7 +460,7 @@ public class ACollectionHelper {
     /**
      * Wraps the content of a <code>java.util.Collection</code> in an <code>ACollection</code> instance. While the returned
      *  instance itself has no mutator methods, changes to the underlying collection are reflected in the wrapping
-     *  <code>ACollection</code> instance.<p />
+     *  <code>ACollection</code> instance.<p>
      *
      * The returned collection has list semantics with regard to <code>map()</code> and other modifying methods; duplicate
      *  values are allowed.
@@ -472,9 +472,9 @@ public class ACollectionHelper {
 
     /**
      * Copies the content of an array into an (immutable) <code>ACollection</code> instance. Subsequent
-     *  changes to the underlying array have no effect on the returned <code>ACollection</code> instance.<p />
+     *  changes to the underlying array have no effect on the returned <code>ACollection</code> instance.<p>
      *
-     * The returned collection has list semantics with regard to <code>map()></code> and other modifying methods;
+     * The returned collection has list semantics with regard to <code>map()</code> and other modifying methods;
      *  duplicate values are allowed.
      */
     @SuppressWarnings("unchecked")
@@ -487,7 +487,7 @@ public class ACollectionHelper {
     /**
      * Wraps the content of an array in an <code>ACollection</code> instance. While the returned
      *  instance itself has no mutator methods, changes to the underlying array are reflected in the wrapping
-     *  <code>ACollection</code> instance.<p />
+     *  <code>ACollection</code> instance.<p>
      *
      * The returned collection has list semantics with regard to <code>map()</code> and other modifying methods; duplicate
      *  values are allowed.

@@ -12,14 +12,14 @@ import java.util.Map;
 
 
 /**
- * This is an abstract convenience superclass for implementing ACollection implementations.<p />
+ * This is an abstract convenience superclass for implementing ACollection implementations.<p>
  *
  * It has two generic parameters. The first of these parameters is the element types, and the second parameter is the type
  *  of the concrete collection; it is used as a return type for some collection methods.
  *
  * This class provides default implementations for most of ACollection's methods, many of them based on ACollectionHelper
  *  calls. While these implementations work, it is up to the implementer to decide where a more specific implementation
- *  is called for to leverage internals of the actual collection class. <p />
+ *  is called for to leverage internals of the actual collection class. <p>
  *
  * There are three methods that form the foundation for these generic implementations:
  * <ul>
@@ -29,7 +29,7 @@ import java.util.Map;
  * </ul>
  *
  * The methods <code>flatten()</code>, <code>flatMap()</code> and <code>map()</code> are not implemented generically in this class
- *  because there is no way to provide the concrete collection class as their return type.<p />
+ *  because there is no way to provide the concrete collection class as their return type.<p>
  *
  * The <code>equals()</code> and <code>hashCode()</code> implementations are based on the <code>AEquality</code> instance provided
  *  by <code>equalityForEquals()</code>.

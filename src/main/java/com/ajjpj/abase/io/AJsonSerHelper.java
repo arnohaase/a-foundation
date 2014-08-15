@@ -13,7 +13,7 @@ import java.util.Locale;
 
 
 /**
- * This class is a collection of helper methods for manually writing JSON to an OutputStream. <p />
+ * This class is a collection of helper methods for manually writing JSON to an OutputStream. <p>
  *
  * For details on the JSON spec, see http://json.org
  *

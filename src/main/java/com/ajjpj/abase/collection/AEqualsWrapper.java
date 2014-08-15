@@ -4,7 +4,7 @@ package com.ajjpj.abase.collection;
 /**
  * This class wraps arbitrary objects, providing customizable <code>equals()</code> and <code>hashCode()</code> behavior based
  *  on an <code>AEquality</code> instance. Calls to <code>equals()</code> or <code>hashCode()</code> on the wrapper are delegated
- *  to the corresponding calls on the <code>AEquality</code> instance. <p />
+ *  to the corresponding calls on the <code>AEquality</code> instance. <p>
  *
  * This is a rather low-level class that is primarily useful for infrstructure code. If you do not understand its usefulness, you
  *  probably do not need it.

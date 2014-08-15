@@ -11,7 +11,7 @@ import java.util.Iterator;
 /**
  * This is an immutable hash set implementation. It has mutator methods that return a modified copy of the set. It
  *  does <em>not</em> implement <code>java.util.Set</code> because that interface is inherently mutable. It does however
- *  provide a method to return an immutable view implementing <code>java.util.Set</code>.<p />
+ *  provide a method to return an immutable view implementing <code>java.util.Set</code>.<p>
  *
  * It provides uniqueness guarantees based on a configurable equalityForEquals strategy which defaults to "equals-based".
  *
@@ -107,7 +107,7 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
     /**
      * This method creates and returns a new AHashSet instance that is guaranteed to contain the given new element.
      *  'Containment' is relative to the configured equalityForEquals strategy - if e.g. the set uses AEquality.IDENTITY, it
-     *   can contain two objects that are equal without being the same.<p />
+     *   can contain two objects that are equal without being the same.<p>
      *
      * This is the only method to add elements to the set.
      */
@@ -124,7 +124,7 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
      * This method creates and returns a new AHashSet instance that is guaranteed not to contain the given element.
      *  'Containment' is relative to the configured equalityForEquals strategy - if e.g. the set uses AEquality.IDENTITY, it
      *  might not remove an element that is equal to the object that is passed to the <code>removed()</code> method
-     *  if they are not the same.<p />
+     *  if they are not the same.<p>
      *
      * This is the only method to remove elements from the set.
      */

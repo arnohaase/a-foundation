@@ -10,12 +10,12 @@ import java.util.regex.Pattern;
 
 /**
  * This utility class executes a command as a separate process, returning its output (i.e. stdout) as a list of strings, with each
- *  line as a separate element.<p/>
+ *  line as a separate element.<p>
  *
- * To guard the calling JVM against overflow, it limits the number of lines of output that are stored.<p />
+ * To guard the calling JVM against overflow, it limits the number of lines of output that are stored.<p>
  *
  * NB: This class executes the command *synchronously*, blocking until it returns. For long running commands, that may
- *  or may not be a problem for calling code.<p />
+ *  or may not be a problem for calling code.<p>
  *
  * @author arno
  */

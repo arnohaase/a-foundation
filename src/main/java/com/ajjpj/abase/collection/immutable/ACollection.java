@@ -9,7 +9,7 @@ import java.util.Collection;
 
 /**
  * This interface contains methods provided by all a-base collections. Implementing <code>Iterable</code> allows
- *  collections to be used with Java's <code>for(....: collection)</code><p /> syntax introduced with version 1.5.<p />
+ *  collections to be used with Java's <code>for(....: collection)</code> syntax introduced with version 1.5.<p>
  *
  * The first generic parameter T represents the collection's element type, while the second parameter represents
  *  the concrete collection class.
@@ -35,7 +35,7 @@ public interface ACollection<T> extends ATraversable<T>, Collection<T> {
     /**
      * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
      *  elements with the same key (more precisely, with equal keys) are stored in a collection, and the resulting map
-     *  holds that collection of elements for every key.<p />
+     *  holds that collection of elements for every key.<p>
      *
      * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
      *  given length.
@@ -45,7 +45,7 @@ public interface ACollection<T> extends ATraversable<T>, Collection<T> {
     /**
      * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
      *  elements with the same key (in terms of the provided equality strategy) are stored in a collection, and the resulting map
-     *  holds that collection of elements for every key.<p />
+     *  holds that collection of elements for every key.<p>
      *
      * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
      *  given length.

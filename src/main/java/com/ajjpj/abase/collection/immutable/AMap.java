@@ -11,16 +11,16 @@ import java.util.Set;
 /**
  * This interface represents immutable maps with mutator methods (<code>updated(), removed()</code>) that return a
  *  new map instance with different members. Since all instances are immutable, they are thread-safe by definition.
- *  They are also useful in recursive algorithms.<p />
+ *  They are also useful in recursive algorithms.<p>
  *
  * This interface does not implement <code>java.util.Map</code> since that interface is inherently mutable. There is
  *  however a conversion method to <code>java.util.Map</code>, and AMap implementations have factory methods that
- *  take <code>java.util.Map</code> instances.<p />
+ *  take <code>java.util.Map</code> instances.<p>
  *
  * The AMap contract is <em>not</em> hard-wired to <code>equals()</code> and <code>hashCode()</code> methods.
  *  Implementations are configurable through a pluggable equalityForEquals strategy, which defaults to equals() and hashCode()
  *  however. That allows e.g. using all AMap implementations based on object identity ('==') along the lines of what
- *  <code>java.util.IdentityHashMap</code> does.<p />
+ *  <code>java.util.IdentityHashMap</code> does.<p>
  *
  * Implementations (AHashMap in particular) use highly optimized algorithms to minimize 'copying' on modification.
  *
@@ -57,7 +57,7 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
 
     /**
      * Returns an <code>java.util.Set</code> with the map's keys. The returned object throws
-     *  <code>UnsupportedOperationException</code> for all modifying operations.<p />
+     *  <code>UnsupportedOperationException</code> for all modifying operations.<p>
      *
      * The returned set is <em>not</em> guaranteed to provide uniqueness with regard to <code>equals()</code>. If the
      *  map's equalityForEquals strategy treats two objects as different even if their <code>equals</code> methods return true,
@@ -105,7 +105,7 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
 
     /**
      * This method wraps an AMap. If one of the <code>get...</code> methods is called for a key not stored in the map,
-     *  a function is called to determine the value to be returned. <p />
+     *  a function is called to determine the value to be returned. <p>
      *
      * NB: This does <em>not</em> cause the calculated value to be stored in the map; repeated calls for the same
      *  key trigger the value's calculation anew each time.

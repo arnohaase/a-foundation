@@ -12,21 +12,21 @@ import java.util.*;
 
 /**
  * This class represents an object that may or may not be present. It is intended as a more explicit, less error prone
- *  replacement for using <code>null</code> to represent the absence of a value.<p />
+ *  replacement for using <code>null</code> to represent the absence of a value.<p>
  *
  * There are two flavors of <code>AOption</code>: <code>AOption.some(...)</code> and <code>AOption.none()</code>.
  *  <code>AOption.some(x)</code> represents the presence of a value, namely 'x', while <code>AOption.none()</code>
- *  represents 'no value'.<p />
+ *  represents 'no value'.<p>
  *
- * There are two key reasons for using this class instead of using <code>null</code> to encode the absence of a value.<p />
+ * There are two key reasons for using this class instead of using <code>null</code> to encode the absence of a value.<p>
  *
  * Firstly, <code>AOption</code> explicitly shows in the code that a value is optional, forcing code to explicitly deal
  *  with that fact. A method returning a value that may or may not be present (e.g. a call to <code>get(...)</code> on
- *  a map) can specify AOption as its return type to make that characteristic explicit.<p />
+ *  a map) can specify AOption as its return type to make that characteristic explicit.<p>
  *
  * Secondly, code can operate on an <code>AOption</code> regardless of whether there is a value or not (e.g. by calling
  *  <code>map()</code>). This functional style of programming can make for code that is easier to read and less cluttered
- *  than having <code>if</code> statements checking for the presence of values all over the place.<p />
+ *  than having <code>if</code> statements checking for the presence of values all over the place.<p>
  *
  * This class was inspired by the <code>Option</code> class from the Scala standard library. Thanks for the excellent
  *  code, Scala team!

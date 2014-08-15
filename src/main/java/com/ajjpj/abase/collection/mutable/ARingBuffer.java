@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This is a fixed-size data structure that is optimized for write performance with concurrent reads. Once
- *  the buffer is full, the least recent elements are overwritten.<p />
+ *  the buffer is full, the least recent elements are overwritten.<p>
  *
  * Implementation note: This class uses <code>synchronized</code> instead of <code>ReentrantLock</code> or <code>ReentrantReadWriteLock</code>. The reason
  *  is that read access - even from several threads concurrently - leads to little lock contention, while single threaded write access can significantly

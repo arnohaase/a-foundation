@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * This AMap implementation stores entries in a linked list, giving all lookup operations O(n) complexity. That makes
- *  AHashMap the better choice most of the time.<p />
+ *  AHashMap the better choice most of the time.<p>
  *
  * This class is however useful when keys are known to have the same hash codes (e.g. deep in the innards of AHashMap),
  *  or if control over iteration order is desirable.

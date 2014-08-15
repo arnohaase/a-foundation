@@ -4,7 +4,7 @@ package com.ajjpj.abase.collection;
 /**
  * This interface represents a strategy for handling equalityForEquals, typically between elements of a collection. It contains
  *  both <code>equals()</code> and <code>hashCode</code> methods because in general collections rely on both, and these
- *  two methods must be consistent with each other.<p />
+ *  two methods must be consistent with each other.<p>
  *
  * There are two typical strategies that cover the vast majority of cases. They are readily available as constants in
  *  the interface:

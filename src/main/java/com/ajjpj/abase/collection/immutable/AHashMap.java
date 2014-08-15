@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * This is an immutable hash map based on 32-way hash tries. Its implementation is optimized to minimize copying when
- *  the map is modified.<p />
+ *  the map is modified.<p>
  *
  * The code in this class is essentially a port of the HashMap class from the Scala standard library. Thank you for
  *  the excellent code, Scala team!

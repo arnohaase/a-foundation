@@ -11,9 +11,9 @@ import java.util.*;
 
 /**
  * This is an immutable linked list implementation. It provides "mutators" that return copies of the list without
- *  affecting the original ("copy on write").<p />
+ *  affecting the original ("copy on write").<p>
  *
- * The API is based on terminology of functional languages. NIL is the empty list, <code>head<</code> is the list's
+ * The API is based on terminology of functional languages. NIL is the empty list, <code>head</code> is the list's
  *  first element, <code>tail</code> is the list without its first element, and <code>cons()</code> is the
  *  operation that prepends an element to an existing list.
  *
