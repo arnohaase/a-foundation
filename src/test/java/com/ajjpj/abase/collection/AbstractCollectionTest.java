@@ -174,7 +174,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
         assertEquals(AHashSet.create("a", "b", "c", "d"), flattened.toSet());
         if(!removesDuplicates) {
             assertEquals(5, flattened.size());
-            final List<String> flattenedList = new ArrayList<>(flattened.toList().asJavaUtilList()); //TODO ACollection.asJavaUtilCollection()
+            final List<String> flattenedList = new ArrayList<>(flattened.toList().asJavaUtilList());
             Collections.sort(flattenedList);
             assertEquals(Arrays.asList("a", "b", "b", "c", "d"), flattenedList);
         }

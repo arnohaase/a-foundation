@@ -349,10 +349,35 @@ public class AHashMapTest {
         assertEquals(AOption.some(3), map.get(3));
     }
 
+    @SuppressWarnings ("RedundantStringConstructorCall")
     @Test
-    @Ignore
     public void testEqualityIdentity() {
-        fail("todo");
+        AMap<String, String> map = AHashMap.empty (AEquality.IDENTITY);
+
+        final String key1 = new String("key");
+        final String key2 = new String("key");
+        final String key3 = new String("key");
+
+        assertEquals (key1, key2);
+        assertNotSame (key1, key2);
+
+        map = map.updated (key1, "1");
+        map = map.updated (key2, "2");
+        map = map.updated (key3, "3");
+
+        assertEquals ("1", map.getRequired (key1));
+        assertEquals ("2", map.getRequired (key2));
+        assertEquals ("3", map.getRequired (key3));
+
+        map = map.removed (key2);
+        assertEquals ("1", map.getRequired (key1));
+        assertEquals (AOption.<String>none (), map.get (key2));
+        assertEquals ("3", map.getRequired (key3));
+
+        map = map.removed (key1);
+        assertEquals (AOption.<String>none (), map.get (key1));
+        assertEquals (AOption.<String>none (), map.get (key2));
+        assertEquals ("3", map.getRequired (key3));
     }
 
     @Test

@@ -128,21 +128,31 @@ public class ACollectionHelper {
         return result;
     }
 
+    @SuppressWarnings ("unchecked")
     private static <T> List<T> createEmptyListOfType (List<?> original, boolean sameSize) {
-        if(sameSize) {
-            return new ArrayList<> (original.size()); //TODO distinguish based on original's type
+        if (original instanceof ArrayList) {
+            return sameSize ? new ArrayList<T> (original.size ()) : new ArrayList<T> ();
         }
-        else {
-            return new ArrayList<>();
+
+        try {
+            return original.getClass ().newInstance ();
+        }
+        catch (Exception e) {
+            return sameSize ? new ArrayList<T> (original.size ()) : new ArrayList<T> ();
         }
     }
 
+    @SuppressWarnings ("unchecked")
     private static <T> Set<T> createEmptySetOfType (Set<?> original, boolean sameSize) {
-        if(sameSize) {
-            return new HashSet<> (original.size()); //TODO distinguish based on original's type
+        if (original instanceof HashSet) {
+            return sameSize ? new HashSet<T> (original.size ()) : new HashSet<T> ();
         }
-        else {
-            return new HashSet<>();
+
+        try {
+            return original.getClass ().newInstance ();
+        }
+        catch (Exception e) {
+            return sameSize ? new HashSet<T> (original.size ()) : new HashSet<T> ();
         }
     }
 
@@ -511,12 +521,12 @@ public class ACollectionHelper {
         }
 
         @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.flatMap(inner, f));
+            return new ACollectionWrapper<>(ACollectionHelper.flatMap (inner, f));
         }
 
         @SuppressWarnings("unchecked")
         @Override public <X> ACollection<X> flatten() {
-            return new ACollectionWrapper<>(ACollectionHelper.flatten((Iterable<? extends Iterable<X>>) inner));
+            return new ACollectionWrapper<>(ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner));
         }
 
         @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
@@ -567,7 +577,7 @@ public class ACollectionHelper {
          */
         @Override
         public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.map(Arrays.asList(inner), f));
+            return new ACollectionWrapper<>(ACollectionHelper.map (Arrays.asList (inner), f));
         }
 
         /**
@@ -575,7 +585,7 @@ public class ACollectionHelper {
          */
         @Override
         public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.flatMap(Arrays.asList(inner), f));
+            return new ACollectionWrapper<>(ACollectionHelper.flatMap (Arrays.asList (inner), f));
         }
 
         @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
@@ -609,6 +619,17 @@ public class ACollectionHelper {
     /**
      * Returns a <code>Collection</code> with the exact same elements as an <code>Iterable</code>, copying only if the parameter is not a collection.
      */
+    public static <T> List<T> asJavaUtilList(Iterable<T> c) {
+        if(c instanceof List) {
+            return (List<T>) c;
+        }
+
+        return asJavaUtilCollection(c.iterator());
+
+    }
+    /**
+     * Returns a <code>Collection</code> with the exact same elements as an <code>Iterable</code>, copying only if the parameter is not a collection.
+     */
     public static <T> Collection<T> asJavaUtilCollection(Iterable<T> c) {
         if(c instanceof Collection) {
             return (Collection<T>) c;
@@ -620,7 +641,7 @@ public class ACollectionHelper {
     /**
      * Copies the elements from an <code>Iterator</code> into a <code>Collection</code>.
      */
-    public static <T> Collection<T> asJavaUtilCollection(Iterator<T> c) {
+    public static <T> List<T> asJavaUtilCollection(Iterator<T> c) {
         final List<T> result = new ArrayList<>();
 
         while(c.hasNext()) {
