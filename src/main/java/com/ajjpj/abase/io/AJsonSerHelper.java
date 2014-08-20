@@ -112,12 +112,18 @@ public class AJsonSerHelper {
     public void writeNumberLiteral(long value, int numFracDigits) throws IOException {
         checkAcceptsValueAndPrefixComma();
 
+        if (value < 0) {
+            out.append ('-');
+            writeNumberLiteral (-value, numFracDigits);
+            return;
+        }
+
         if(numFracDigits == 0) {
             out.write(String.valueOf(value));
         }
         else {
             final long intPart = value / TEN_POW[numFracDigits];
-            final String fracPart = String.valueOf(1000*1000*1000 + value%TEN_POW[numFracDigits]).substring(10-numFracDigits, 10);
+            final String fracPart = String.valueOf(1_000_000_000 + value%TEN_POW[numFracDigits]).substring (10 - numFracDigits, 10);
 
             out.write(String.valueOf(intPart));
             out.write(".");

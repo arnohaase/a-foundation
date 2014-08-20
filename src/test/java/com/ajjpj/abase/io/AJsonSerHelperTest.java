@@ -79,6 +79,39 @@ public class AJsonSerHelperTest {
     }
 
     @Test
+    public void testNegativeNumber1() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final AJsonSerHelper ser = new AJsonSerHelper(baos);
+
+        ser.writeNumberLiteral(-1234567890, 1);
+
+        final String result = new String(baos.toByteArray(), "utf-8");
+        assertEquals("-123456789.0", result);
+    }
+
+    @Test
+    public void testNegativeNumber9() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final AJsonSerHelper ser = new AJsonSerHelper(baos);
+
+        ser.writeNumberLiteral(-1234567890, 9);
+
+        final String result = new String(baos.toByteArray(), "utf-8");
+        assertEquals("-1.234567890", result);
+    }
+
+    @Test
+    public void testNegativeDouble() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final AJsonSerHelper ser = new AJsonSerHelper(baos);
+
+        ser.writeNumberLiteral(-1.23, 9);
+
+        final String result = new String(baos.toByteArray(), "utf-8");
+        assertEquals("-1.230000000", result);
+    }
+
+    @Test
     public void testNull() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final AJsonSerHelper ser = new AJsonSerHelper(baos);
