@@ -496,7 +496,7 @@ public class ACollectionHelper {
         return new AArrayWrapper<>(c);
     }
 
-    private static class ACollectionWrapper<T> extends AbstractACollection<T, ACollectionWrapper<T>> {
+    public static class ACollectionWrapper<T> extends AbstractACollection<T, ACollectionWrapper<T>> {
         private final Collection<T> inner;
 
         private ACollectionWrapper(Collection<T> inner) {
@@ -539,7 +539,7 @@ public class ACollectionHelper {
         }
     }
 
-    private static class AArrayWrapper<T> extends AbstractACollection<T, AArrayWrapper<T>> {
+    public static class AArrayWrapper<T> extends AbstractACollection<T, AArrayWrapper<T>> {
         private final T[] inner;
 
         private AArrayWrapper(T[] inner) {
