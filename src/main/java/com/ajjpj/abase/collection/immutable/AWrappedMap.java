@@ -3,6 +3,7 @@ package com.ajjpj.abase.collection.immutable;
 import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Set;
 /**
  * @author arno
  */
-abstract class AWrappedMap<K,V> implements AMap<K,V> {
+abstract class AWrappedMap<K,V> implements AMap<K,V>, Serializable {
     private final AMap<K,V> inner;
 
     AWrappedMap(AMap<K, V> inner) {

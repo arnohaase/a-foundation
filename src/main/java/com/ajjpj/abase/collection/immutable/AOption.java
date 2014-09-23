@@ -7,6 +7,7 @@ import com.ajjpj.abase.function.AFunction2;
 import com.ajjpj.abase.function.APredicate;
 import com.ajjpj.abase.function.AStatement1;
 
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -33,7 +34,7 @@ import java.util.*;
  *
  * @author arno
  */
-public abstract class AOption<T> implements ACollection<T> {
+public abstract class AOption<T> implements ACollection<T>, Serializable {
     public static <T> AOption<T> some(T el) {
         return new ASome<>(el);
     }
@@ -235,6 +236,10 @@ public abstract class AOption<T> implements ACollection<T> {
         public static final ANone INSTANCE = new ANone();
 
         private ANone() {}
+
+        private Object readResolve() {
+            return INSTANCE;
+        }
 
         @Override public Object get() {
             throw new NoSuchElementException("no value for ANone");

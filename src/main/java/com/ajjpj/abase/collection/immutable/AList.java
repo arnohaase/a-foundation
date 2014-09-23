@@ -5,6 +5,7 @@ import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicate;
 
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -19,7 +20,7 @@ import java.util.*;
  *
  * @author arno
  */
-abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
+abstract public class AList<T> extends AbstractACollection<T, AList<T>> implements Serializable {
     private final int size;
 
     protected AList(int size) {
@@ -173,7 +174,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
     }
 
 
-    static class AHead<T> extends AList<T> {
+    static final class AHead<T> extends AList<T> {
         private final T head;
         private final AList<T> tail;
 
@@ -196,12 +197,16 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
         }
     }
 
-    static class Nil extends AList<Object> {
+    static final class Nil extends AList<Object> {
         public Nil() {
             super(0);
         }
 
         public static final Nil INSTANCE = new Nil();
+
+        private Object readResolve() {
+            return INSTANCE;
+        }
 
         @Override public AOption<Object> optHead() {
             return AOption.none();
@@ -402,7 +407,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
 
         @Override
         public ListIterator<T> listIterator() {
-            return new JuListIteratorWrapper<T>(inner, 0);
+            return new JuListIteratorWrapper<>(inner, 0);
         }
 
         @Override
@@ -411,7 +416,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> {
             for(int i=0; i<index; i++) {
                 l = l.tail();
             }
-            return new JuListIteratorWrapper<T>(l, index);
+            return new JuListIteratorWrapper<>(l, index);
         }
 
         @Override

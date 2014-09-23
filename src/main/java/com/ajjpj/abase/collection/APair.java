@@ -1,12 +1,15 @@
 package com.ajjpj.abase.collection;
 
 
+import java.io.Serializable;
+
+
 /**
  * This class is a tuple of two values of different types.
  *
  * @author arno
  */
-public class APair<T1,T2> {
+public class APair<T1,T2> implements Serializable {
     public final T1 _1;
     public final T2 _2;
 
@@ -23,7 +26,7 @@ public class APair<T1,T2> {
                 "} ";
     }
 
-    @Override
+    @SuppressWarnings ("RedundantIfStatement") @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

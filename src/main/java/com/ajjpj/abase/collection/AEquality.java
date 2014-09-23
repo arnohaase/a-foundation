@@ -1,6 +1,9 @@
 package com.ajjpj.abase.collection;
 
 
+import java.io.Serializable;
+
+
 /**
  * This interface represents a strategy for handling equalityForEquals, typically between elements of a collection. It contains
  *  both <code>equals()</code> and <code>hashCode</code> methods because in general collections rely on both, and these
@@ -25,9 +28,18 @@ public interface AEquality {
     int hashCode(Object o);
 
     AEquality EQUALS = new Equals();
+
+    /**
+     * Comparison by object identity. This equality strategy is intentionally <em>not</em> serializable since identity
+     *  of elements in a collection is bound to be lost during serialization.
+     */
     AEquality IDENTITY = new Identity();
 
-    class Equals implements AEquality {
+    class Equals implements AEquality, Serializable {
+        private Object readResolve() {
+            return EQUALS;
+        }
+
         @Override
         public boolean equals(Object o1, Object o2) {
             if (o1 == null) {

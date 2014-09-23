@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class ArrayStackTest {
     @Test
     public void testEmpty() {
-        final ArrayStack<String> stack = new ArrayStack<String>();
+        final ArrayStack<String> stack = new ArrayStack<>();
 
         assertEquals(0, stack.size());
 
@@ -30,7 +30,7 @@ public class ArrayStackTest {
 
     @Test
     public void testPushPop() {
-        final ArrayStack<String> stack = new ArrayStack<String>();
+        final ArrayStack<String> stack = new ArrayStack<>();
 
         stack.push("a");
         assertEquals(1, stack.size());

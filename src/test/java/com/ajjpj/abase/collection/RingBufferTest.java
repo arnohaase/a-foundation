@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class RingBufferTest {
     @Test
     public void testSingleThreaded() {
-        final ARingBuffer<Long> rb = new ARingBuffer<Long>(Long.class, 100);
+        final ARingBuffer<Long> rb = new ARingBuffer<>(Long.class, 100);
 
         assertFalse(rb.iterator().hasNext());
         try {
@@ -38,7 +38,7 @@ public class RingBufferTest {
 
     @Test
     public void testClear() {
-        final ARingBuffer<Long> rb = new ARingBuffer<Long>(Long.class, 100);
+        final ARingBuffer<Long> rb = new ARingBuffer<>(Long.class, 100);
         assertFalse(rb.iterator().hasNext());
 
         rb.clear();
@@ -63,7 +63,7 @@ public class RingBufferTest {
 
         final AtomicBoolean finished = new AtomicBoolean(false);
         final AtomicBoolean failed = new AtomicBoolean(false);
-        final ARingBuffer<Long> rb = new ARingBuffer<Long>(Long.class, BUF_SIZE);
+        final ARingBuffer<Long> rb = new ARingBuffer<>(Long.class, BUF_SIZE);
 
         for(int i=0; i<10; i++) {
             new Thread() {
@@ -76,11 +76,7 @@ public class RingBufferTest {
                                     assertEquals(prev + 1, val);
                                 }
                             }
-                            catch (AssertionError e) {
-                                failed.set(true);
-                                throw e;
-                            }
-                            catch (RuntimeException e) {
+                            catch (AssertionError | RuntimeException e) {
                                 failed.set(true);
                                 throw e;
                             }

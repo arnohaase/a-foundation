@@ -5,6 +5,7 @@ import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1;
 
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -17,7 +18,7 @@ import java.util.*;
  *
  * @author arno
  */
-public class AHashMap<K, V> implements AMap<K,V> {
+public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     private static final int LEVEL_INCREMENT = 5;
     private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
@@ -26,7 +27,7 @@ public class AHashMap<K, V> implements AMap<K,V> {
 
     final AEquality equality;
 
-    private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
+    transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
 
     /**
@@ -74,7 +75,6 @@ public class AHashMap<K, V> implements AMap<K,V> {
      * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
-    @SuppressWarnings("unused")
     public static <K,V> AHashMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
         return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
     }
@@ -124,7 +124,6 @@ public class AHashMap<K, V> implements AMap<K,V> {
         }
         return result;
     }
-
 
     private AHashMap(AEquality equality) {
         this.equality = equality;
@@ -194,10 +193,10 @@ public class AHashMap<K, V> implements AMap<K,V> {
         if(o == this) {
             return true;
         }
-        if(! (o instanceof AHashMap)) {
+        if(! (o instanceof AMap)) {
             return false;
         }
-        final AHashMap other = (AHashMap) o;
+        final AMap other = (AMap) o;
 
         if(size() != other.size()) {
             return false;
@@ -702,5 +701,17 @@ public class AHashMap<K, V> implements AMap<K,V> {
                 return this;
             }
         }
+    }
+
+    private Object readResolve() {
+        // rebuild the map in case hashCodes of entries were changed by serialization
+
+        AHashMap<K,V> result = AHashMap.empty (equality);
+
+        for (APair<K,V> entry: this) {
+            result = result.updated (entry._1, entry._2);
+        }
+
+        return result;
     }
 }

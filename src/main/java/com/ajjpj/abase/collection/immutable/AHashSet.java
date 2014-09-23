@@ -4,6 +4,7 @@ import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.function.AFunction1;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -17,7 +18,7 @@ import java.util.Iterator;
  *
  * @author arno
  */
-public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
+public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> implements Serializable {
     private final AHashMap<T, Boolean> inner;
 
     private static final AHashSet<Object> emptyEquals = new AHashSet<>(AHashMap.<Object, Boolean>empty(AEquality.EQUALS));
@@ -177,7 +178,7 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
         if(equality == inner.equality) {
             return this;
         }
-        return AHashSet.<T>create(equality, this);
+        return AHashSet.create(equality, this);
     }
 
     @Override public <X, E extends Exception> AHashSet<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
@@ -192,5 +193,12 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> {
     @SuppressWarnings("unchecked")
     @Override public <X> AHashSet<X> flatten() {
         return (AHashSet<X>) create(inner.equality, ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
+    }
+
+    private Object readResolve () {
+        if (nonEmpty ()) {
+            return this;
+        }
+        return empty (equalityForEquals ()); // used globally cached instances
     }
 }

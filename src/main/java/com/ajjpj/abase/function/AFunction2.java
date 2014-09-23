@@ -1,5 +1,8 @@
 package com.ajjpj.abase.function;
 
+import java.io.Serializable;
+
+
 /**
  * Represents a function that takes two arguments and produces a result.
  *
@@ -9,6 +12,6 @@ package com.ajjpj.abase.function;
  *
  * @author bitmagier
  */
-public interface AFunction2<P1, P2, R, E extends Exception> {
+public interface AFunction2<P1, P2, R, E extends Exception> extends Serializable {
     R apply (P1 param1, P2 param2) throws E;
 }

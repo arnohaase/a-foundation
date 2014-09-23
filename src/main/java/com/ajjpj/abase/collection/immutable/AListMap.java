@@ -3,8 +3,8 @@ package com.ajjpj.abase.collection.immutable;
 import com.ajjpj.abase.collection.AEquality;
 import com.ajjpj.abase.collection.APair;
 import com.ajjpj.abase.function.AFunction1;
-import com.ajjpj.abase.function.AFunction1NoThrow;
 
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author arno
  */
-public class AListMap <K,V> implements AMap<K,V> {
+public class AListMap <K,V> implements AMap<K,V>, Serializable {
     private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
     private static final AListMap<Object, Object> emptyEquals = new AListMap<>(AEquality.EQUALS);
@@ -58,6 +58,29 @@ public class AListMap <K,V> implements AMap<K,V> {
 
         for(APair<K,V> el: elements) {
             result = result.updated(el._1, el._2);
+        }
+        return result;
+    }
+
+    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
+        return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
+    }
+
+    /**
+     * Returns an AListMap instance with a given equalityForEquals, initializing it from separate 'keys'
+     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     */
+    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
+        final Iterator<K> ki = keys.iterator();
+        final Iterator<V> vi = values.iterator();
+
+        AListMap<K,V> result = empty (equality);
+
+        while(ki.hasNext()) {
+            final K key = ki.next();
+            final V value = vi.next();
+
+            result = result.updated(key, value);
         }
         return result;
     }
@@ -248,10 +271,10 @@ public class AListMap <K,V> implements AMap<K,V> {
         if(o == this) {
             return true;
         }
-        if(! (o instanceof AListMap)) {
+        if(! (o instanceof AMap)) {
             return false;
         }
-        final AListMap other = (AListMap) o;
+        final AMap other = (AMap) o;
 
         if(size() != other.size()) {
             return false;

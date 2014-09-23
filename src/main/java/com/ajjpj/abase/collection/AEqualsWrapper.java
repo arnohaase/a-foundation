@@ -1,6 +1,9 @@
 package com.ajjpj.abase.collection;
 
 
+import java.io.Serializable;
+
+
 /**
  * This class wraps arbitrary objects, providing customizable <code>equals()</code> and <code>hashCode()</code> behavior based
  *  on an <code>AEquality</code> instance. Calls to <code>equals()</code> or <code>hashCode()</code> on the wrapper are delegated
@@ -11,8 +14,8 @@ package com.ajjpj.abase.collection;
  *
  * @author arno
  */
-public class AEqualsWrapper<T> { //TODO junit
-    private final AEquality equality;
+public class AEqualsWrapper<T> implements Serializable { //TODO junit
+    final AEquality equality;
     public final T value;
 
     public AEqualsWrapper(AEquality equality, T value) {

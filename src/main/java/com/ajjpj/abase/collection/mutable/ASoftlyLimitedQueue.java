@@ -101,6 +101,7 @@ public class ASoftlyLimitedQueue<T> implements Queue<T> {
         return inner.toArray();
     }
 
+    @SuppressWarnings ("SuspiciousToArrayCall")
     @Override public <T1> T1[] toArray(T1[] a) {
         return inner.toArray(a);
     }
@@ -133,6 +134,7 @@ public class ASoftlyLimitedQueue<T> implements Queue<T> {
         inner.clear();
     }
 
+    @SuppressWarnings ("EqualsWhichDoesntCheckParameterClass")
     @Override public boolean equals(Object o) {
         return inner.equals(o);
     }

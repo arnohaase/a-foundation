@@ -77,7 +77,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
                 result.add(param);
             }
         });
-        return result.toArray(new String[0]);
+        return result.toArray(new String[result.size ()]);
     }
 
     @Test
