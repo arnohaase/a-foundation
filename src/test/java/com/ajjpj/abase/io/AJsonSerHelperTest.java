@@ -101,6 +101,21 @@ public class AJsonSerHelperTest {
     }
 
     @Test
+    public void testNegativeNumberInArray() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final AJsonSerHelper ser = new AJsonSerHelper(baos);
+
+        ser.startArray ();
+
+        ser.writeNumberLiteral (-1, 0);
+        ser.writeNumberLiteral (-2, 0);
+
+        ser.endArray ();
+
+        assertEquals ("[-1,-2]", new String (baos.toByteArray ()));
+    }
+
+    @Test
     public void testNegativeDouble() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final AJsonSerHelper ser = new AJsonSerHelper(baos);

@@ -113,9 +113,8 @@ public class AJsonSerHelper {
         checkAcceptsValueAndPrefixComma();
 
         if (value < 0) {
-            out.append ('-');
-            writeNumberLiteral (-value, numFracDigits);
-            return;
+            out.write ('-');
+            value = -value;
         }
 
         if(numFracDigits == 0) {
