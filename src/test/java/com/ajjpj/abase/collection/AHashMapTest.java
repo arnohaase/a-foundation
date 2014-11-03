@@ -7,6 +7,7 @@ import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -381,30 +382,38 @@ public class AHashMapTest {
     }
 
     @Test
+//    @Ignore
     public void testShotgun() {
         final Random rand = new Random(12345);
 
         final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = AHashMap.empty();
 
-        for(int i=0; i<1000*1000; i++) {
+        for(int i=0; i<1_000_000; i++) {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
+            if (i%1000 == 999) {
+                System.out.println (i);
+            }
+
             if(add) {
-                ju.put(key, key);
-                a = a.updated(key, key);
+                final int value = rand.nextInt ();
+
+                ju.put (key, value);
+                a = a.updated(key, value);
             }
             else {
                 ju.remove(key);
                 a = a.removed(key);
             }
-//            System.out.println(i + ": " + key + " / " + add);
-            assertEquals(ju.size(), a.size());
+//            for(int k: ju.keySet()) {
+//                assertEquals ("failed for i=" + i, AOption.some (ju.get (k)), a.get (k));
+//            }
         }
 
-        for(int key: ju.keySet()) {
-            assertEquals(AOption.some(key), a.get(key));
+        for(int k: ju.keySet()) {
+            assertEquals (AOption.some (ju.get (k)), a.get (k));
         }
     }
 }
