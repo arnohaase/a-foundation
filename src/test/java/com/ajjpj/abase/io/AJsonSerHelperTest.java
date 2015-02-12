@@ -171,6 +171,20 @@ public class AJsonSerHelperTest {
     }
 
     @Test
+    public void testNullStringInArray() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final AJsonSerHelper ser = new AJsonSerHelper(baos);
+
+        ser.startArray ();
+        ser.writeStringLiteral ("a");
+        ser.writeStringLiteral (null);
+        ser.endArray ();
+
+        final String result = new String(baos.toByteArray(), "utf-8");
+        assertEquals("[\"a\",null]", result);
+    }
+
+    @Test
     public void testArray0() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final AJsonSerHelper ser = new AJsonSerHelper(baos);

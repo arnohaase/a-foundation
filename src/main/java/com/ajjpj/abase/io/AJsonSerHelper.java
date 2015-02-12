@@ -74,13 +74,13 @@ public class AJsonSerHelper {
     }
 
     public void writeStringLiteral(String s) throws IOException {
+        if (s == null) {
+            writeNullLiteral ();
+            return;
+        }
+
         checkAcceptsValueAndPrefixComma();
-        if(s == null) {
-            writeNullLiteral();
-        }
-        else {
-            _writeStringLiteral(s);
-        }
+        _writeStringLiteral(s);
         afterValueWritten();
     }
 

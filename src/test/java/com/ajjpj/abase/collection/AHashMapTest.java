@@ -393,9 +393,9 @@ public class AHashMapTest {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
-            if (i%1000 == 999) {
-                System.out.println (i);
-            }
+//            if (i%1000 == 999) {
+//                System.out.println (i);
+//            }
 
             if(add) {
                 final int value = rand.nextInt ();
