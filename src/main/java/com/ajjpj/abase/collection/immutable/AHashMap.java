@@ -2,7 +2,7 @@ package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.ACompositeIterator;
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.APair;
+import com.ajjpj.abase.collection.tuples.ATuple2;
 import com.ajjpj.abase.function.AFunction1;
 
 import java.io.Serializable;
@@ -202,7 +202,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(APair<K,V> el: this) {
+        for(ATuple2<K,V> el: this) {
             final AOption<V> otherValue = other.get(el._1);
             if(otherValue.isEmpty()) {
                 return false;
@@ -220,7 +220,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(APair<K,V> el: this) {
+            for(ATuple2<K,V> el: this) {
                 result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
             }
 
@@ -231,15 +231,15 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<APair<K, V>> iterator() {
-        return new Iterator<APair<K, V>>() {
+    public Iterator<ATuple2<K, V>> iterator() {
+        return new Iterator<ATuple2<K, V>>() {
             @Override
             public boolean hasNext() {
                 return false;
             }
 
             @Override
-            public APair<K, V> next() {
+            public ATuple2<K, V> next() {
                 throw new NoSuchElementException();
             }
 
@@ -297,7 +297,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
         boolean first = true;
 
-        for(APair<K,V> e: this) {
+        for(ATuple2<K,V> e: this) {
             if(first) {
                 first = false;
             }
@@ -401,8 +401,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<APair<K, V>> iterator() {
-            return new Iterator<APair<K, V>>() {
+        public Iterator<ATuple2<K, V>> iterator() {
+            return new Iterator<ATuple2<K, V>>() {
                 boolean initial = true;
 
                 @Override
@@ -411,10 +411,10 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 }
 
                 @Override
-                public APair<K, V> next() {
+                public ATuple2<K, V> next() {
                     if(initial) {
                         initial = false;
-                        return new APair<> (key, value);
+                        return new ATuple2<> (key, value);
                     }
                     throw new NoSuchElementException();
                 }
@@ -494,7 +494,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<APair<K, V>> iterator() {
+        public Iterator<ATuple2<K, V>> iterator() {
             return kvs.iterator();
         }
 
@@ -529,8 +529,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<APair<K, V>> iterator() {
-            final List<Iterator<APair<K,V>>> innerIter = new ArrayList<>(elems.length);
+        public Iterator<ATuple2<K, V>> iterator() {
+            final List<Iterator<ATuple2<K,V>>> innerIter = new ArrayList<>(elems.length);
             for(AHashMap<K,V> m: elems)  {
                 innerIter.add(m.iterator());
             }
@@ -708,7 +708,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
 
         AHashMap<K,V> result = AHashMap.empty (equality);
 
-        for (APair<K,V> entry: this) {
+        for (ATuple2<K,V> entry: this) {
             result = result.updated (entry._1, entry._2);
         }
 

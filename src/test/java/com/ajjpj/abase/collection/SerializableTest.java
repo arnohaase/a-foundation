@@ -1,6 +1,7 @@
 package com.ajjpj.abase.collection;
 
 import com.ajjpj.abase.collection.immutable.*;
+import com.ajjpj.abase.collection.tuples.ATuple2;
 import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Test;
 
@@ -100,8 +101,8 @@ public class SerializableTest implements Serializable {
 
     @Test
     public void testPairSerializable() throws IOException, ClassNotFoundException {
-        checkSerEq (new APair<> (1, "a"));
-        checkSerEq (new APair<> (2, "b"));
+        checkSerEq (new ATuple2<> (1, "a"));
+        checkSerEq (new ATuple2<> (2, "b"));
     }
 
     @Test

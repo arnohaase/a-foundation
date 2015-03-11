@@ -1,7 +1,7 @@
 package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.AEquality;
-import com.ajjpj.abase.collection.APair;
+import com.ajjpj.abase.collection.tuples.ATuple2;
 import com.ajjpj.abase.function.AFunction1;
 
 import java.io.Serializable;
@@ -46,17 +46,17 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
      * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
-    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<APair<K,V>> elements) {
+    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<ATuple2<K,V>> elements) {
         return fromKeysAndValues(DEFAULT_EQUALITY, elements);
     }
     /**
      * Returns an AHashMap instance with a given equalityForEquals, initializing it from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
-    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<APair<K,V>> elements) {
+    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<ATuple2<K,V>> elements) {
         AListMap<K,V> result = empty(equality);
 
-        for(APair<K,V> el: elements) {
+        for(ATuple2<K,V> el: elements) {
             result = result.updated(el._1, el._2);
         }
         return result;
@@ -154,7 +154,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<APair<K,V>> iterator() {
+    public Iterator<ATuple2<K,V>> iterator() {
         return new ListMapIterator<>(this);
     }
 
@@ -174,7 +174,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         @Override public boolean isEmpty() { return size() == 0; }
         @Override public boolean contains(Object o) { return containsKey((K) o); }
         @Override public Iterator<K> iterator() {
-            final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
+            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
 
             return new Iterator<K>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
@@ -208,7 +208,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         @Override public boolean isEmpty() { return size() == 0; }
         @Override public boolean contains(Object o) { return containsValue((V) o); }
         @Override public Iterator<V> iterator() {
-            final Iterator<APair<K,V>> lmi = AListMap.this.iterator();
+            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
 
             return new Iterator<V>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
@@ -251,7 +251,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
 
         boolean first = true;
-        for(APair<K,V> el: this) {
+        for(ATuple2<K,V> el: this) {
             if(first) {
                 first = false;
             }
@@ -280,7 +280,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(APair<K,V> el: this) {
+        for(ATuple2<K,V> el: this) {
             if(! equality.equals(other.get(el._1), AOption.some(el._2))) {
                 return false;
             }
@@ -293,7 +293,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(APair<K,V> el: this) {
+            for(ATuple2<K,V> el: this) {
                 result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
             }
             cachedHashcode = result;
@@ -374,12 +374,12 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
 
         @Override
         public AListMap<K,V> removed(K key) {
-            AList<APair<K,V>> raw = AList.nil();
+            AList<ATuple2<K,V>> raw = AList.nil();
             AListMap<K,V> remaining = this;
 
             while(remaining.nonEmpty()) {
                 if(! equality.equals(remaining.key(), key)) {
-                    raw = raw.cons(new APair<>(remaining.key(), remaining.value()));
+                    raw = raw.cons(new ATuple2<> (remaining.key(), remaining.value()));
                 }
                 remaining = remaining.tail();
             }
@@ -388,7 +388,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
     }
 
-    static class ListMapIterator<K,V> implements Iterator<APair<K,V>> {
+    static class ListMapIterator<K,V> implements Iterator<ATuple2<K,V>> {
         private AListMap<K,V> pos;
 
         ListMapIterator(AListMap<K, V> pos) {
@@ -401,8 +401,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public APair<K, V> next() {
-            final APair<K,V> result = new APair<> (pos.key(), pos.value());
+        public ATuple2<K, V> next() {
+            final ATuple2<K,V> result = new ATuple2<> (pos.key(), pos.value());
             pos = pos.tail();
             return result;
         }

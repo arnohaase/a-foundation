@@ -1,6 +1,6 @@
 package com.ajjpj.abase.collection.immutable;
 
-import com.ajjpj.abase.collection.APair;
+import com.ajjpj.abase.collection.tuples.ATuple2;
 import com.ajjpj.abase.function.AFunction1;
 
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.Set;
  *
  * @author arno
  */
-public interface AMap<K,V> extends Iterable<APair<K,V>> {
+public interface AMap<K,V> extends Iterable<ATuple2<K,V>> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
@@ -88,7 +88,7 @@ public interface AMap<K,V> extends Iterable<APair<K,V>> {
      *  with the <code>for(...: map)</code> syntax introduced with Java 5.
      */
     @Override
-    Iterator<APair<K,V>> iterator();
+    Iterator<ATuple2<K,V>> iterator();
 
     /**
      * Returns a read-only <code>java.util.Map</code> view of the AMap. Constructing the view takes constant time (i.e.
