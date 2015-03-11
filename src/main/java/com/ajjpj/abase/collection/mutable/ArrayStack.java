@@ -9,7 +9,9 @@ import java.util.NoSuchElementException;
 
 /**
  * This is a mutable array-based implementation of a LIFO stack. It is intended as a replacement of Java's
- *  <code>java.util.Stack</code> that is broken in many ways.
+ *  <code>java.util.Stack</code> that is broken in many ways.<p>
+ *
+ * This class is <em>not</em> thread safe.
  *
  * @author arno
  */

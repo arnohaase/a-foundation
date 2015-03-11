@@ -35,6 +35,8 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return (AList<T>) Nil.INSTANCE;
     }
 
+    public static final AList nil = Nil.INSTANCE;
+
     /**
      * Creates an AList based on the contents of an existing <code>java.util.Iterable</code>, copying its contents.
      */
