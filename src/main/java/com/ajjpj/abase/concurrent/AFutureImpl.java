@@ -99,7 +99,7 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
 
         // This method can be called several times, even concurrently - see the comment in onFinished(). Atomically removing all listeners from the list deals with
         //  that concurrency in a robust fashion.
-        for (AStatement2NoThrow<T, Throwable> l: onFinishedListeners.getAndSet (AList.nil)) {
+        for (AStatement2NoThrow<T, Throwable> l: onFinishedListeners.getAndSet (AList.<AStatement2NoThrow<T,Throwable>>nil())) {
             l.apply (result, th);
         }
     }
