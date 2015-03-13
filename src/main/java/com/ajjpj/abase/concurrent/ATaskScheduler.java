@@ -13,6 +13,6 @@ import java.util.concurrent.TimeUnit;
 public interface ATaskScheduler {
     <T> AFuture<T> submit (Callable<T> task, long timeout, TimeUnit timeoutUnit);
     <T> AFuture<T> submit (Runnable task, T result, long timeout, TimeUnit timeoutUnit);
-    <T,R,E extends Exception> List<AFuture<R>> submitAll                 (List<T> params, AFunction1<T, Callable<R>, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E;
-    <T,R,E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, Callable<R>, E> taskFunction, long timeout, TimeUnit timeoutUnit, R defaultValue) throws E;
+    <T,R,E extends Exception> List<AFuture<R>> submitAll                 (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E;
+    <T,R,E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, R defaultValue) throws E;
 }

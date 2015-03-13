@@ -34,8 +34,4 @@ public interface AFuture<T> {
 
     <U> AFuture<ATuple2<T,U>> zip (AFuture<U> other);
     <U,V> AFuture<ATuple3<T,U,V>> zip (AFuture<U> other1, AFuture<V> other2);
-
-
-    //TODO ATuple3 --> a-base
-    //TODO AStatement2 --> a-base
 }

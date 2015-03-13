@@ -8,10 +8,7 @@ import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.AStatement1NoThrow;
 import com.ajjpj.abase.function.AStatement2NoThrow;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -23,7 +20,6 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
     private final AtomicReference<AList<AStatement2NoThrow<T, Throwable>>> onFinishedListeners = new AtomicReference<> (AList.<AStatement2NoThrow<T, Throwable>>nil ());
 
     private final ATaskScheduler threadPool;
-    private volatile boolean wasTimedOut = false;
 
     private static final Callable NO_CALLABLE = new Callable () {
         @Override public Object call () throws Exception {
@@ -74,8 +70,10 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
     }
 
     void setTimedOut() {
-        wasTimedOut = true;
+        setException (new TimeoutException ());
     }
+
+    public static class MyException extends ExecutionException {}
 
     @Override protected void done () {
         notifyListeners ();
@@ -85,16 +83,11 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
         T result = null;
         Throwable th = null;
 
-        if (wasTimedOut) {
-            th = new TimeoutException ();
+        try {
+            result = get ();
         }
-        else {
-            try {
-                result = get ();
-            }
-            catch (Exception exc) {
-                th = exc;
-            }
+        catch (Exception exc) {
+            th = exc;
         }
 
         // This method can be called several times, even concurrently - see the comment in onFinished(). Atomically removing all listeners from the list deals with
@@ -145,6 +138,13 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
         onFinished (new AStatement2NoThrow<T, Throwable> () {
             @Override public void apply (T param1, Throwable param2) {
                 if (param2 != null) {
+                    if (param2 instanceof ExecutionException) {
+                        final ExecutionException ee = (ExecutionException) param2;
+                        if (ee.getCause () != null) {
+                            param2 = ee.getCause ();
+                        }
+                    }
+
                     result.setException (param2);
                     return;
                 }
@@ -172,6 +172,12 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
         onFinished (new AStatement2NoThrow<T, Throwable> () {
             @Override public void apply (final T param1, Throwable param2) {
                 if (param2 != null) {
+                    if (param2 instanceof ExecutionException) {
+                        final ExecutionException ee = (ExecutionException) param2;
+                        if (ee.getCause () != null) {
+                            param2 = ee.getCause ();
+                        }
+                    }
                     result.setException (param2);
                     return;
                 }

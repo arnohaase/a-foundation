@@ -51,11 +51,15 @@ class AThreadPoolImpl extends ThreadPoolExecutor implements AThreadPool {
         return register ((AFutureImpl<T>) submit (task, result), timeout, timeoutUnit);
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, AFunction1<T, Callable<R>, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, final AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E {
         // first transform all tasks to callables to submit either all or none, even if an exception occurs during transformation
         final List<Callable<R>> callables = new ArrayList<> ();
-        for (T param: params) {
-            callables.add (taskFunction.apply (param));
+        for (final T param: params) {
+            callables.add (new Callable<R> () {
+                @Override public R call () throws Exception {
+                    return taskFunction.apply (param);
+                }
+            });
         }
 
         final List<AFuture<R>> result = new ArrayList<> ();
@@ -65,7 +69,7 @@ class AThreadPoolImpl extends ThreadPoolExecutor implements AThreadPool {
         return result;
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, Callable<R>, E> taskFunction, long timeout, TimeUnit timeoutUnit, final R defaultValue) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, final R defaultValue) throws E {
         final List<AFuture<R>> raw = submitAll (params, taskFunction, timeout, timeoutUnit);
         return ACollectionHelper.map (raw, new AFunction1NoThrow<AFuture<R>, AFuture<R>> () {
             @Override public AFuture<R> apply (AFuture<R> param) {
