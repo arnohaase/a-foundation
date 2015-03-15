@@ -1,5 +1,6 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.immutable;
 
+import com.ajjpj.abase.collection.AbstractCollectionTest;
 import com.ajjpj.abase.collection.immutable.AList;
 import org.junit.Test;
 

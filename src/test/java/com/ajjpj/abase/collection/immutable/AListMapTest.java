@@ -1,4 +1,4 @@
-package com.ajjpj.abase.collection;
+package com.ajjpj.abase.collection.immutable;
 
 import com.ajjpj.abase.collection.immutable.AListMap;
 import com.ajjpj.abase.collection.immutable.AMap;

@@ -125,6 +125,10 @@ class LeafNode extends InMemoryBTree {
             return new RemoveResult (this, false, keys[0]);
         }
 
+        if (keys.length == 1) {
+            return new RemoveResult (empty (spec), false, null);
+        }
+
         final Object[] newKeys = new Object[keys.length-1];
         System.arraycopy (keys, 0, newKeys, 0, lookupResult.index);
         System.arraycopy (keys, lookupResult.index + 1, newKeys, lookupResult.index, keys.length - lookupResult.index - 1);
