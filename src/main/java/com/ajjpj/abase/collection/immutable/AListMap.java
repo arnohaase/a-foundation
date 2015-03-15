@@ -374,17 +374,31 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
 
         @Override
         public AListMap<K,V> removed(K key) {
-            AList<ATuple2<K,V>> raw = AList.nil();
-            AListMap<K,V> remaining = this;
+            int idx = 0;
 
+            AListMap<K,V> remaining = this;
             while(remaining.nonEmpty()) {
-                if(! equality.equals(remaining.key(), key)) {
-                    raw = raw.cons(new ATuple2<> (remaining.key(), remaining.value()));
+                if(equality.equals(remaining.key(), key)) {
+                    remaining = remaining.tail();
+                    break;
                 }
+                idx += 1;
                 remaining = remaining.tail();
             }
 
-            return AListMap.fromKeysAndValues(equality, raw.reverse().asJavaUtilList());
+            AListMap<K,V> result = remaining;
+
+            AListMap<K,V> iter = this;
+            for (int i=0; i<idx; i++) {
+                result = new Node<> (iter.key (), iter.value (), result);
+                iter = iter.tail ();
+            }
+
+            if (idx >= size ()) {
+                return this;
+            }
+
+            return result;
         }
     }
 

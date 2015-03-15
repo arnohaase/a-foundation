@@ -150,13 +150,11 @@ public class AMapTest {
         final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = EMPTY;
 
-        for(int i=0; i<1_000_000; i++) {
+        for(int i=0; i<10_000; i++) {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
-//            System.out.println (i + ": " + add);
-
-//            if (i%1000 == 999) {
+//            if (i%10_000 == 0) {
 //                System.out.println (i);
 //            }
 
@@ -170,11 +168,14 @@ public class AMapTest {
                 ju.remove(key);
                 a = a.removed(key);
             }
+
+//            assertEquals ("failed for i=" + i, ju.size (), a.size ());
 //            for(int k: ju.keySet()) {
 //                assertEquals ("failed for i=" + i, AOption.some (ju.get (k)), a.get (k));
 //            }
         }
 
+        assertEquals (ju.size (), a.size ());
         for(int k: ju.keySet()) {
             assertEquals (AOption.some (ju.get (k)), a.get (k));
         }
