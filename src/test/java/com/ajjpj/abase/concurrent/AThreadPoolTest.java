@@ -26,6 +26,9 @@ public class AThreadPoolTest {
 
     @After
     public void shutdown() {
+        if (threadPool == null) {
+            return;
+        }
         threadPool.shutdown ();
         threadPool = null;
     }
@@ -164,18 +167,54 @@ public class AThreadPoolTest {
     }
 
     @Test
-    public void testCancel() throws InterruptedException {
+    public void testCancel() throws InterruptedException, ExecutionException {
         threadPool = new AThreadPoolBuilder ().buildFixedSize (10);
+
+        final CountDownLatch latch = new CountDownLatch (1);
 
         final AFuture<Integer> f1 = threadPool.submit (new Callable<Integer> () {
             @Override public Integer call () throws Exception {
+                latch.await ();
                 return 1;
             }
         }, 100, TimeUnit.MILLISECONDS);
 
+        final AtomicInteger count = new AtomicInteger (0);
+
+        final AStatement2NoThrow<Integer, Throwable> listener = new AStatement2NoThrow<Integer, Throwable> () {
+            @Override public void apply (Integer param1, Throwable param2) {
+                assertNull (param1);
+                assertTrue (param2 instanceof CancellationException);
+                count.incrementAndGet ();
+            }
+        };
+
+        f1.onFinished (listener);
+
         f1.cancel (false);
+
+        f1.onFinished (listener);
+
         assertEquals (true, f1.isDone ());
         assertEquals (true, f1.isCancelled ());
+
+        latch.countDown ();
+
+        assertEquals (true, f1.isDone ());
+        assertEquals (true, f1.isCancelled ());
+
+        f1.onFinished (listener);
+
+        try {
+            f1.get ();
+            fail ("exception expected");
+        }
+        catch (CancellationException exc) { // expected
+        }
+
+        f1.onFinished (listener);
+
+        assertEquals (4, count.get ());
     }
 
     @Test

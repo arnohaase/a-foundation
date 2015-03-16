@@ -150,7 +150,9 @@ public class AMapTest {
         final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = EMPTY;
 
-        for(int i=0; i<10_000; i++) {
+        final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
+
+        for(int i=0; i<numIters; i++) {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
