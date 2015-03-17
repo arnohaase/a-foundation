@@ -18,7 +18,7 @@ import java.util.Iterator;
  *
  * @author arno
  */
-public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> implements Serializable {
+public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> implements Serializable { //TODO more generic: wrapper for any AMap in a Set
     private final AHashMap<T, Boolean> inner;
 
     private static final AHashSet<Object> emptyEquals = new AHashSet<>(AHashMap.<Object, Boolean>empty(AEquality.EQUALS));

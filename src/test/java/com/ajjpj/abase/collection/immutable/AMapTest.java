@@ -28,7 +28,8 @@ public class AMapTest {
                 new Object[] {AListMap.empty ()},
                 new Object[] {InMemoryBTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
                 new Object[] {InMemoryBTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
-                new Object[] {InMemoryBTree.empty (new BTreeSpec (16, NATURAL_ORDER))}
+                new Object[] {InMemoryBTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
+                new Object[] {ARedBlackTree.empty (NATURAL_ORDER)}
         );
     }
 
@@ -102,6 +103,8 @@ public class AMapTest {
         assertTrue(keys.contains(33));
         assertTrue(keys.contains(44));
 
+        ((ARedBlackTree) map).dump();
+
         final Collection<Integer> values = map.values();
         assertEquals(4, values.size());
         assertTrue(values.contains(1));
@@ -160,16 +163,21 @@ public class AMapTest {
 //                System.out.println (i);
 //            }
 
+//            System.out.println (i);
+//            if (i == 7559) {
+//                ((ARedBlackTree) a).dump ();
+//            }
+
             if(add) {
                 final int value = rand.nextInt ();
-
                 ju.put (key, value);
                 a = a.updated(key, value);
             }
             else {
-                ju.remove(key);
+                ju.remove (key);
                 a = a.removed(key);
             }
+//            ((ARedBlackTree) a).dump ();
 
 //            assertEquals ("failed for i=" + i, ju.size (), a.size ());
 //            for(int k: ju.keySet()) {
