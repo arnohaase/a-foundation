@@ -8,6 +8,7 @@ import java.util.*;
 
 //TODO extract 'ASortedMap' / 'ASortedSet'
 //TODO generify ASet creation based on AMap
+//TODO map performance comparison benchmarks
 
 /**
  * @author arno

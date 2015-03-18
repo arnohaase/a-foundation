@@ -103,7 +103,7 @@ public class AMapTest {
         assertTrue(keys.contains(33));
         assertTrue(keys.contains(44));
 
-        ((ARedBlackTree) map).dump();
+//        ((ARedBlackTree) map).dump();
 
         final Collection<Integer> values = map.values();
         assertEquals(4, values.size());
@@ -150,8 +150,49 @@ public class AMapTest {
     public void testShotgun() {
         final Random rand = new Random(12345);
 
+//        RedBlackTree.Tree<Integer, Integer> srb = null;
         final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = EMPTY;
+
+//        final Ordering<Integer> ordering = new Ordering<Integer> () {
+//            @Override public Some<Object> tryCompare (Integer x, Integer y) {
+//                return new Some (compare (x, y));
+//            }
+//            @Override public int compare (Integer x, Integer y) {
+//                return x-y;
+//            }
+//            @Override public Integer max (Integer x, Integer y) {
+//                return Math.max (x, y);
+//            }
+//            @Override public boolean gt (Integer x, Integer y) {
+//                return x>y;
+//            }
+//            @Override public boolean gteq (Integer x, Integer y) {
+//                return x >= y;
+//            }
+//            @Override public <U> Ordering<U> on (Function1<U, Integer> f) {
+//                throw new UnsupportedOperationException ();
+//            }
+//            @Override public boolean lt (Integer x, Integer y) {
+//                return x < y;
+//            }
+//            @Override public Integer min (Integer x, Integer y) {
+//                return Math.min (x, y);
+//            }
+//            @Override public boolean equiv (Integer x, Integer y) {
+//                return x.equals (y);
+//            }
+//            @Override public Ops mkOrderingOps (Integer lhs) {
+//                throw new UnsupportedOperationException ();
+//            }
+//            @Override public Ordering<Integer> reverse () {
+//                throw new UnsupportedOperationException ();
+//            }
+//            @Override public boolean lteq (Integer x, Integer y) {
+//                return x <= y;
+//            }
+//        };
+
 
         final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
 
@@ -159,37 +200,104 @@ public class AMapTest {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
-//            if (i%10_000 == 0) {
-//                System.out.println (i);
-//            }
-
-//            System.out.println (i);
-//            if (i == 7559) {
-//                ((ARedBlackTree) a).dump ();
-//            }
+            if (i%10_000 == 0) {
+                System.out.println (i);
+//                ARedBlackTree.validate (((ARedBlackTree)a).root);
+            }
 
             if(add) {
                 final int value = rand.nextInt ();
                 ju.put (key, value);
+
+//                srb = RedBlackTree.update (srb, key, value, true, ordering);
                 a = a.updated(key, value);
             }
             else {
                 ju.remove (key);
+
+//                srb = RedBlackTree.delete (srb, key, ordering);
                 a = a.removed(key);
             }
-//            ((ARedBlackTree) a).dump ();
+
+
+//            try {
+//                compare (((ARedBlackTree) a).root, srb);
+//            }
+//            catch (IllegalStateException exc) {
+//                System.out.println (i);
+//                dump (srb, 0);
+//                ((ARedBlackTree) a).dump ();
+//                fail ("a != srb");
+//            }
 
 //            assertEquals ("failed for i=" + i, ju.size (), a.size ());
 //            for(int k: ju.keySet()) {
 //                assertEquals ("failed for i=" + i, AOption.some (ju.get (k)), a.get (k));
 //            }
+//            validate (srb);
         }
 
+//        assertEquals (ju.size (), srb.count ());
+//        for(int k: ju.keySet()) {
+//            assertEquals (ju.get (k), RedBlackTree.get (srb, k, ordering).get ());
+//        }
         assertEquals (ju.size (), a.size ());
         for(int k: ju.keySet()) {
             assertEquals (AOption.some (ju.get (k)), a.get (k));
         }
     }
+
+//    void validate (RedBlackTree.Tree tree) {
+//        if (tree instanceof RedBlackTree.RedTree) {
+//            if (tree.left() instanceof RedBlackTree.RedTree) throw new IllegalStateException ();
+//            if (tree.right () instanceof RedBlackTree.RedTree) throw new IllegalStateException ();
+//        }
+//
+//        countBlackDepth (tree);
+//    }
+//
+//    int countBlackDepth (RedBlackTree.Tree tree) {
+//        if (tree == null) return 1;
+//
+//        final int own = tree instanceof RedBlackTree.BlackTree ? 1 : 0;
+//
+//        final int left  = countBlackDepth (tree.left());
+//        final int right = countBlackDepth (tree.right ());
+//
+//        if (left != right) throw new IllegalStateException ();
+//        return left + own;
+//    }
+//
+//    String indent (int level) {
+//        return "                                                                                                                                              ".substring (0, 4*level);
+//    }
+//
+//    void dump (RedBlackTree.Tree tree, int indent) {
+//        if (tree == null) {
+//            System.out.println (indent (indent) + "<>");
+//            return;
+//        }
+//        dump (tree.left (), indent+1);
+//        System.out.println (indent (indent) + (tree instanceof RedBlackTree.BlackTree ? "+ " : "* ") + tree.key ());
+//        dump (tree.right (), indent+1);
+//    }
+//
+//    void compare (ARedBlackTree.Tree<Integer, Integer> a, RedBlackTree.Tree<Integer, Integer> b) {
+//        if (a == null && b == null) {
+//            return;
+//        }
+//
+//        if (a == null || b == null) throw new IllegalStateException ();
+//
+//        final boolean aIsBlack = a instanceof ARedBlackTree.BlackTree;
+//        final boolean bIsBlack = b instanceof RedBlackTree.BlackTree;
+//
+//        if (aIsBlack != bIsBlack) throw new IllegalStateException ();
+//        if (! Objects.equals (a.key, b.key ())) throw new IllegalStateException ();
+//
+//        compare (a.left, b.left ());
+//        compare (a.right, b.right ());
+//    }
 
 }
 
