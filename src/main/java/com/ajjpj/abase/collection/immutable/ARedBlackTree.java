@@ -6,11 +6,14 @@ import com.ajjpj.abase.function.AFunction1;
 import java.util.*;
 
 
+//TODO extract 'ASortedMap' / 'ASortedSet'
+//TODO generify ASet creation based on AMap
+
 /**
  * @author arno
  */
 public class ARedBlackTree<K,V> implements AMap<K,V> {
-    private final Tree<K,V> root;
+    final Tree<K,V> root;
     private final Comparator<K> comparator;
 
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
@@ -20,8 +23,6 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
     }
 
     private ARedBlackTree (Tree<K, V> root, Comparator<K> comparator) {
-        validate (root); //TODO remove this
-
         this.root = root;
         this.comparator = comparator;
     }
@@ -196,13 +197,13 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         validate (tree.left);
         validate (tree.right);
 
-        // rule 4: every red node has two black children
+        // rule 4: every redden node has two blacken children
         if (isRedTree (tree)) {
             if (tree.left != null && isRedTree (tree.left)) {
-                throw new IllegalStateException ("tree " + tree.key + " is red and has a left child that is red");
+                throw new IllegalStateException ("tree " + tree.key + " is redden and has a left child that is redden");
             }
             if (tree.right != null && isRedTree (tree.right)) {
-                throw new IllegalStateException ("tree " + tree.key + " is red and has a right child that is red");
+                throw new IllegalStateException ("tree " + tree.key + " is redden and has a right child that is redden");
             }
         }
 
@@ -218,18 +219,18 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         final int left  = checkBlackDepth (tree.left);
         final int right = checkBlackDepth (tree.right);
 
-        // rule 5: every path to 'leaf' nodes must have the same number of black nodes
+        // rule 5: every path to 'leaf' nodes must have the same number of blacken nodes
         if (left != right) {
-            throw new IllegalStateException ("left and right side have paths to leaf nodes with different numbers of black nodes: " + tree.key);
+            throw new IllegalStateException ("left and right side have paths to leaf nodes with different numbers of blacken nodes: " + tree.key);
         }
         return own + left;
     }
 
 
-    private abstract class TreeIterator<R> implements Iterator<R> { //TODO special treatment for empty sets
+    private abstract class TreeIterator<R> implements Iterator<R> {
         /*
-         * According to "Ralf Hinze. Constructing red-black trees" [http://www.cs.ox.ac.uk/ralf.hinze/publications/#P5]
-         * the maximum height of a red-black tree is 2*log_2(n + 2) - 2.
+         * According to "Ralf Hinze. Constructing redden-blacken trees" [http://www.cs.ox.ac.uk/ralf.hinze/publications/#P5]
+         * the maximum height of a redden-blacken tree is 2*log_2(n + 2) - 2.
          *
          * According to {@see Integer#numberOfLeadingZeros} ceil(log_2(n)) = (32 - Integer.numberOfLeadingZeros(n - 1))
          *
@@ -307,51 +308,31 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
 
 
     static <K,V> Tree<K,V> lookup(Tree<K,V> tree, K key, Comparator<K> comparator) {
-        if (tree == null) {
-            return null;
+        while (tree != null) {
+            final int cmp = comparator.compare (key, tree.key);
+            if (cmp == 0) return tree;
+
+            tree = (cmp < 0) ? tree.left : tree.right;
         }
-        final int cmp = comparator.compare (key, tree.key);
-        if (cmp < 0) {
-            return lookup (tree.left, key, comparator);
-        }
-        else if (cmp > 0) {
-            return lookup (tree.right, key, comparator);
-        }
-        else {
-            return tree;
-        }
+        return null;
     }
 
 
     static boolean isRedTree (Tree tree) {
-        return tree instanceof RedTree;
+        return tree != null && tree.isRed ();
     }
     static boolean isBlackTree (Tree tree) {
-        if (tree == null) {
-            System.out.println ("***");
-            return true;
-        }
-
-        return tree instanceof BlackTree;
+        return tree != null && tree.isBlack ();
     }
 
     static <K,V> Tree<K,V> blacken (Tree<K,V> tree) {
         if (tree == null) {
             return null;
         }
-        return tree.black();
+        return tree.blacken ();
     }
 
-    static <K,V> Tree<K,V> mkTree (boolean isBlack, K key, V value, Tree<K,V> left, Tree<K,V> right) {
-        if (isBlack) {
-            return new BlackTree<> (key, value, left, right);
-        }
-        else {
-            return new RedTree<> (key, value, left, right);
-        }
-    }
-
-    static <K,V> Tree<K,V> balanceLeft (boolean isBlack, K key, V value, Tree<K,V> l, Tree<K,V> d) {
+    static <K,V> Tree<K,V> balanceLeft (TreeFactory<K,V> treeFactory, K key, V value, Tree<K,V> l, Tree<K,V> d) {
         if (isRedTree (l) && isRedTree (l.left)) {
             return new RedTree<> (l.key, l.value,
                     new BlackTree<> (l.left.key, l.left.value, l.left.left, l.left.right),
@@ -362,10 +343,10 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
                     new BlackTree<> (l.key, l.value, l.left, l.right.left),
                     new BlackTree<> (key, value, l.right.right, d));
         }
-        return mkTree (isBlack, key, value, l, d);
+        return treeFactory.create (l, d);
     }
 
-    static <K,V> Tree<K,V> balanceRight (boolean isBlack, K key, V value, Tree<K,V> a, Tree<K,V> r) {
+    static <K,V> Tree<K,V> balanceRight (TreeFactory<K,V> treeFactory, K key, V value, Tree<K,V> a, Tree<K,V> r) {
         if (isRedTree (r) && isRedTree (r.left)) {
             return new RedTree<> (r.left.key, r.left.value,
                     new BlackTree<> (key, value, a, r.left.left),
@@ -376,7 +357,7 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
                     new BlackTree<> (key, value, a, r.left),
                     new BlackTree<> (r.right.key, r.right.value, r.right.left, r.right.right));
         }
-        return mkTree (isBlack, key, value, a, r);
+        return treeFactory.create (a, r);
     }
 
     static <K,V> Tree<K,V> upd (Tree<K,V> tree, K key, V value, Comparator<K> comparator) {
@@ -385,12 +366,12 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         }
         final int cmp = comparator.compare (key, tree.key);
         if (cmp < 0) {
-            return balanceLeft (isBlackTree (tree), tree.key, tree.value, upd (tree.left, key, value, comparator), tree.right);
+            return balanceLeft (tree, tree.key, tree.value, upd (tree.left, key, value, comparator), tree.right);
         }
         if (cmp > 0) {
-            return balanceRight (isBlackTree (tree), tree.key, tree.value, tree.left, upd (tree.right, key, value, comparator));
+            return balanceRight (tree, tree.key, tree.value, tree.left, upd (tree.right, key, value, comparator));
         }
-        return mkTree (isBlackTree (tree), key, value, tree.left, tree.right); //TODO tree.withNewValue(value)
+        return tree.withNewValue (key, value);
     }
 
     static <K,V> Tree<K,V> del (Tree<K,V> tree, K key, Comparator<K> comparator) {
@@ -404,7 +385,7 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
             return isBlackTree (tree.left) ?
                     balanceLeft (tree.key, tree.value, del (tree.left, key, comparator), tree.right) :
 
-                // tree.left is 'red', so its children are guaranteed to be black.
+                // tree.left is 'redden', so its children are guaranteed to be blacken.
                 new RedTree<> (tree.key, tree.value, del (tree.left, key, comparator), tree.right);
         }
         else if (cmp > 0) {
@@ -420,11 +401,11 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
     }
 
     static <K,V> Tree<K,V> balance (K key, V value, Tree<K, V> tl, Tree<K, V> tr) {
-        if (isRedTree (tl) && isRedTree (tr)) return new RedTree<> (key, value, tl.black(), tr.black());
+        if (isRedTree (tl) && isRedTree (tr)) return new RedTree<> (key, value, tl.blacken (), tr.blacken ());
 
         if (isRedTree (tl)) {
-            // left is red, right is black
-            if (isRedTree (tl.left)) return new RedTree<> (tl.key, tl.value, tl.left.black(), new BlackTree<> (key, value, tl.right, tr));
+            // left is redden, right is blacken
+            if (isRedTree (tl.left)) return new RedTree<> (tl.key, tl.value, tl.left.blacken (), new BlackTree<> (key, value, tl.right, tr));
             if (isRedTree (tl.right)) {
                 return new RedTree<> (tl.right.key, tl.right.value,
                         new BlackTree<> (tl.key, tl.value, tl.left, tl.right.left),
@@ -434,57 +415,40 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         }
 
         if (isRedTree (tr)) {
-            // left is black, right is red
-            if (isRedTree (tr.right)) return new RedTree<> (tr.key, tr.value, new BlackTree<> (key, value, tl, tr.left), tr.right.black());
+            // left is blacken, right is redden
+            if (isRedTree (tr.right)) return new RedTree<> (tr.key, tr.value, new BlackTree<> (key, value, tl, tr.left), tr.right.blacken ());
             if (isRedTree (tr.left))  return new RedTree<> (tr.left.key, tr.left.value, new BlackTree<> (key, value, tl, tr.left.left), new BlackTree<> (tr.key, tr.value, tr.left.right, tr.right));
             return new BlackTree<> (key, value, tl, tr);
         }
 
-        // tl and tr are both black
+        // tl and tr are both blacken
         return new BlackTree<> (key, value, tl, tr);
     }
 
-    static <K,V> Tree<K,V> delSubl(Tree<K,V> t) { //TODO Tree.blackToRed()
-        if (t instanceof BlackTree) return t.red();
-        throw new IllegalStateException ("invariant violation: expected black, got " + t);
-    }
-
-    /**
-     * Creates a new Tree and balances it. This method assumes that the left sub-tree 'tl' is TODO
-     */
-    private static <K,V> Tree<K,V> balanceLeft (K key, V value, Tree<K, V> tl, Tree<K, V> tr) {
+    private static <K,V> Tree<K,V> balanceLeft (K key, V value, Tree<K, V> tl, Tree<K, V> tr) { //TODO merge with other 'balanceLeft' method?
         if (isRedTree (tl)) {
-            return new RedTree<> (key, value, tl.black(), tr);
+            return new RedTree<> (key, value, tl.blacken (), tr);
         }
         if (isBlackTree (tr)) {
-            return balance (key, value, tl, tr.red ());
+            return balance (key, value, tl, tr.redden ());
         }
-        if (isRedTree (tr) && isBlackTree (tl)) {
-            return new RedTree<> (tr.left.key, tr.left.value, new BlackTree<> (key, value, tl, tr.left.left), balance (tr.key, tr.value, tr.left.right, delSubl (tr.right)));
+        if (isRedTree (tr) && isBlackTree (tr.left)) {
+            return new RedTree<> (tr.left.key, tr.left.value, new BlackTree<> (key, value, tl, tr.left.left), balance (tr.key, tr.value, tr.left.right, tr.right.blackToRed ()));
         }
         throw new IllegalStateException ("invariant violation");
     }
 
     static <K,V> Tree<K,V> balanceRight (K key, V value, Tree<K, V> tl, Tree<K, V> tr) {
         if (isRedTree (tr)) {
-            return new RedTree<> (key, value, tl, tr.black());
+            return new RedTree<> (key, value, tl, tr.blacken ());
         }
         if (isBlackTree (tl)) {
-            return balance (key, value, tl.red (), tr);
+            return balance (key, value, tl.redden (), tr);
         }
-        if (isRedTree (tl) && isBlackTree (tr)) {
-            return new RedTree<> (tl.right.key, tl.right.value, balance (tl.key, tl.value, delSubl (tl.left), tl.right.left), new BlackTree <> (key, value, tl.right.right, tr));
+        if (isRedTree (tl) && isBlackTree (tl.right)) {
+            return new RedTree<> (tl.right.key, tl.right.value, balance (tl.key, tl.value, tl.left.blackToRed (), tl.right.left), new BlackTree <> (key, value, tl.right.right, tr));
         }
         throw new IllegalStateException ("invariant violation");
-    }
-
-    static <K,V> Tree<K,V> delRight (Tree<K,V> tree, K key, Comparator<K> comparator) {
-        if (isBlackTree (tree.right)) {
-            return balanceRight (tree.key, tree.value, tree.left, del (tree.right, key, comparator));
-        }
-        else {
-            return new RedTree<> (tree.key, tree.value, tree.left, del (tree.right, key, comparator));
-        }
     }
 
     /**
@@ -518,8 +482,14 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
     }
 
 
+    /**
+     * encapsulates tree creation for a given colour
+     */
+    interface TreeFactory<K,V> {
+        Tree<K,V> create (Tree<K,V> left, Tree<K,V> right);
+    }
 
-    static abstract class Tree<K,V> {
+    static abstract class Tree<K,V> implements TreeFactory<K,V> {
         final K key;
         final V value;
         final int count;
@@ -538,8 +508,15 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
                     (right == null ? 0 : right.count);
         }
 
-        abstract Tree<K,V> red();
-        abstract Tree<K,V> black();
+        abstract Tree<K,V> withNewValue (K key, V value);
+
+        abstract Tree<K,V> blackToRed();
+
+        abstract boolean isRed();
+        abstract boolean isBlack();
+
+        abstract Tree<K,V> redden ();
+        abstract Tree<K,V> blacken ();
     }
 
     static class BlackTree<K,V> extends Tree<K,V> {
@@ -547,10 +524,28 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
             super(key, value, left, right);
         }
 
-        @Override Tree<K, V> red () {
+        @Override Tree<K, V> withNewValue (K key, V value) {
+            return new BlackTree<> (key, value, left, right);
+        }
+        @Override public Tree<K, V> create (Tree<K, V> left, Tree<K, V> right) {
+            return new BlackTree<> (key, value, left, right);
+        }
+
+        @Override Tree<K, V> blackToRed () {
+            return redden ();
+        }
+
+        @Override boolean isRed () {
+            return false;
+        }
+        @Override boolean isBlack () {
+            return true;
+        }
+
+        @Override Tree<K, V> redden () {
             return new RedTree<> (key, value, left, right);
         }
-        @Override Tree<K, V> black () {
+        @Override Tree<K, V> blacken () {
             return this;
         }
     }
@@ -560,11 +555,28 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
             super (key, value, left, right);
         }
 
-        @Override Tree<K, V> red () {
-            return this;
+        @Override Tree<K, V> withNewValue (K key, V value) {
+            return new RedTree<> (key, value, left, right);
+        }
+        @Override public Tree<K, V> create (Tree<K, V> left, Tree<K, V> right) {
+            return new RedTree<> (key, value, left, right);
         }
 
-        @Override Tree<K, V> black () {
+        @Override Tree<K, V> blackToRed () {
+            throw new IllegalStateException ();
+        }
+
+        @Override boolean isRed () {
+            return true;
+        }
+        @Override boolean isBlack () {
+            return false;
+        }
+
+        @Override Tree<K, V> redden () {
+            return this;
+        }
+        @Override Tree<K, V> blacken () {
             return new BlackTree<> (key, value, left, right);
         }
     }
