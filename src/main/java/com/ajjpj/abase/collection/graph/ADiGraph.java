@@ -8,6 +8,7 @@ import com.ajjpj.abase.collection.tuples.ATuple3;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicateNoThrow;
 
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -24,7 +25,7 @@ import java.util.*;
  *
  * @author arno
  */
-public class ADiGraph<N,E extends AEdge<N>> {
+public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     private final Object[] nodes;
     private final AEdge[] edges;
 
@@ -89,7 +90,7 @@ public class ADiGraph<N,E extends AEdge<N>> {
     //TODO helper: create list of edges from 'partial order'
 
 
-    private ATuple3<AMap<N,AList<AEdgePath<N,E>>>, AMap<N,AList<AEdgePath<N,E>>>, AList<AEdgePath<N,E>>> _allPathsInternal; //TODO split into separate attributes
+    private transient ATuple3<AMap<N,AList<AEdgePath<N,E>>>, AMap<N,AList<AEdgePath<N,E>>>, AList<AEdgePath<N,E>>> _allPathsInternal; //TODO split into separate attributes
     /**
      * This method does the reachability analysis in a way that is useful for many other methods.
      */
@@ -144,7 +145,7 @@ public class ADiGraph<N,E extends AEdge<N>> {
         return _allPathsInternal;
     }
 
-    private Map<N,List<E>> _incomingEdges = null;
+    private transient Map<N,List<E>> _incomingEdges = null;
     private Map<N,List<E>> incomingEdges() {
         if (_incomingEdges == null) {
             _incomingEdges = new HashMap<> ();
@@ -167,7 +168,7 @@ public class ADiGraph<N,E extends AEdge<N>> {
         return result != null ? Collections.unmodifiableList (result) : Collections.<E>emptyList ();
     }
 
-    private Map<N,List<E>> _outgoingEdges = null;
+    private transient Map<N,List<E>> _outgoingEdges = null;
     private Map<N,List<E>> outgoingEdges() {
         if (_outgoingEdges == null) {
             _outgoingEdges = new HashMap<> ();
@@ -232,6 +233,8 @@ public class ADiGraph<N,E extends AEdge<N>> {
             unprocessed.add ((N) node);
         }
 
+        //TODO Map<N,Integer> with 'remaining' incoming edges, decrement when a node is 'processed' --> JMH
+
         while (! unprocessed.isEmpty ()) {
             final Set<N> nextBatch = ACollectionHelper.filter (unprocessed, new APredicateNoThrow<N> () {
                 @Override public boolean apply (N n) {
@@ -284,7 +287,7 @@ public class ADiGraph<N,E extends AEdge<N>> {
         return _isForest;
     }
 
-    private Collection<N> _rootNodes;
+    private transient Collection<N> _rootNodes;
     /** nodes with no edge pointing to them */
     public Collection<N> rootNodes() {
         synchronized (this) {
@@ -299,7 +302,7 @@ public class ADiGraph<N,E extends AEdge<N>> {
         }
     }
 
-    private Collection<N> _leafNodes;
+    private transient Collection<N> _leafNodes;
     /** nodes with no edge pointing from them */
     public Collection<N> leafNodes() {
         synchronized (this) {

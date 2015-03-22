@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author arno
  */
-class ASyncThreadPool implements AThreadPool {
+class ASyncThreadPool implements AThreadPool { //TODO test
     private volatile boolean isShutdown = false;
 
     @Override public void shutdown () {

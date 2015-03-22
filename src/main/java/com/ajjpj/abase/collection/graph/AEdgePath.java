@@ -3,6 +3,7 @@ package com.ajjpj.abase.collection.graph;
 import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  *
  * @author arno
  */
-public class AEdgePath<N, E extends AEdge<N>> {
+public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
     private final AList<E> edges;
     private final AHashSet<N> nodes;
     private final N to;
