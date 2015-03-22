@@ -200,10 +200,10 @@ public class AMapTest {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
-            if (i%10_000 == 0) {
-                System.out.println (i);
+//            if (i%10_000 == 0) {
+//                System.out.println (i);
 //                ARedBlackTree.validate (((ARedBlackTree)a).root);
-            }
+//            }
 
             if(add) {
                 final int value = rand.nextInt ();
