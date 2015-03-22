@@ -16,7 +16,7 @@ import java.util.Collection;
  *
  * @author arno
  */
-public interface ACollection<T> extends ATraversable<T>, Collection<T> {
+public interface ACollection<T> extends ATraversable<T>, Collection<T> { //TODO Iterable<T> instead of Collection<T>
     int size();
     boolean isEmpty();
     boolean nonEmpty();

@@ -45,6 +45,9 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    public AThreadPool buildSynchronous () {
+        return new ASyncThreadPool ();
+    }
 
     public AThreadPool buildFixedSize (int size) {
         final BlockingQueue<Runnable> queue;
