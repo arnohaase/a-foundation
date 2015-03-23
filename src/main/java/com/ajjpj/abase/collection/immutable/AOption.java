@@ -78,9 +78,20 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         return ACollectionHelper.mkString(this, prefix, separator, suffix);
     }
 
-
     public abstract boolean equals(Object o);
     public abstract int hashCode();
+
+    @Override public Collection<T> asJavaUtilCollection () {
+        return new AbstractCollection<T> () {
+            @SuppressWarnings ("NullableProblems")
+            @Override public Iterator<T> iterator () {
+                return AOption.this.iterator ();
+            }
+            @Override public int size () {
+                return iterator ().hasNext () ? 1 : 0;
+            }
+        };
+    }
 
     static class ASome<T> extends AOption<T> {
         private final T el;
@@ -186,50 +197,50 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return AEquality.EQUALS.equals(el, o);
         }
 
-        @SuppressWarnings("NullableProblems")
-        @Override public Object[] toArray() {
-            return new Object[] {el};
-        }
-
-        @SuppressWarnings({"NullableProblems", "SuspiciousToArrayCall"})
-        @Override public <T1> T1[] toArray(T1[] a) {
-            return Arrays.asList(el).toArray(a);
-        }
-
-        @Override public boolean add(T t) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings({"NullableProblems", "SimplifiableIfStatement"})
-        @Override public boolean containsAll(Collection<?> c) {
-            if(c.isEmpty()) {
-                return true;
-            }
-            return c.size() == 1 && c.contains(el);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean addAll(Collection<? extends T> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override public void clear() {
-            throw new UnsupportedOperationException();
-        }
+//        @SuppressWarnings("NullableProblems")
+//        @Override public Object[] toArray() {
+//            return new Object[] {el};
+//        }
+//
+//        @SuppressWarnings({"NullableProblems", "SuspiciousToArrayCall"})
+//        @Override public <T1> T1[] toArray(T1[] a) {
+//            return Arrays.asList(el).toArray(a);
+//        }
+//
+//        @Override public boolean add(T t) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @Override public boolean remove(Object o) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings({"NullableProblems", "SimplifiableIfStatement"})
+//        @Override public boolean containsAll(Collection<?> c) {
+//            if(c.isEmpty()) {
+//                return true;
+//            }
+//            return c.size() == 1 && c.contains(el);
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean addAll(Collection<? extends T> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean removeAll(Collection<?> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean retainAll(Collection<?> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @Override public void clear() {
+//            throw new UnsupportedOperationException();
+//        }
     }
 
     static class ANone extends AOption<Object> {
@@ -326,52 +337,52 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return false;
         }
 
-        @SuppressWarnings("NullableProblems")
-        @Override public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public <T> T[] toArray(T[] a) {
-            if(a.length > 0) {
-                a[0] = null;
-            }
-            return a;
-        }
-
-        @Override
-        public boolean add(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean containsAll(Collection<?> c) {
-            return c.isEmpty();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean addAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
-        }
+//        @SuppressWarnings("NullableProblems")
+//        @Override public Object[] toArray() {
+//            return new Object[0];
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public <T> T[] toArray(T[] a) {
+//            if(a.length > 0) {
+//                a[0] = null;
+//            }
+//            return a;
+//        }
+//
+//        @Override
+//        public boolean add(Object o) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @Override public boolean remove(Object o) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean containsAll(Collection<?> c) {
+//            return c.isEmpty();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean addAll(Collection<?> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean removeAll(Collection<?> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @SuppressWarnings("NullableProblems")
+//        @Override public boolean retainAll(Collection<?> c) {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @Override
+//        public void clear() {
+//            throw new UnsupportedOperationException();
+//        }
     }
 }
 

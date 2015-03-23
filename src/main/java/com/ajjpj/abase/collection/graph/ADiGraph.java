@@ -4,7 +4,6 @@ import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.immutable.AHashMap;
 import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AMap;
-import com.ajjpj.abase.collection.tuples.ATuple3;
 import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicateNoThrow;
 
@@ -26,6 +25,8 @@ import java.util.*;
  * @author arno
  */
 public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
+    private final Object LOCK = new Object ();
+
     private final Object[] nodes;
     private final AEdge[] edges;
 
@@ -67,11 +68,11 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         this.edges = edges;
     }
 
-    public Iterable<N> nodes () {
+    public Collection<N> nodes () {
         return new ArrayIterable<> (nodes);
     }
 
-    public Iterable<E> getEdges () {
+    public Collection<E> edges () {
         return new ArrayIterable<> (edges);
     }
 
@@ -90,59 +91,67 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     //TODO helper: create list of edges from 'partial order'
 
 
-    private transient ATuple3<AMap<N,AList<AEdgePath<N,E>>>, AMap<N,AList<AEdgePath<N,E>>>, AList<AEdgePath<N,E>>> _allPathsInternal; //TODO split into separate attributes
+    private transient AMap<N,AList<AEdgePath<N,E>>> _incomingPathsInternal;
+    private transient AMap<N,AList<AEdgePath<N,E>>> _outgoingPathsInternal;
+    private transient AList<AEdgePath<N,E>> _cyclesInternal;
+
     /**
      * This method does the reachability analysis in a way that is useful for many other methods.
      */
-    private synchronized ATuple3<AMap<N,AList<AEdgePath<N,E>>>, AMap<N,AList<AEdgePath<N,E>>>, AList<AEdgePath<N,E>>> allPathsInternal() {
-        if (_allPathsInternal == null) {
-            AMap<N,AList<AEdgePath<N,E>>> incomingPaths = AHashMap.empty ();
+    private void initPathsInternal() {
+        synchronized (LOCK) {
+            if (_incomingPathsInternal == null) {
+                AMap<N, AList<AEdgePath<N, E>>> incomingPaths = AHashMap.empty ();
+                //noinspection unchecked
+                incomingPaths = incomingPaths.withDefaultValue (AList.nil);
 
-            AMap<N,AList<AEdgePath<N,E>>> outgoingPaths = AHashMap.empty ();
-            //noinspection unchecked
-            outgoingPaths = outgoingPaths.withDefaultValue (AList.nil);
+                AMap<N, AList<AEdgePath<N, E>>> outgoingPaths = AHashMap.empty ();
+                //noinspection unchecked
+                outgoingPaths = outgoingPaths.withDefaultValue (AList.nil);
 
-            AList<AEdgePath<N,E>> cycles = AList.nil();
+                AList<AEdgePath<N, E>> cycles = AList.nil ();
 
-            for (N curNode: nodes ()) { // iterate over nodes, treat 'curNode' as a target
-                final Iterable<E> curIncoming = incomingEdges (curNode);
-                List<AEdgePath<N,E>> unfinishedBusiness = new ArrayList<> ();
-                for (E incomingEdge: curIncoming) {
-                    unfinishedBusiness.add (AEdgePath.create (incomingEdge));
-                }
-
-                AList<AEdgePath<N,E>> nonCycles = AList.nil ();
-
-                while (unfinishedBusiness.size () > 0) {
-                    final List<AEdgePath<N,E>> curBusiness = unfinishedBusiness;
-
-                    for (AEdgePath<N,E> p: unfinishedBusiness) {
-                        if (! p.hasCycle ())     nonCycles = nonCycles.cons (p);
-                        if (p.isMinimalCycle ()) cycles.add (p);
+                for (N curNode : nodes ()) { // iterate over nodes, treat 'curNode' as a target
+                    final Iterable<E> curIncoming = incomingEdges (curNode);
+                    List<AEdgePath<N, E>> unfinishedBusiness = new ArrayList<> ();
+                    for (E incomingEdge : curIncoming) {
+                        unfinishedBusiness.add (AEdgePath.create (incomingEdge));
                     }
 
-                    unfinishedBusiness = new ArrayList<> ();
+                    AList<AEdgePath<N, E>> nonCycles = AList.nil ();
 
-                    for (AEdgePath<N,E> curPath: curBusiness) {
-                        final Iterable<E> l = incomingEdges (curPath.getFrom ());
-                        for (E newEdge: l) {
-                            final AEdgePath<N,E> pathCandidate = curPath.prepend (newEdge);
-                            if (! pathCandidate.hasNonMinimalCycle ()) {
-                                unfinishedBusiness.add (pathCandidate);
+                    while (unfinishedBusiness.size () > 0) {
+                        final List<AEdgePath<N, E>> curBusiness = unfinishedBusiness;
+
+                        for (AEdgePath<N, E> p : unfinishedBusiness) {
+                            if (!p.hasCycle ()) nonCycles = nonCycles.cons (p);
+                            if (p.isMinimalCycle ()) cycles = cycles.cons (p);
+                        }
+
+                        unfinishedBusiness = new ArrayList<> ();
+
+                        for (AEdgePath<N, E> curPath : curBusiness) {
+                            final Iterable<E> l = incomingEdges (curPath.getFrom ());
+                            for (E newEdge : l) {
+                                final AEdgePath<N, E> pathCandidate = curPath.prepend (newEdge);
+                                if (!pathCandidate.hasNonMinimalCycle ()) {
+                                    unfinishedBusiness.add (pathCandidate);
+                                }
                             }
                         }
+
                     }
+                    incomingPaths = incomingPaths.updated (curNode, nonCycles);
 
+                    for (AEdgePath<N, E> p : nonCycles) {
+                        outgoingPaths = outgoingPaths.updated (p.getFrom (), outgoingPaths.getRequired (p.getFrom ()).cons (p));
+                    }
                 }
-                incomingPaths.updated (curNode, nonCycles);
-
-                for (AEdgePath<N,E> p: nonCycles) {
-                    outgoingPaths.updated (p.getFrom (), outgoingPaths.getRequired (p.getFrom ()).cons (p));
-                }
+                _incomingPathsInternal = incomingPaths;
+                _outgoingPathsInternal = outgoingPaths;
+                _cyclesInternal = cycles;
             }
-            _allPathsInternal = new ATuple3<> (outgoingPaths, incomingPaths, cycles);
         }
-        return _allPathsInternal;
     }
 
     private transient Map<N,List<E>> _incomingEdges = null;
@@ -150,7 +159,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         if (_incomingEdges == null) {
             _incomingEdges = new HashMap<> ();
 
-            for (E edge: getEdges ()) {
+            for (E edge: edges ()) {
                 List<E> edgeList = _incomingEdges.get (edge.getTo ());
                 if (edgeList == null) {
                     edgeList = new ArrayList<> ();
@@ -173,7 +182,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         if (_outgoingEdges == null) {
             _outgoingEdges = new HashMap<> ();
 
-            for (E edge: getEdges ()) {
+            for (E edge: edges ()) {
                 List<E> edgeList = _outgoingEdges.get (edge.getFrom ());
                 if (edgeList == null) {
                     edgeList = new ArrayList<> ();
@@ -192,10 +201,12 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     }
 
     public Collection<AEdgePath<N,E>> outgoingPaths (N node) {
-        return allPathsInternal ()._1.get (node).getOrElse (AList.<AEdgePath<N,E>>nil());
+        initPathsInternal ();
+        return _outgoingPathsInternal.getRequired (node).asJavaUtilList ();
     }
     public Collection<AEdgePath<N,E>> incomingPaths (N node) {
-        return allPathsInternal ()._2.get (node).getOrElse (AList.<AEdgePath<N,E>>nil());
+        initPathsInternal ();
+        return _incomingPathsInternal.getRequired (node).asJavaUtilList ();
     }
 
     public boolean hasEdge (N from, N to) {
@@ -219,7 +230,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     /**
      * @return an Iterable containing all nodes, sorted in such a way that a node is guaranteed to come before all nodes that can be reached from it
      */
-    public Iterable<N> sortedNodesByReachability() {
+    public List<N> sortedNodesByReachability() {
         if (hasCycles()) {
             throw new IllegalStateException ("graph has cycles");
         }
@@ -257,16 +268,17 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return new ArrayIterable<> (result);
     }
 
-    public AList<AEdgePath<N,E>> getMinimalCycles() {
-        return allPathsInternal ()._3;
+    public AList<AEdgePath<N,E>> minimalCycles () {
+        initPathsInternal ();
+        return _cyclesInternal;
     }
 
     public boolean hasCycles() {
-        return getMinimalCycles ().isEmpty ();
+        return minimalCycles ().nonEmpty ();
     }
 
     public boolean isAcyclic() {
-        return getMinimalCycles ().nonEmpty ();
+        return minimalCycles ().isEmpty ();
     }
 
     public boolean isTree() {
@@ -275,7 +287,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
 
     private Boolean _isForest;
     public boolean isForest() {
-        synchronized (this) {
+        synchronized (LOCK) {
             if (_isForest == null) {
                 _isForest = !hasCycles () && ACollectionHelper.forAll (nodes (), new APredicateNoThrow<N> () {
                     @Override public boolean apply (N n) {
@@ -290,7 +302,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     private transient Collection<N> _rootNodes;
     /** nodes with no edge pointing to them */
     public Collection<N> rootNodes() {
-        synchronized (this) {
+        synchronized (LOCK) {
             if (_rootNodes == null) {
                 _rootNodes = ACollectionHelper.filter (nodes (), new APredicateNoThrow<N> () {
                     @Override public boolean apply (N n) {
@@ -317,15 +329,24 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         }
     }
 
-    private static class ArrayIterable<T> implements Iterable<T> {
+    private static class ArrayIterable<T> extends AbstractList<T> {
         private final Object[] data;
 
         ArrayIterable (Object[] data) {
             this.data = data;
         }
 
+        @SuppressWarnings ("NullableProblems")
         @Override public Iterator<T> iterator () {
             return new ArrayIterator<> (data);
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public T get (int index) {
+            return (T) data[index];
+        }
+        @Override public int size () {
+            return data.length;
         }
     }
 
@@ -342,7 +363,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         }
         @SuppressWarnings ("unchecked")
         @Override public T next () {
-            final T result = (T) data[nextIdx-1];
+            final T result = (T) data[nextIdx];
             nextIdx += 1;
             return result;
         }

@@ -24,7 +24,7 @@ public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
         return new AEdgePath (AList.create (edge), AHashSet.create (edge.getFrom (), edge.getTo ()), edge.getTo ());
     }
 
-    private AEdgePath (AList<E> edges, AHashSet<N> nodes, N to) {
+    AEdgePath (AList<E> edges, AHashSet<N> nodes, N to) {
         this.edges = edges;
         this.nodes = nodes;
         this.to = to;
@@ -61,5 +61,28 @@ public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
 
     public boolean hasNonMinimalCycle() {
         return hasCycle () && !isMinimalCycle ();
+    }
+
+    @Override public String toString () {
+        return "AEdgePath{" +
+                "edges=" + edges +
+                ", nodes=" + nodes +
+                ", to=" + to +
+                '}';
+    }
+
+    @Override
+    public boolean equals (Object o) {
+        if (this == o) return true;
+        if (o == null || getClass () != o.getClass ()) return false;
+
+        AEdgePath aEdgePath = (AEdgePath) o;
+
+        return edges.equals (aEdgePath.edges);
+
+    }
+    @Override
+    public int hashCode () {
+        return edges.hashCode ();
     }
 }

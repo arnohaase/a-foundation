@@ -79,6 +79,10 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return new JuListWrapper<>(this);
     }
 
+    @Override public Collection<T> asJavaUtilCollection () {
+        return asJavaUtilList ();
+    }
+
     @Override protected AList<T> createInternal(Collection<T> elements) {
         return AList.create(elements);
     }
@@ -197,6 +201,10 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         @Override public AList<T> tail() {
             return tail;
         }
+
+        @Override public boolean contains (T el) {
+            return AEquality.EQUALS.equals (el, head) || tail.contains (el);
+        }
     }
 
     static final class Nil extends AList<Object> {
@@ -227,6 +235,10 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         }
 
         @Override public <E extends Exception> boolean exists(APredicate<? super Object, E> pred) throws E {
+            return false;
+        }
+
+        @Override public boolean contains (Object el) {
             return false;
         }
     }

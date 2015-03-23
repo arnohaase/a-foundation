@@ -48,6 +48,14 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return size() > 0;
     }
 
+    @Override public boolean contains (final T el) {
+        return find (new APredicateNoThrow<T> () {
+            @Override public boolean apply (T o) {
+                return equalityForEquals ().equals (o, el);
+            }
+        }).isDefined ();
+    }
+
     @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E { //TODO junit
         for(T o: this) {
             f.apply(o);
@@ -149,82 +157,79 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return result;
     }
 
-    //--------------------- java.util.Collection methods
 
-    @Override public boolean contains(final Object o) {
-        return find(new APredicateNoThrow<T>() {
-            @Override public boolean apply(T candidate) {
-                return equalityForEquals().equals(o, candidate);
+    @Override public Collection<T> asJavaUtilCollection () {
+        return new Collection<T> () {
+            @Override public int size () {
+                return AbstractACollection.this.size ();
             }
-        }).isDefined();
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override public Object[] toArray() {
-        final Object[] result = new Object[size()];
-        int i = 0;
-        for(T o: this) {
-            result[i++] = o;
-        }
-        return result;
-    }
-
-    @SuppressWarnings({"unchecked", "NullableProblems"})
-    @Override public <T1> T1[] toArray(T1[] a) {
-        if(a.length < size()) {
-            a = (T1[]) Array.newInstance(a.getClass().getComponentType());
-        }
-        int i = 0;
-        for(T o: this) {
-            a[i++] = (T1) o;
-        }
-        if(a.length > size()) {
-            a[size()] = null;
-        }
-
-        return a;
-    }
-
-    @Override public boolean add(T t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        for(Object o: c) {
-            if(! contains(o)) {
-                return false;
+            @Override public boolean isEmpty () {
+                return size () == 0;
             }
-        }
-        return true;
-    }
+            @SuppressWarnings ("unchecked")
+            @Override public boolean contains (Object o) {
+                return AbstractACollection.this.contains ((T)o);
+            }
+            @SuppressWarnings("NullableProblems")
+            @Override public Iterator<T> iterator () {
+                return AbstractACollection.this.iterator ();
+            }
+            @SuppressWarnings("NullableProblems")
+            @Override public Object[] toArray() {
+                final Object[] result = new Object[size()];
+                int i = 0;
+                for(T o: this) {
+                    result[i++] = o;
+                }
+                return result;
+            }
 
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public boolean addAll(Collection<? extends T> c) {
-        throw new UnsupportedOperationException();
-    }
+            @SuppressWarnings({"unchecked", "NullableProblems"})
+            @Override public <T1> T1[] toArray(T1[] a) {
+                if(a.length < size()) {
+                    a = (T1[]) Array.newInstance (a.getClass ().getComponentType ());
+                }
+                int i = 0;
+                for(T o: this) {
+                    a[i++] = (T1) o;
+                }
+                if(a.length > size()) {
+                    a[size()] = null;
+                }
 
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
+                return a;
+            }
+            @Override public boolean add (T t) {
+                throw new UnsupportedOperationException ();
+            }
+            @Override public boolean remove (Object o) {
+                throw new UnsupportedOperationException ();
+            }
+            @SuppressWarnings ("NullableProblems")
+            @Override public boolean containsAll (Collection<?> c) {
+                for(Object o: c) {
+                    if(! contains(o)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            @SuppressWarnings ("NullableProblems")
+            @Override public boolean addAll (Collection<? extends T> c) {
+                throw new UnsupportedOperationException ();
+            }
+            @SuppressWarnings ("NullableProblems")
+            @Override public boolean removeAll (Collection<?> c) {
+                throw new UnsupportedOperationException ();
+            }
+            @SuppressWarnings ("NullableProblems")
+            @Override public boolean retainAll (Collection<?> c) {
+                throw new UnsupportedOperationException ();
+            }
+            @Override public void clear () {
+                throw new UnsupportedOperationException ();
+            }
+        };
     }
 }
 

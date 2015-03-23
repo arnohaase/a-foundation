@@ -145,6 +145,10 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> implements 
         return inner.asJavaUtilMap().keySet();
     }
 
+    @Override public Collection<T> asJavaUtilCollection () {
+        return asJavaUtilSet ();
+    }
+
     @Override
     public Iterator<T> iterator() {
         return asJavaUtilSet().iterator();

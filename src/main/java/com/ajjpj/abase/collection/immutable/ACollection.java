@@ -16,10 +16,12 @@ import java.util.Collection;
  *
  * @author arno
  */
-public interface ACollection<T> extends ATraversable<T>, Collection<T> { //TODO Iterable<T> instead of Collection<T>
+public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
+
+    boolean contains (T el);
 
     /**
      * Filters this collection's elements, this method returns a new collection comprised of only those elements that match
@@ -82,5 +84,10 @@ public interface ACollection<T> extends ATraversable<T>, Collection<T> { //TODO 
      *  delimited by a provided prefix and suffix.
      */
     String mkString(String prefix, String separator, String suffix);
+
+    /**
+     * Creates a java.util.Collection wrapper around this collection and returns that view.
+     */
+    Collection<T> asJavaUtilCollection();
 }
 
