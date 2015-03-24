@@ -1,7 +1,6 @@
 package com.ajjpj.abase.collection;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 
 /**
@@ -26,16 +25,20 @@ public class ACompositeIterator<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        while(!curIterator.hasNext() && itit.hasNext()) {
-            curIterator = itit.next();
-        }
-
+        refreshCurrent ();
         return curIterator.hasNext();
     }
 
     @Override
     public T next() {
+        refreshCurrent ();
         return curIterator.next();
+    }
+
+    private void refreshCurrent () {
+        while(!curIterator.hasNext() && itit.hasNext()) {
+            curIterator = itit.next();
+        }
     }
 
     @Override
@@ -51,7 +54,7 @@ public class ACompositeIterator<T> implements Iterator<T> {
 
         @Override
         public Object next() {
-            throw new NoSuchElementException ();
+            throw new UnsupportedOperationException();
         }
 
         @Override
