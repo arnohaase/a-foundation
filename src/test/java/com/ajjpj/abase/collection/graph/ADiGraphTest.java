@@ -162,6 +162,11 @@ public class ADiGraphTest {
     }
 
     @Test
+    public void testNodesWithoutEdges() {
+        fail ("todo");
+    }
+
+    @Test
     public void testEmpty() {
         final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Collections.<ASimpleEdge<String>>emptyList ());
 

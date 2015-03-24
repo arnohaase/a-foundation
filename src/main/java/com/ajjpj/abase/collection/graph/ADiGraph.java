@@ -10,16 +10,16 @@ import java.io.Serializable;
 import java.util.*;
 
 
-//TODO javadoc
-//TODO junit tests
-
 /**
  * This class represents a directed graph - in the sense of a data structure, <em>not</em> of its visual representation. It is
  *  immutable, i.e. its nodes and edges are fixed on initialization. It is thread safe, i.e. it is safe to access concurrently
  *  from several threads.<p>
  *
  * A graph is represented as a collection of nodes and a second collection of edges. There is no requirement for the graph to be
- *  connected.
+ *  connected.<p>
+ *
+ * This class strikes a balance between memory footprint and speed. It lazily computes and then caches results that are deemed
+ *  likely to be reused.
  *
  * @author arno
  */
@@ -43,6 +43,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return create (result, edges);
     }
 
+    /**
+     * This factory method creates a graph with the given nodes and edges. It expressly allows nodes that have no edges attached to them.
+     */
     public static <N, E extends AEdge<N>> ADiGraph<N,E> create (Collection<N> nodes, Collection<E> edges) {
         final Object[] nodeArr = new Object[nodes.size ()];
         final AEdge[] edgeArr = new AEdge[edges.size ()];
@@ -67,10 +70,16 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         this.edges = edges;
     }
 
+    /**
+     * @return this graph's nodes
+     */
     public Collection<N> nodes () {
         return new ArrayIterable<> (nodes);
     }
 
+    /**
+     * @return this graph's edges
+     */
     public Collection<E> edges () {
         return new ArrayIterable<> (edges);
     }
@@ -159,6 +168,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return _incomingEdges;
     }
 
+    /**
+     * @return all edges having the given node as their target.
+     */
     public Collection<E> incomingEdges (N node) {
         final List<E> result = incomingEdges ().get (node);
         return result != null ? Collections.unmodifiableList (result) : Collections.<E>emptyList ();
@@ -182,20 +194,33 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return _outgoingEdges;
     }
 
+    /**
+     * @return all edges having the given node as their source.
+     */
     public Collection<E> outgoingEdges (N node) {
         final List<E> result = outgoingEdges ().get (node);
         return result != null ? Collections.unmodifiableList (result) : Collections.<E>emptyList ();
     }
 
+    /**
+     * @return all paths having this node as their source - more specifically, all paths that are either acyclic or minimal cycles.
+     */
     public Collection<AEdgePath<N,E>> outgoingPaths (N node) {
         initPathsInternal ();
         return _outgoingPathsInternal.getRequired (node).asJavaUtilList ();
     }
+
+    /**
+     * @return all paths having this node as their target - more specifically, all paths that are either acyclic or minimal cycles.
+     */
     public Collection<AEdgePath<N,E>> incomingPaths (N node) {
         initPathsInternal ();
         return _incomingPathsInternal.getRequired (node).asJavaUtilList ();
     }
 
+    /**
+     * @return true if and only if there is an edge from {@code from} to {@code to}.
+     */
     public boolean hasEdge (N from, N to) {
         for (E edge: incomingEdges (to)) {
             if (from.equals (edge.getFrom ())) {
@@ -205,6 +230,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return false;
     }
 
+    /**
+     * @return true if and only if there is a path from {@code from} to {@code to}.
+     */
     public boolean hasPath (N from, N to) {
         for (AEdgePath<N,E> path: incomingPaths (to)) {
             if (from.equals (path.getFrom ())) {
@@ -215,7 +243,11 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     }
 
     /**
-     * @return an Iterable containing all nodes, sorted in such a way that a node is guaranteed to come before all nodes that can be reached from it
+     * A directed graph defines a partial order through 'reachability', and this method sorts the graph's nodes based on that
+     *  partial order.
+     *
+     * @return all nodes, sorted in such a way that a node is guaranteed to come before all nodes that can be reached from it.
+     * @throws AGraphCircularityException if the graph has cycles and can therefore not be sorted by reachability
      */
     public List<N> sortedNodesByReachability() throws AGraphCircularityException {
         if (hasCycles()) {
@@ -255,24 +287,39 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return new ArrayIterable<> (result);
     }
 
-    public AList<AEdgePath<N,E>> minimalCycles () {
+    /**
+     * @return all paths in the graph that are minimal cycles, i.e. paths with the same start and end point and in which every node appears exactly once as a start and end point.
+     */
+    public Collection<AEdgePath<N,E>> minimalCycles () {
         initPathsInternal ();
-        return _cyclesInternal;
+        return _cyclesInternal.asJavaUtilCollection ();
     }
 
+    /**
+     * @return true if and only if the graph contains cycles
+     */
     public boolean hasCycles() {
-        return minimalCycles ().nonEmpty ();
+        return ! minimalCycles ().isEmpty ();
     }
 
+    /**
+     * @return true if and only if the graph does not contain cycles
+     */
     public boolean isAcyclic() {
         return minimalCycles ().isEmpty ();
     }
 
+    /**
+     * @return true if and only if every node has at most one edge pointing at it, and there is exactly one root node.
+     */
     public boolean isTree() {
         return isForest () && rootNodes ().size() == 1;
     }
 
     private Boolean _isForest;
+    /**
+     * @return true if and only if every node has at most one edge pointing at it.
+     */
     public boolean isForest() {
         synchronized (LOCK) {
             if (_isForest == null) {
@@ -287,7 +334,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     }
 
     private transient Collection<N> _rootNodes;
-    /** nodes with no edge pointing to them */
+    /**
+     * @return all nodes with no edges pointing at them.
+     */
     public Collection<N> rootNodes() {
         synchronized (LOCK) {
             if (_rootNodes == null) {
@@ -302,7 +351,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     }
 
     private transient Collection<N> _leafNodes;
-    /** nodes with no edge pointing from them */
+    /**
+     * @return all nodes with no edge pointing from them.
+     */
     public Collection<N> leafNodes() {
         synchronized (this) {
             if (_leafNodes == null) {

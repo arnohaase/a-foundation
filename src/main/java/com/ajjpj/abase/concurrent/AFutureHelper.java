@@ -11,11 +11,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
+ * This class provides a collection of static helper functions for working with {@link com.ajjpj.abase.concurrent.AFuture}s.
+ *
  * @author arno
  */
 @SuppressWarnings ("Convert2Lambda")
 public class AFutureHelper {
 
+    /**
+     * This method combines a collection of futures into a single future. <p>
+     *
+     * Conceptually, it holds a single value <code>u</code> with an initial value of <code>initial</code>. When a future finishes successfully,
+     *  the function <code>function</code> is called with the old value of <code>u</code> and the future's value; the function's result is then
+     *  used as the new value of <code>u</code>. When all futures' values have thus been applied, the final value of <code>u</code> is the resulting
+     *  future's value.<p>
+     *
+     * This is of course done in a fully non-blocking way.<p>
+     *
+     * If one of the futures fails, the 'collected' future fails as well.
+     */
     public static <T,U,E extends Exception> AFuture<U> collect (Collection<AFuture<T>> futures, final U initial, final AFunction2<U,T,U,E> function) {
         if (futures.isEmpty ()) {
             throw new IllegalArgumentException ("only non-empty collections can be lifted");
@@ -44,7 +58,9 @@ public class AFutureHelper {
     /**
      * This method combines a collection of futures into a single future with the combined results of that list
      *  as its value. If one of the original futures fails (or times out), that causes the resulting future to
-     *  fail with the same exception as the cause.
+     *  fail with the same exception as the cause.<p>
+     *
+     * This the generalization of {@link AFuture#zip(AFuture)} and {@link AFuture#zip(AFuture, AFuture)}.
      */
     @SuppressWarnings ("unchecked")
     public static <T> AFuture<List<T>> lift (Collection<AFuture<T>> futures) {

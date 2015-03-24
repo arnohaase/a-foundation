@@ -59,7 +59,7 @@ public class AThreadPoolTest {
 
         for (AFuture<Integer> f: futures) {
             assertTrue (! f.isCancelled ());
-            assertTrue (! f.isDone ());
+            assertTrue (! f.isFinished ());
         }
 
         latch.countDown ();
@@ -67,7 +67,7 @@ public class AThreadPoolTest {
 
         for (int i=0; i<10; i++) {
             final AFuture<Integer> f = futures.get (i);
-            assertTrue (f.isDone ());
+            assertTrue (f.isFinished ());
             assertTrue (! f.isCancelled ());
 
             assertEquals (Integer.valueOf (i), f.get (0, TimeUnit.MILLISECONDS));
@@ -96,15 +96,15 @@ public class AThreadPoolTest {
 
         Thread.sleep (100);
 
-        assertFalse (f1.isDone ()); // blocked by latch
-        assertFalse (f2.isDone ()); // not yet scheduled
+        assertFalse (f1.isFinished ()); // blocked by latch
+        assertFalse (f2.isFinished ()); // not yet scheduled
 
         latch.countDown ();
 
         Thread.sleep (100);
 
-        assertTrue (f1.isDone ());
-        assertTrue (f2.isDone ());
+        assertTrue (f1.isFinished ());
+        assertTrue (f2.isFinished ());
     }
 
     @Test
@@ -155,7 +155,7 @@ public class AThreadPoolTest {
 
         Thread.sleep (10);
 
-        assertEquals (true, f1.isDone ());
+        assertEquals (true, f1.isFinished ());
 
         try {
             f1.get ();
@@ -195,12 +195,12 @@ public class AThreadPoolTest {
 
         f1.onFinished (listener);
 
-        assertEquals (true, f1.isDone ());
+        assertEquals (true, f1.isFinished ());
         assertEquals (true, f1.isCancelled ());
 
         latch.countDown ();
 
-        assertEquals (true, f1.isDone ());
+        assertEquals (true, f1.isFinished ());
         assertEquals (true, f1.isCancelled ());
 
         f1.onFinished (listener);

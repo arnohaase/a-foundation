@@ -73,6 +73,9 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
         setException (new TimeoutException ());
     }
 
+    @Override public boolean isFinished () {
+        return super.isDone ();
+    }
     @Override protected void done () {
         notifyListeners ();
     }

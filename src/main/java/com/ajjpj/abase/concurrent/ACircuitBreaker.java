@@ -50,7 +50,7 @@ public class ACircuitBreaker implements ATaskScheduler {
         return failure();
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) {
         if (shouldSubmit ()) {
             final List<AFuture<R>> raw = threadPool.submitAll (params, taskFunction, timeout, timeoutUnit);
             return ACollectionHelper.map (raw, new AFunction1NoThrow<AFuture<R>, AFuture<R>> () {
@@ -62,7 +62,7 @@ public class ACircuitBreaker implements ATaskScheduler {
         return failureList (params.size ());
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, R defaultValue) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, R defaultValue) {
         if (shouldSubmit ()) {
             final List<AFuture<R>> raw = threadPool.submitAllWithDefaultValue (params, taskFunction, timeout, timeoutUnit, defaultValue);
             return ACollectionHelper.map (raw, new AFunction1NoThrow<AFuture<R>, AFuture<R>> () {

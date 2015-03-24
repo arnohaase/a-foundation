@@ -59,7 +59,7 @@ class ASyncThreadPool implements AThreadPool { //TODO test
         return result;
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, final AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAll (List<T> params, final AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit) {
         final List<AFuture<R>> result = new ArrayList<> ();
 
         for (final T t: params) {
@@ -73,7 +73,7 @@ class ASyncThreadPool implements AThreadPool { //TODO test
         return result;
     }
 
-    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, final AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, final R defaultValue) throws E {
+    @Override public <T, R, E extends Exception> List<AFuture<R>> submitAllWithDefaultValue (List<T> params, final AFunction1<T, R, E> taskFunction, long timeout, TimeUnit timeoutUnit, final R defaultValue) {
         final List<AFuture<R>> result = new ArrayList<> ();
 
         for (final T t: params) {
