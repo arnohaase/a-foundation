@@ -35,10 +35,6 @@ public class ACompositeIterator<T> implements Iterator<T> {
 
     @Override
     public T next() {
-        if (!hasNext ()) {
-            throw new NoSuchElementException ();
-        }
-
         return curIterator.next();
     }
 
