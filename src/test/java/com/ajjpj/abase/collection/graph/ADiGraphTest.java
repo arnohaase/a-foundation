@@ -2,6 +2,7 @@ package com.ajjpj.abase.collection.graph;
 
 import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
+import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Test;
 
 import java.util.*;
@@ -12,6 +13,7 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
+@SuppressWarnings ("unchecked")
 public class ADiGraphTest {
 
     @Test
@@ -53,6 +55,12 @@ public class ADiGraphTest {
         assertTrue (eqSet (graph.outgoingPaths ("b"), path ("b", "c")));
         assertTrue (graph.outgoingPaths ("c").isEmpty ());
 
+        // test robustness against non-existing nodes
+        assertTrue (graph.incomingEdges ("X").isEmpty ());
+        assertTrue (graph.incomingPaths ("X").isEmpty ());
+        assertTrue (graph.outgoingEdges ("X").isEmpty ());
+        assertTrue (graph.outgoingPaths ("X").isEmpty ());
+
         assertTrue (graph.isAcyclic ());
         assertTrue (graph.isForest ());
         assertTrue (graph.isTree ());
@@ -64,16 +72,124 @@ public class ADiGraphTest {
         assertEquals (Arrays.asList ("a", "b", "c"), graph.sortedNodesByReachability ());
     }
 
-    //TODO testCycle
-    //TODO testTree
-    //TODO testForest
-    //TODO test acyclic non-tree
+    @Test
+    public void testCycle() {
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Arrays.asList (edge ("a", "b"), edge ("b", "a")));
 
-    //TODO test inverse
+        assertTrue (eqSet (graph.edges (), edge ("a", "b"), edge ("b", "a")));
+
+        assertTrue (graph.hasCycles ());
+        assertTrue (eqSet (graph.minimalCycles (), path ("a", "b", "a"), path ("b", "a", "b")));
+
+        assertTrue (graph.hasEdge ("a", "b"));
+        assertTrue (graph.hasEdge ("b", "a"));
+
+        assertTrue (graph.hasPath ("a", "b"));
+        assertTrue (graph.hasPath ("b", "a"));
+        assertTrue (graph.hasPath ("a", "a"));
+        assertTrue (graph.hasPath ("b", "b"));
+
+        assertTrue (eqSet (graph.incomingEdges ("a"), edge ("b", "a")));
+        assertTrue (eqSet (graph.incomingEdges ("b"), edge ("a", "b")));
+
+        assertTrue (eqSet (graph.incomingPaths ("a"), path("b", "a"), path ("a", "b", "a")));
+        assertTrue (eqSet (graph.incomingPaths ("b"), path("a", "b"), path ("b", "a", "b")));
+
+        assertTrue (eqSet (graph.outgoingEdges ("a"), edge ("a", "b")));
+        assertTrue (eqSet (graph.outgoingEdges ("b"), edge ("b", "a")));
+
+        assertTrue (eqSet (graph.outgoingPaths ("a"), path ("a", "b"), path ("a", "b", "a")));
+        assertTrue (eqSet (graph.outgoingPaths ("b"), path ("b", "a"), path ("b", "a", "b")));
+
+        assertFalse (graph.isAcyclic ());
+        assertFalse (graph.isForest ());
+        assertFalse (graph.isTree ());
+
+        assertTrue (graph.leafNodes ().isEmpty ());
+        assertTrue (eqSet (graph.nodes (), "a", "b"));
+        assertTrue (graph.rootNodes ().isEmpty ());
+
+        try {
+            graph.sortedNodesByReachability ();
+            fail ("exception expected");
+        }
+        catch (ACircularityException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testTree() {
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Arrays.asList (edge ("a", "b"), edge ("a", "c")));
+
+        assertFalse (graph.hasCycles ());
+        assertTrue (graph.isAcyclic ());
+        assertTrue (graph.isForest ());
+        assertTrue (graph.isTree ());
+
+        assertTrue (eqSet (graph.leafNodes (), "b", "c"));
+        assertTrue (eqSet (graph.rootNodes (), "a"));
+
+        assertEquals ("a", graph.sortedNodesByReachability ().get (0));
+    }
+
+    @Test
+    public void testForest() {
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Arrays.asList (edge ("a", "b"), edge ("a", "c"), edge ("x", "y")));
+
+        assertFalse (graph.hasCycles ());
+        assertTrue (graph.isAcyclic ());
+        assertTrue (graph.isForest ());
+        assertFalse (graph.isTree ());
+
+        assertTrue (eqSet (graph.leafNodes (), "b", "c", "y"));
+        assertTrue (eqSet (graph.rootNodes (), "a", "x"));
+    }
+
+    @Test
+    public void testAcyclicNonTree() {
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Arrays.asList (edge ("a", "b"), edge ("a", "c"), edge ("b", "d"), edge ("c", "d")));
+
+        assertFalse (graph.hasCycles ());
+        assertTrue (graph.isAcyclic ());
+        assertFalse (graph.isForest ());
+        assertFalse (graph.isTree ());
+
+        assertTrue (eqSet (graph.leafNodes (), "d"));
+        assertTrue (eqSet (graph.rootNodes (), "a"));
+
+        assertEquals ("a", graph.sortedNodesByReachability ().get (0));
+        assertEquals ("d", graph.sortedNodesByReachability ().get (3));
+    }
 
     @Test
     public void testEmpty() {
-        fail ("TODO");
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Collections.<ASimpleEdge<String>>emptyList ());
+
+        assertTrue (graph.edges ().isEmpty ());
+
+        assertTrue (graph.minimalCycles ().isEmpty ());
+        assertFalse (graph.hasCycles ());
+
+        assertFalse (graph.hasEdge ("a", "b"));
+
+        assertFalse (graph.hasPath ("a", "b"));
+
+        assertTrue (graph.incomingEdges ("a").isEmpty ());
+        assertTrue (graph.incomingPaths ("a").isEmpty ());
+
+        assertTrue (graph.outgoingEdges ("a").isEmpty ());
+        assertTrue (graph.outgoingPaths ("a").isEmpty ());
+
+        assertTrue (graph.isAcyclic ());
+        assertTrue (graph.isForest ());
+        assertFalse (graph.isTree ());
+
+        assertTrue (graph.leafNodes ().isEmpty ());
+        assertTrue (graph.nodes ().isEmpty ());
+        assertTrue (graph.rootNodes ().isEmpty ());
+
+        assertTrue (graph.sortedNodesByReachability ().isEmpty ());
     }
 
     private static ASimpleEdge<String> edge (String from, String to) {

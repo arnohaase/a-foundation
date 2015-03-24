@@ -4,7 +4,6 @@ import com.ajjpj.abase.collection.ACollectionHelper;
 import com.ajjpj.abase.collection.immutable.AHashMap;
 import com.ajjpj.abase.collection.immutable.AList;
 import com.ajjpj.abase.collection.immutable.AMap;
-import com.ajjpj.abase.function.AFunction1;
 import com.ajjpj.abase.function.APredicateNoThrow;
 
 import java.io.Serializable;
@@ -76,18 +75,6 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
         return new ArrayIterable<> (edges);
     }
 
-    @SuppressWarnings ("unchecked")
-    public <E1 extends AEdge<N>, Ex extends Exception> ADiGraph<N,E1> inverse (AFunction1<E,E1,Ex> f) throws Ex {
-        final AEdge[] newEdges = new AEdge[edges.length];
-        int nextIdx = 0;
-
-        for (AEdge edge: edges) {
-            newEdges[nextIdx] = f.apply ((E) edge);
-            nextIdx += 1;
-        }
-        return new ADiGraph<> (nodes, newEdges);
-    }
-
     //TODO helper: create list of edges from 'partial order'
 
 
@@ -124,7 +111,7 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
                         final List<AEdgePath<N, E>> curBusiness = unfinishedBusiness;
 
                         for (AEdgePath<N, E> p : unfinishedBusiness) {
-                            if (!p.hasCycle ()) nonCycles = nonCycles.cons (p);
+                            if (!p.hasCycle () || p.isMinimalCycle ()) nonCycles = nonCycles.cons (p);
                             if (p.isMinimalCycle ()) cycles = cycles.cons (p);
                         }
 
@@ -219,8 +206,8 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     }
 
     public boolean hasPath (N from, N to) {
-        for (AEdgePath<N,E> edge: incomingPaths (to)) {
-            if (from.equals (edge.getFrom ())) {
+        for (AEdgePath<N,E> path: incomingPaths (to)) {
+            if (from.equals (path.getFrom ())) {
                 return true;
             }
         }
@@ -230,9 +217,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     /**
      * @return an Iterable containing all nodes, sorted in such a way that a node is guaranteed to come before all nodes that can be reached from it
      */
-    public List<N> sortedNodesByReachability() {
+    public List<N> sortedNodesByReachability() throws ACircularityException {
         if (hasCycles()) {
-            throw new IllegalStateException ("graph has cycles");
+            throw new ACircularityException ();
         }
 
         final Object[] result = new Object[nodes.length];

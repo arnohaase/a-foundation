@@ -73,8 +73,6 @@ class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
         setException (new TimeoutException ());
     }
 
-    public static class MyException extends ExecutionException {}
-
     @Override protected void done () {
         notifyListeners ();
     }
