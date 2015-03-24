@@ -11,16 +11,16 @@ import java.util.*;
  *
  * @author arno
  */
-public abstract class InMemoryBTree<K, V> implements AMap<K,V> { //TODO null as a key?
+public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
     public final BTreeSpec spec;
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
     @SuppressWarnings ("unchecked")
-    public static <K, V> InMemoryBTree<K, V> empty (BTreeSpec spec) {
+    public static <K, V> ABTree<K, V> empty (BTreeSpec spec) {
         return new LeafNode (spec, new Object[0], new Object[0]);
     }
 
-    InMemoryBTree (BTreeSpec spec) {
+    ABTree (BTreeSpec spec) {
         this.spec = spec;
     }
 
@@ -31,7 +31,7 @@ public abstract class InMemoryBTree<K, V> implements AMap<K,V> { //TODO null as 
 //    public Iterable<V> values (K keyMin, K keyMax);
 
     @SuppressWarnings ("unchecked")
-    public InMemoryBTree<K,V> updated (K key, V value) {
+    public ABTree<K,V> updated (K key, V value) {
         final UpdateResult result = _updated (key, value);
 
         if (result.optRight == null) {
@@ -40,17 +40,17 @@ public abstract class InMemoryBTree<K, V> implements AMap<K,V> { //TODO null as 
 
         // This is the only place where the tree depth can grow.
         // The 'minimum number of children' constraint does not apply to root nodes.
-        return new IndexNode (spec, new Object[] {result.separator}, new InMemoryBTree[] {result.left, result.optRight});
+        return new IndexNode (spec, new Object[] {result.separator}, new ABTree[] {result.left, result.optRight});
     }
 
     @SuppressWarnings ("unchecked")
-    public InMemoryBTree<K,V> removed (K key) {
+    public ABTree<K,V> removed (K key) {
         return _removed (key, null).newNode;
     }
 
     abstract UpdateResult _updated (Object key, Object value);
     abstract RemoveResult _removed (Object key, Object leftSeparator);
-    abstract UpdateResult merge (InMemoryBTree rightNeighbour, Object separator);
+    abstract UpdateResult merge (ABTree rightNeighbour, Object separator);
 
     @Override public boolean nonEmpty () {
         return ! isEmpty ();
@@ -87,7 +87,7 @@ public abstract class InMemoryBTree<K, V> implements AMap<K,V> { //TODO null as 
                 };
             }
             @Override public int size () {
-                return InMemoryBTree.this.size ();
+                return ABTree.this.size ();
             }
         };
     }
@@ -122,14 +122,14 @@ public abstract class InMemoryBTree<K, V> implements AMap<K,V> { //TODO null as 
 
     @SuppressWarnings ("unchecked")
     @Override public boolean equals (Object obj) {
-        if (! (obj instanceof InMemoryBTree)) {
+        if (! (obj instanceof ABTree)) {
             return false;
         }
         if (obj == this) {
             return true;
         }
 
-        final InMemoryBTree<K,V> other = (InMemoryBTree<K, V>) obj;
+        final ABTree<K,V> other = (ABTree<K, V>) obj;
 
         final Iterator<K> keyIter = keys ().iterator ();
         final Iterator<K> keyIter2 = other.keys ().iterator ();

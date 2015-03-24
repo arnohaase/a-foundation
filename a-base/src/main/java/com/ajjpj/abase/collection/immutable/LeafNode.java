@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * @author arno
  */
-class LeafNode extends InMemoryBTree {
+class LeafNode extends ABTree {
     final Object[] keys;
     final Object[] values;
 
@@ -69,7 +69,7 @@ class LeafNode extends InMemoryBTree {
         return AOption.none ();
     }
 
-    @Override UpdateResult merge (InMemoryBTree rightNeighbour, Object separator) {
+    @Override UpdateResult merge (ABTree rightNeighbour, Object separator) {
         final LeafNode rightLeaf = (LeafNode) rightNeighbour;
 
         if (keys.length + rightLeaf.keys.length <= spec.maxNumEntries) {

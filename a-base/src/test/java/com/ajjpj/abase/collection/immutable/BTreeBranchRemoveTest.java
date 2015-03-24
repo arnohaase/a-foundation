@@ -220,7 +220,7 @@ public class BTreeBranchRemoveTest extends AbstractBTreeTest {
         final IndexNode n = (IndexNode) merged.left;
         assertArrayEquals (new Integer[] {21, 31, 51, 61, 71, 81}, n.separators);
         assertEquals (7, n.children.length);
-        for (InMemoryBTree child: n.children) {
+        for (ABTree child: n.children) {
             assertNotNull (child);
         }
     }
@@ -250,13 +250,13 @@ public class BTreeBranchRemoveTest extends AbstractBTreeTest {
 
         assertArrayEquals (new Integer[] {21, 31, 41}, newLeft.separators);
         assertEquals (4, newLeft.children.length);
-        for (InMemoryBTree child: newLeft.children) {
+        for (ABTree child: newLeft.children) {
             assertNotNull (child);
         }
 
         assertArrayEquals (new Integer[] {55, 61, 71, 81}, newRight.separators);
         assertEquals (5, newRight.children.length);
-        for (InMemoryBTree child: newRight.children) {
+        for (ABTree child: newRight.children) {
             assertNotNull (child);
         }
     }
@@ -286,13 +286,13 @@ public class BTreeBranchRemoveTest extends AbstractBTreeTest {
 
         assertArrayEquals (new Integer[] {21, 31, 41}, newLeft.separators);
         assertEquals (4, newLeft.children.length);
-        for (InMemoryBTree child: newLeft.children) {
+        for (ABTree child: newLeft.children) {
             assertNotNull (child);
         }
 
         assertArrayEquals (new Integer[] {55, 61, 71, 81}, newRight.separators);
         assertEquals (5, newRight.children.length);
-        for (InMemoryBTree child: newRight.children) {
+        for (ABTree child: newRight.children) {
             assertNotNull (child);
         }
     }
@@ -323,13 +323,13 @@ public class BTreeBranchRemoveTest extends AbstractBTreeTest {
 
         assertArrayEquals (new Integer[] {21, 31, 41, 45}, newLeft.separators);
         assertEquals (5, newLeft.children.length);
-        for (InMemoryBTree child: newLeft.children) {
+        for (ABTree child: newLeft.children) {
             assertNotNull (child);
         }
 
         assertArrayEquals (new Integer[] {55, 61, 71, 81}, newRight.separators);
         assertEquals (5, newRight.children.length);
-        for (InMemoryBTree child: newRight.children) {
+        for (ABTree child: newRight.children) {
             assertNotNull (child);
         }
     }
@@ -360,13 +360,13 @@ public class BTreeBranchRemoveTest extends AbstractBTreeTest {
 
         assertArrayEquals (new Integer[] {21, 31, 41, 45}, newLeft.separators);
         assertEquals (5, newLeft.children.length);
-        for (InMemoryBTree child: newLeft.children) {
+        for (ABTree child: newLeft.children) {
             assertNotNull (child);
         }
 
         assertArrayEquals (new Integer[] {55, 61, 71, 81}, newRight.separators);
         assertEquals (5, newRight.children.length);
-        for (InMemoryBTree child: newRight.children) {
+        for (ABTree child: newRight.children) {
             assertNotNull (child);
         }
     }

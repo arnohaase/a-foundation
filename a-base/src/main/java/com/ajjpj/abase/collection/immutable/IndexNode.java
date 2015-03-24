@@ -9,13 +9,13 @@ import java.util.Set;
 /**
  * @author arno
  */
-class IndexNode extends InMemoryBTree {
+class IndexNode extends ABTree {
     // one more child than separators, i.e. one separator *between* every pair of adjacent children. The separator contains
     //  the smallest key value for the right child.
     final Object[] separators;
-    final InMemoryBTree[] children;
+    final ABTree[] children;
 
-    IndexNode (BTreeSpec spec, Object[] separators, InMemoryBTree[] children) {
+    IndexNode (BTreeSpec spec, Object[] separators, ABTree[] children) {
         super (spec);
         this.separators = separators;
         this.children = children;
@@ -54,7 +54,7 @@ class IndexNode extends InMemoryBTree {
         return children[lookupKey (key)].get (key);
     }
 
-    @Override UpdateResult merge (InMemoryBTree rightNeighbour, Object separator) {
+    @Override UpdateResult merge (ABTree rightNeighbour, Object separator) {
         final IndexNode right = (IndexNode) rightNeighbour;
         final int len = children.length + right.children.length;
 
@@ -63,7 +63,7 @@ class IndexNode extends InMemoryBTree {
             newSeparators[separators.length] = separator;
             System.arraycopy (right.separators, 0, newSeparators, separators.length + 1, right.separators.length);
 
-            final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length + right.children.length);
+            final ABTree[] newChildren = Arrays.copyOf (children, children.length + right.children.length);
             System.arraycopy (right.children, 0, newChildren, children.length, right.children.length);
 
             return new UpdateResult (new IndexNode (spec, newSeparators, newChildren), null, null);
@@ -76,11 +76,11 @@ class IndexNode extends InMemoryBTree {
                 leftSeparators[separators.length] = separator;
                 System.arraycopy (right.separators, 0, leftSeparators, separators.length + 1, leftSeparators.length - separators.length - 1);
 
-                final InMemoryBTree[] leftChildren = Arrays.copyOf (children, idxMedian);
+                final ABTree[] leftChildren = Arrays.copyOf (children, idxMedian);
                 System.arraycopy (right.children, 0, leftChildren, children.length, idxMedian - children.length);
 
                 final Object[] rightSeparators = Arrays.copyOfRange (right.separators, leftSeparators.length - separators.length, right.separators.length);
-                final InMemoryBTree[] rightChildren = Arrays.copyOfRange (right.children, leftChildren.length - children.length, right.children.length);
+                final ABTree[] rightChildren = Arrays.copyOfRange (right.children, leftChildren.length - children.length, right.children.length);
 
                 return new UpdateResult (
                         new IndexNode (spec, leftSeparators, leftChildren),
@@ -89,14 +89,14 @@ class IndexNode extends InMemoryBTree {
             }
             else {
                 final Object[] leftSeparators = Arrays.copyOf (separators, idxMedian - 1);
-                final InMemoryBTree[] leftChildren = Arrays.copyOf (children, idxMedian);
+                final ABTree[] leftChildren = Arrays.copyOf (children, idxMedian);
 
                 final Object[] rightSeparators = new Object[len - idxMedian - 1];
                 System.arraycopy (separators, idxMedian, rightSeparators, 0, separators.length - leftSeparators.length - 1);
                 rightSeparators[separators.length - leftSeparators.length-1] = separator;
                 System.arraycopy (right.separators, 0, rightSeparators, separators.length - leftSeparators.length, right.separators.length);
 
-                final InMemoryBTree[] rightChildren = new InMemoryBTree[len - idxMedian];
+                final ABTree[] rightChildren = new ABTree[len - idxMedian];
                 System.arraycopy (children, leftChildren.length, rightChildren, 0, children.length - leftChildren.length);
                 System.arraycopy (right.children, 0, rightChildren, children.length - leftChildren.length, right.children.length);
 
@@ -124,7 +124,7 @@ class IndexNode extends InMemoryBTree {
 
                 if (merged.optRight == null) {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length - 1);
-                    final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length - 1);
+                    final ABTree[] newChildren = Arrays.copyOf (children, children.length - 1);
 
                     newChildren[childIdx - 1] = merged.left;
 
@@ -132,7 +132,7 @@ class IndexNode extends InMemoryBTree {
                 }
                 else {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length);
-                    final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length);
+                    final ABTree[] newChildren = Arrays.copyOf (children, children.length);
 
                     newSeparators[newSeparators.length-1] = merged.separator;
                     newChildren[childIdx-1] = merged.left;
@@ -146,7 +146,7 @@ class IndexNode extends InMemoryBTree {
 
                 if (merged.optRight == null) {
                     final Object[] newSeparators = new Object[separators.length - 1];
-                    final InMemoryBTree[] newChildren = new InMemoryBTree[children.length - 1];
+                    final ABTree[] newChildren = new ABTree[children.length - 1];
 
                     final Object newLeftSeparator;
                     if (childIdx > 0) {
@@ -167,7 +167,7 @@ class IndexNode extends InMemoryBTree {
                 }
                 else {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length);
-                    final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length);
+                    final ABTree[] newChildren = Arrays.copyOf (children, children.length);
 
                     final Object newLeftSeparator;
                     if (childIdx == 0) {
@@ -188,7 +188,7 @@ class IndexNode extends InMemoryBTree {
             }
         }
         else {
-            final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length);
+            final ABTree[] newChildren = Arrays.copyOf (children, children.length);
             newChildren[childIdx] = childResult.newNode;
             if (childIdx == 0) {
                 return new RemoveResult (new IndexNode (spec, separators, newChildren), false, childResult.leftSeparator);
@@ -206,7 +206,7 @@ class IndexNode extends InMemoryBTree {
         final UpdateResult childResult = children[childIdx]._updated (key, value);
 
         if (childResult.optRight == null) {
-            final InMemoryBTree[] newChildren = Arrays.copyOf (children, children.length);
+            final ABTree[] newChildren = Arrays.copyOf (children, children.length);
             newChildren[childIdx] = childResult.left;
             return new UpdateResult (new IndexNode (spec, separators, newChildren), null, null);
         }
@@ -214,7 +214,7 @@ class IndexNode extends InMemoryBTree {
             if (children.length < spec.maxNumEntries) {
                 // max size not reached --> make room for an additional child
                 final Object[] newSeparators = new Object[separators.length + 1];
-                final InMemoryBTree[] newChildren = new InMemoryBTree[children.length + 1];
+                final ABTree[] newChildren = new ABTree[children.length + 1];
 
                 System.arraycopy (separators, 0, newSeparators, 0, childIdx);
                 System.arraycopy (children, 0, newChildren, 0, childIdx);
@@ -231,13 +231,13 @@ class IndexNode extends InMemoryBTree {
             else {
                 // max size reached --> split
 
-                final InMemoryBTree[] leftChildren;
-                final InMemoryBTree[] rightChildren;
+                final ABTree[] leftChildren;
+                final ABTree[] rightChildren;
                 final Object[] leftSeparators;
                 final Object[] rightSeparators;
 
                 if (childIdx < spec.maxNumEntries/2) {
-                    leftChildren  = new InMemoryBTree[spec.maxNumEntries/2 + 1];
+                    leftChildren  = new ABTree[spec.maxNumEntries/2 + 1];
                     System.arraycopy (children, 0, leftChildren, 0, childIdx);
                     leftChildren[childIdx] = childResult.left;
                     leftChildren[childIdx+1] = childResult.optRight;
@@ -255,7 +255,7 @@ class IndexNode extends InMemoryBTree {
                     leftChildren  = Arrays.copyOf (children, spec.maxNumEntries / 2);
                     leftSeparators = Arrays.copyOf (separators, spec.maxNumEntries / 2 - 1);
 
-                    rightChildren = new InMemoryBTree[spec.maxNumEntries/2 + 1];
+                    rightChildren = new ABTree[spec.maxNumEntries/2 + 1];
                     System.arraycopy (children, spec.maxNumEntries / 2, rightChildren, 0, childIdx - spec.maxNumEntries / 2);
                     rightChildren[childIdx-spec.maxNumEntries/2]   = childResult.left;
                     rightChildren[childIdx-spec.maxNumEntries/2+1] = childResult.optRight;
@@ -274,7 +274,7 @@ class IndexNode extends InMemoryBTree {
 
     @Override public int size () {
         int result = 0;
-        for (InMemoryBTree child: children) {
+        for (ABTree child: children) {
             result += child.size ();
         }
         return result;
@@ -291,7 +291,7 @@ class IndexNode extends InMemoryBTree {
             }
             @Override public Iterator iterator () {
                 return new Iterator () {
-                    final Iterator<InMemoryBTree> childIter = Arrays.asList (children).iterator ();
+                    final Iterator<ABTree> childIter = Arrays.asList (children).iterator ();
                     Iterator curIter = childIter.next ().iterator ();
 
                     @Override public boolean hasNext () {

@@ -163,7 +163,22 @@ public class ADiGraphTest {
 
     @Test
     public void testNodesWithoutEdges() {
-        fail ("todo");
+        final ADiGraph<String, ASimpleEdge<String>> graph = ADiGraph.create (Arrays.asList ("a", "b", "c"), Arrays.asList (edge ("a", "b")));
+
+        assertTrue (eqSet (graph.edges (), edge ("a", "b")));
+
+        assertFalse (graph.hasCycles ());
+        assertTrue (graph.minimalCycles ().isEmpty ());
+
+        assertTrue (graph.isAcyclic ());
+        assertTrue (graph.isForest ());
+        assertFalse (graph.isTree ());
+
+        assertTrue (eqSet (graph.leafNodes (), "b", "c"));
+        assertTrue (eqSet (graph.nodes (), "a", "b", "c"));
+        assertTrue (eqSet (graph.rootNodes (), "a", "c"));
+
+        assertEquals ("b", graph.sortedNodesByReachability ().get (2));
     }
 
     @Test

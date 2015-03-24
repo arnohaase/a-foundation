@@ -26,9 +26,9 @@ public class AMapTest {
         return Arrays.<Object>asList (
                 new Object[] {AHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
-                new Object[] {InMemoryBTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
-                new Object[] {InMemoryBTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
-                new Object[] {InMemoryBTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
+                new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
+                new Object[] {ABTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
+                new Object[] {ABTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
                 new Object[] {ARedBlackTree.empty (NATURAL_ORDER)}
         );
     }
@@ -150,49 +150,8 @@ public class AMapTest {
     public void testShotgun() {
         final Random rand = new Random(12345);
 
-//        RedBlackTree.Tree<Integer, Integer> srb = null;
         final Map<Integer, Integer> ju = new HashMap<>();
         AMap<Integer, Integer> a = EMPTY;
-
-//        final Ordering<Integer> ordering = new Ordering<Integer> () {
-//            @Override public Some<Object> tryCompare (Integer x, Integer y) {
-//                return new Some (compare (x, y));
-//            }
-//            @Override public int compare (Integer x, Integer y) {
-//                return x-y;
-//            }
-//            @Override public Integer max (Integer x, Integer y) {
-//                return Math.max (x, y);
-//            }
-//            @Override public boolean gt (Integer x, Integer y) {
-//                return x>y;
-//            }
-//            @Override public boolean gteq (Integer x, Integer y) {
-//                return x >= y;
-//            }
-//            @Override public <U> Ordering<U> on (Function1<U, Integer> f) {
-//                throw new UnsupportedOperationException ();
-//            }
-//            @Override public boolean lt (Integer x, Integer y) {
-//                return x < y;
-//            }
-//            @Override public Integer min (Integer x, Integer y) {
-//                return Math.min (x, y);
-//            }
-//            @Override public boolean equiv (Integer x, Integer y) {
-//                return x.equals (y);
-//            }
-//            @Override public Ops mkOrderingOps (Integer lhs) {
-//                throw new UnsupportedOperationException ();
-//            }
-//            @Override public Ordering<Integer> reverse () {
-//                throw new UnsupportedOperationException ();
-//            }
-//            @Override public boolean lteq (Integer x, Integer y) {
-//                return x <= y;
-//            }
-//        };
-
 
         final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
 
@@ -200,47 +159,18 @@ public class AMapTest {
             final int key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
-//            if (i%10_000 == 0) {
-//                System.out.println (i);
-//                ARedBlackTree.validate (((ARedBlackTree)a).root);
-//            }
-
             if(add) {
                 final int value = rand.nextInt ();
                 ju.put (key, value);
 
-//                srb = RedBlackTree.update (srb, key, value, true, ordering);
                 a = a.updated(key, value);
             }
             else {
                 ju.remove (key);
-
-//                srb = RedBlackTree.delete (srb, key, ordering);
                 a = a.removed(key);
             }
-
-
-//            try {
-//                compare (((ARedBlackTree) a).root, srb);
-//            }
-//            catch (IllegalStateException exc) {
-//                System.out.println (i);
-//                dump (srb, 0);
-//                ((ARedBlackTree) a).dump ();
-//                fail ("a != srb");
-//            }
-
-//            assertEquals ("failed for i=" + i, ju.size (), a.size ());
-//            for(int k: ju.keySet()) {
-//                assertEquals ("failed for i=" + i, AOption.some (ju.get (k)), a.get (k));
-//            }
-//            validate (srb);
         }
 
-//        assertEquals (ju.size (), srb.count ());
-//        for(int k: ju.keySet()) {
-//            assertEquals (ju.get (k), RedBlackTree.get (srb, k, ordering).get ());
-//        }
         assertEquals (ju.size (), a.size ());
         for(int k: ju.keySet()) {
             assertEquals (AOption.some (ju.get (k)), a.get (k));

@@ -4,11 +4,11 @@ package com.ajjpj.abase.collection.immutable;
  * @author arno
  */
 class UpdateResult {
-    final InMemoryBTree left;
+    final ABTree left;
     final Object separator;
-    final InMemoryBTree optRight;
+    final ABTree optRight;
 
-    public UpdateResult (InMemoryBTree left, Object separator, InMemoryBTree optRight) {
+    public UpdateResult (ABTree left, Object separator, ABTree optRight) {
         this.left = left;
         this.separator = separator;
         this.optRight = optRight;
