@@ -55,7 +55,7 @@ public class ACompositeIterator<T> implements Iterator<T> {
 
         @Override
         public Object next() {
-            throw new UnsupportedOperationException();
+            throw new NoSuchElementException ();
         }
 
         @Override
