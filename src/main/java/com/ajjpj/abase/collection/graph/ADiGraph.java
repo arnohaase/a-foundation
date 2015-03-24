@@ -217,9 +217,9 @@ public class ADiGraph<N,E extends AEdge<N>> implements Serializable {
     /**
      * @return an Iterable containing all nodes, sorted in such a way that a node is guaranteed to come before all nodes that can be reached from it
      */
-    public List<N> sortedNodesByReachability() throws ACircularityException {
+    public List<N> sortedNodesByReachability() throws AGraphCircularityException {
         if (hasCycles()) {
-            throw new ACircularityException ();
+            throw new AGraphCircularityException ();
         }
 
         final Object[] result = new Object[nodes.length];

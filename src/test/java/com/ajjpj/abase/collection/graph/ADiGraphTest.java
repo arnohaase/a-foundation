@@ -2,7 +2,6 @@ package com.ajjpj.abase.collection.graph;
 
 import com.ajjpj.abase.collection.immutable.AHashSet;
 import com.ajjpj.abase.collection.immutable.AList;
-import com.ajjpj.abase.function.AFunction1NoThrow;
 import org.junit.Test;
 
 import java.util.*;
@@ -113,7 +112,7 @@ public class ADiGraphTest {
             graph.sortedNodesByReachability ();
             fail ("exception expected");
         }
-        catch (ACircularityException e) {
+        catch (AGraphCircularityException e) {
             // expected
         }
     }
