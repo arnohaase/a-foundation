@@ -9,13 +9,13 @@
         <version>7</version>
     </parent>
 
-    <groupId>com.ajjpj.a-base</groupId>
-    <artifactId>a-base</artifactId>
+    <groupId>com.ajjpj.a-foundation</groupId>
+    <artifactId>a-foundation</artifactId>
     <version>1.0-pre12-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
-    <description>a-base is a library of basic (hence the name) classes, most notably immutable collection classes with copy-on-write operations</description>
+    <description>a-foundation is a library of fundamental (hence the name) classes, most notably immutable collection classes with copy-on-write operations</description>
 
     <licenses>
         <license>
