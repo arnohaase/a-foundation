@@ -11,7 +11,7 @@
 
     <groupId>com.ajjpj.a-foundation</groupId>
     <artifactId>a-foundation</artifactId>
-    <version>1.0-pre12-SNASHOT</version>
+    <version>1.0-pre12-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
