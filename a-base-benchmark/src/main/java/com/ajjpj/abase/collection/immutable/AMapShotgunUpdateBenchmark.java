@@ -9,15 +9,18 @@ import java.util.Random;
 /**
  * @author arno
  */
-@Fork(0)
+@Fork(2)
 @Threads (1)
-@Warmup (iterations = 3, time = 2)
-@Measurement (iterations = 5, time = 4)
+@Warmup (iterations = 3, time = 1)
+@Measurement (iterations = 5, time = 10)
 @State (Scope.Benchmark)
-public class AMapBenchmark {
+public class AMapShotgunUpdateBenchmark {
 
     @Param ({"AHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
     private String mapType;
+
+    @Param ({"100", "10000", "1000000", "100000000"})
+    private int size;
 
     @Setup
     public void setUp() {
@@ -41,16 +44,15 @@ public class AMapBenchmark {
 
     private AMap<Integer, Integer> EMPTY;
 
-    final Random rand = new Random(12345);
-
-    @Benchmark
+//    @Benchmark
     public void testShotgunUpdate() {
+        final Random rand = new Random(12345);
         AMap<Integer, Integer> a = EMPTY;
 
         final int numIters = 100_000;
 
         for(int i=0; i<numIters; i++) {
-            final int key = rand.nextInt (100 * 1000);
+            final int key = rand.nextInt (size);
             final boolean add = rand.nextBoolean ();
 
             if (add) {

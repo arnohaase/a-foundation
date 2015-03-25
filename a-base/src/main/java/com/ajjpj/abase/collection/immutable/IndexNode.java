@@ -1,5 +1,7 @@
 package com.ajjpj.abase.collection.immutable;
 
+import com.ajjpj.abase.collection.tuples.ATuple2;
+
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -36,12 +38,12 @@ class IndexNode extends ABTree {
     private int lookupKeyInInterval (Object key, int fromIdx, int toIdx) {
         if (toIdx - fromIdx == 1) {
             final int comp = spec.comparator.compare (key, separators[fromIdx]);
-            return spec.comparator.compare (key, separators[fromIdx]) < 0 ? fromIdx : toIdx;
+            return comp < 0 ? fromIdx : toIdx;
         }
         else { //TODO optimization: this implementation may perform the same comparison twice
             final int medianIdx = (fromIdx + toIdx) / 2;
             if (spec.comparator.compare (key, separators[medianIdx]) < 0) {
-                return lookupKeyInInterval (key, fromIdx, medianIdx);
+                return lookupKeyInInterval (key, fromIdx, medianIdx); //TODO iteration instead of recursion
             }
             else {
                 return lookupKeyInInterval (key, medianIdx, toIdx);
@@ -292,7 +294,7 @@ class IndexNode extends ABTree {
             @Override public Iterator iterator () {
                 return new Iterator () {
                     final Iterator<ABTree> childIter = Arrays.asList (children).iterator ();
-                    Iterator curIter = childIter.next ().iterator ();
+                    Iterator<ATuple2> curIter = childIter.next ().iterator ();
 
                     @Override public boolean hasNext () {
                         if (curIter.hasNext ()) {
@@ -305,7 +307,7 @@ class IndexNode extends ABTree {
                         return false;
                     }
                     @Override public Object next () {
-                        return curIter.next ();
+                        return curIter.next ()._1;
                     }
                     @Override public void remove () {
                         throw new UnsupportedOperationException ();

@@ -177,6 +177,37 @@ public class AMapTest {
         }
     }
 
+    @Test
+    public void testShotgunSmall() {
+        final Random rand = new Random(12345);
+
+        final Map<Integer, Integer> ju = new HashMap<>();
+        AMap<Integer, Integer> a = EMPTY;
+
+        final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
+
+        for(int i=0; i<numIters; i++) {
+            final int key = rand.nextInt(100);
+            final boolean add = rand.nextBoolean();
+
+            if(add) {
+                final int value = rand.nextInt ();
+                ju.put (key, value);
+
+                a = a.updated(key, value);
+            }
+            else {
+                ju.remove (key);
+                a = a.removed(key);
+            }
+        }
+
+        assertEquals (ju.size (), a.size ());
+        for(int k: ju.keySet()) {
+            assertEquals (AOption.some (ju.get (k)), a.get (k));
+        }
+    }
+
 //    void validate (RedBlackTree.Tree tree) {
 //        if (tree instanceof RedBlackTree.RedTree) {
 //            if (tree.left() instanceof RedBlackTree.RedTree) throw new IllegalStateException ();

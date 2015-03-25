@@ -35,25 +35,50 @@ import java.util.*;
  * @author arno
  */
 public abstract class AOption<T> implements ACollection<T>, Serializable {
+    /**
+     * @return a 'some' filled with the literal passed in as a parameter
+     */
     public static <T> AOption<T> some(T el) {
         return new ASome<>(el);
     }
 
+    /**
+     * @return the 'none'
+     */
     @SuppressWarnings("unchecked")
     public static <T> AOption<T> none() {
         return  (AOption<T>) ANone.INSTANCE;
     }
 
+    /**
+     * This is a convenience method that creates an AOption based on Java conventions.
+     *
+     * @return 'none()' if the parameter is null, 'some(nullable)' otherwise
+     */
     public static <T> AOption<T> fromNullable(T nullable) {
         return nullable != null ? some(nullable) : AOption.<T>none();
     }
 
+    /**
+     * @return true if this AOption holds a value
+     */
     public abstract boolean isDefined();
+
+    /**
+     * @return true if this option does not hold a value
+     */
     public boolean isEmpty() {
         return !isDefined();
     }
 
+    /**
+     * @return the element held in this AOption if there is one; otherwise, a NoSuchElementException is thrown
+     */
     public abstract T get();
+
+    /**
+     * @return the element held in this AOption if there is one, and the default element passed in as  parameter otherwise
+     */
     public T getOrElse(T el) {
         return isDefined() ? get() : el;
     }

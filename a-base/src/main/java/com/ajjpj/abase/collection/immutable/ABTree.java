@@ -45,6 +45,12 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
 
     @SuppressWarnings ("unchecked")
     public ABTree<K,V> removed (K key) {
+        final RemoveResult removeResult = _removed (key, null);
+        if (removeResult.underflowed &&
+                removeResult.newNode instanceof IndexNode &&
+                ((IndexNode) removeResult.newNode).children.length == 1) {
+            return ((IndexNode) removeResult.newNode).children[0];
+        }
         return _removed (key, null).newNode;
     }
 
