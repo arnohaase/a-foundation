@@ -3,7 +3,6 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.collection.AEqualsWrapper;
-import com.ajjpj.abase.function.*;
 import com.ajjpj.afoundation.function.*;
 
 import java.lang.reflect.Array;

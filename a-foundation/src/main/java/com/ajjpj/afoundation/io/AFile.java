@@ -3,7 +3,6 @@ package com.ajjpj.afoundation.io;
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.immutable.ATraversable;
-import com.ajjpj.abase.function.*;
 import com.ajjpj.afoundation.function.*;
 import com.ajjpj.afoundation.util.AUnchecker;
 

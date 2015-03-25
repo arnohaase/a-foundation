@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection;
 
-import com.ajjpj.abase.collection.immutable.*;
 import com.ajjpj.afoundation.collection.immutable.*;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1NoThrow;

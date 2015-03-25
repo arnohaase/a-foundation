@@ -1,7 +1,5 @@
 package com.ajjpj.afoundation.collection;
 
-import com.ajjpj.abase.function.*;
-import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.collection.immutable.*;
 import com.ajjpj.afoundation.function.AFunction1NoThrow;
 import com.ajjpj.afoundation.function.AFunction2NoThrow;
