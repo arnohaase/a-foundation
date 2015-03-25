@@ -30,7 +30,7 @@ public class AThreadFactory implements ThreadFactory {
 
     /**
      * Creates a <code>ThreadFactory</code> with a naming scheme consisting of a constant prefix followed by one number. The number is a counter inside the newly created
-     *  <code>ThreadFactory> instance, so names are unique per instance but not globally.<p>
+     *  <code>ThreadFactory</code> instance, so names are unique per instance but not globally.<p>
      * Use this factory method if the prefix is used only for one thread factory.
      *
      * @param namePrefix the prefix used for all thread names, followed by a running number

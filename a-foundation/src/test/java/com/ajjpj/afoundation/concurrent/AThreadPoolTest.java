@@ -331,6 +331,8 @@ public class AThreadPoolTest {
             }
         });
 
+        Thread.sleep (100);
+
         assertEquals (2, successCounter.get ());
         assertEquals (0, failureCounter.get ());
         assertEquals (2, finishedCounter.get ());
