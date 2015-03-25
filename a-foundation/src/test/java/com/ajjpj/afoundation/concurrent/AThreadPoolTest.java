@@ -407,7 +407,7 @@ public class AThreadPoolTest {
 
         final AFuture<Integer> f1 = threadPool.submit (new Callable<Integer> () {
             @Override public Integer call () throws Exception {
-                Thread.sleep (10);
+                Thread.sleep (1000);
                 return 0;
             }
         }, 1, TimeUnit.MILLISECONDS);
