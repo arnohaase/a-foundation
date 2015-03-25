@@ -4,15 +4,42 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.ajjpj.a-foundation</groupId>
-        <artifactId>a-foundation-parent</artifactId>
-        <version>1.0-pre13-SNAPSHOT</version>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
     </parent>
 
-    <artifactId>a-foundation</artifactId>
+    <groupId>com.ajjpj.a-foundation</groupId>
+    <artifactId>a-foundation-parent</artifactId>
+    <version>1.0-pre13-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
+    <description>a-foundation is a library of fundamental (hence the name) classes, most notably immutable collection classes with copy-on-write operations</description>
+
+    <modules>
+        <module>a-foundation</module>
+    </mudules>
+    
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git@github.com:arnohaase/a-base.git</connection>
+        <developerConnection>scm:git:git@github.com:arnohaase/a-base.git</developerConnection>
+        <url>git@github.com:arnohaase/a-base.git</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>arnohaase</id>
+            <name>Arno Haase</name>
+            <email>github@haase-consulting.com</email>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
