@@ -1,14 +1,14 @@
 package com.ajjpj.afoundation.concurrent;
 
-import com.ajjpj.afoundation.function.AStatement2NoThrow;
 import org.junit.After;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static org.junit.Assert.*;
 
 
 /**
@@ -31,7 +31,6 @@ public class ACircuitBreakerTest {
             try {
                 circuitBreaker.submit (new Callable<Object> () {
                     @Override public Object call () throws Exception {
-                        System.out.println ("initial failure");
                         throw new RuntimeException ();
                     }
                 }, 1, TimeUnit.SECONDS).get ();
@@ -54,29 +53,78 @@ public class ACircuitBreakerTest {
                 }, 10, TimeUnit.SECONDS).get ();
                 fail ("exception expected");
             }
-            catch (ExecutionException e) {
-                assertEquals (TimeoutException.class, e.getCause ().getClass ());
+            catch (ExecutionException exc) {
+                assertEquals (RejectedByCircuitBreakerException.class, exc.getCause ().getClass ());
+                assertTrue (exc.getCause () instanceof TimeoutException);
             }
         }
 
+        // verify that the circuit breaker is still in 'rejecting' mode
         try {
-            // verify that the circuit breaker is still in 'rejecting' mode
             circuitBreaker.submit (new Callable<Object> () {
                 @Override public Object call () throws Exception {
                     return "rejected";
                 }
             }, 10, TimeUnit.SECONDS).get ();
         }
-        catch (ExecutionException e) {
-            assertEquals (TimeoutException.class, e.getCause ().getClass ());
+        catch (ExecutionException exc) {
+            assertEquals (RejectedByCircuitBreakerException.class, exc.getCause ().getClass ());
+            assertTrue (exc.getCause () instanceof TimeoutException);
         }
 
+        // we wait until the circuit breaker is open to accept a *single* submission
         Thread.sleep (150);
 
-        //TODO test single test failed
-        //TODO test rejection during single test
+        // we submit a task. It will actually be scheduled by the circuit breaker, but it will time out
+        final AFuture<Object> f = circuitBreaker.submit (new Callable<Object> () {
+            @Override public Object call () throws Exception {
+                Thread.sleep (100);
+                return null;
+            }
+        }, 10, TimeUnit.MILLISECONDS);
+
+        // the circuit breaker remains closed for other tasks while waiting for the single 'experiment' to finish
+        try {
+            circuitBreaker.submit (new Callable<Object> () {
+                @Override public Object call () throws Exception {
+                    return null;
+                }
+            }, 1, TimeUnit.SECONDS).get ();
+        }
+        catch (ExecutionException exc) {
+            assertEquals (RejectedByCircuitBreakerException.class, exc.getCause ().getClass ());
+            assertTrue (exc.getCause () instanceof TimeoutException);
+        }
+
+        // we wait for the 'experiment' task to actually time out
+        try {
+            f.get ();
+        }
+        catch (ExecutionException exc) {
+            assertEquals (TimeoutException.class, exc.getCause ().getClass ());
+        }
+
+        // we give the circuit breaker time to open again
+        Thread.sleep (150);
 
         // circuit breaker should now let a single task pass
+        assertEquals ("success", circuitBreaker.submit (new Callable<Object> () {
+            @Override public Object call () throws Exception {
+                return "success";
+            }
+        }, 10, TimeUnit.MILLISECONDS).get ());
+
+        //... and subsequent tasks as well
+        assertEquals ("success", circuitBreaker.submit (new Callable<Object> () {
+            @Override public Object call () throws Exception {
+                return "success";
+            }
+        }, 10, TimeUnit.MILLISECONDS).get ());
+        assertEquals ("success", circuitBreaker.submit (new Callable<Object> () {
+            @Override public Object call () throws Exception {
+                return "success";
+            }
+        }, 10, TimeUnit.MILLISECONDS).get ());
         assertEquals ("success", circuitBreaker.submit (new Callable<Object> () {
             @Override public Object call () throws Exception {
                 return "success";

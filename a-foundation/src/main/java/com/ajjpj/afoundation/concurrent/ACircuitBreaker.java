@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -85,7 +84,7 @@ public class ACircuitBreaker implements ATaskScheduler {
 
     private <R> AFuture<R> failure () {
         final AFutureImpl<R> result = AFutureImpl.unscheduled (threadPool);
-        result.setException (new TimeoutException ("recovering from previous failures (CircuitBreaker)"));
+        result.setException (new RejectedByCircuitBreakerException ("recovering from previous failures (CircuitBreaker)"));
         return result;
     }
 

@@ -8,15 +8,15 @@ todo
   * ArrayStack.reverseIterator()
   * AMap.fromMutable(juMap), .fromKeysAndValues(), .fromKeysAndFunction
   * AMap.keys(), AMap.values()
+* remove ArrayStack (?)
+* remove ASoftlyLimitedQueue (?)
 
 * AMap.keys(), AMap.values(): ACollection
 
-* documentation tests
+* turorial tests
 
 * collect(), withFilter()
 * (infinite) streams
-
-* rename to 'a-foundation'
 
 * TODO comments
 * warnings
