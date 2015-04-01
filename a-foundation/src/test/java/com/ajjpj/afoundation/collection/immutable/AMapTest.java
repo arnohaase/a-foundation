@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.immutable.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -26,7 +25,9 @@ public class AMapTest {
     public static Collection<Object> emptyMaps () {
         return Arrays.<Object>asList (
                 new Object[] {AHashMap.empty ()},
+                new Object[] {ALongHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
+                new Object[] {ALongListMap.empty ()},
                 new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
@@ -42,67 +43,67 @@ public class AMapTest {
 
     @Test
     public void testSimple() {
-        final AMap<Integer, Integer> m0 = EMPTY;
+        final AMap<Long, Integer> m0 = EMPTY;
         assertEquals(0, m0.size());
         assertEquals(true, m0.isEmpty());
         assertEquals(false, m0.nonEmpty());
 
-        assertEquals(false, m0.containsKey(1));
-        assertEquals(false, m0.get(1).isDefined());
-        assertEquals(false, m0.containsKey(2));
+        assertEquals(false, m0.containsKey(1L));
+        assertEquals(false, m0.get(1L).isDefined());
+        assertEquals(false, m0.containsKey(2L));
 
-        final AMap<Integer, Integer> m1 = m0.updated(1, 1);
+        final AMap<Long, Integer> m1 = m0.updated(1L, 1);
         assertEquals(1, m1.size());
         assertEquals(false, m1.isEmpty());
         assertEquals(true, m1.nonEmpty());
 
-        assertEquals(true, m1.containsKey(1));
-        assertEquals(Integer.valueOf(1), m1.get(1).get());
-        assertEquals(false, m1.containsKey(2));
+        assertEquals(true, m1.containsKey(1L));
+        assertEquals(Integer.valueOf(1), m1.get(1L).get());
+        assertEquals(false, m1.containsKey(2L));
 
-        final AMap<Integer, Integer> m2 = m1.updated(2, 2);
+        final AMap<Long, Integer> m2 = m1.updated(2L, 2);
         assertEquals(2, m2.size());
         assertEquals(false, m2.isEmpty());
         assertEquals(true, m2.nonEmpty());
 
-        assertEquals(true, m2.containsKey(1));
-        assertEquals(Integer.valueOf(1), m2.get(1).get());
-        assertEquals(true, m2.containsKey(2));
-        assertEquals(Integer.valueOf(2), m2.get(2).get());
+        assertEquals(true, m2.containsKey(1L));
+        assertEquals(Integer.valueOf(1), m2.get(1L).get());
+        assertEquals(true, m2.containsKey(2L));
+        assertEquals(Integer.valueOf(2), m2.get(2L).get());
 
-        final AMap<Integer, Integer> m3 = m2.removed(1);
+        final AMap<Long, Integer> m3 = m2.removed(1L);
         assertEquals(1, m3.size());
         assertEquals(false, m3.isEmpty());
         assertEquals(true, m3.nonEmpty());
 
-        assertEquals(false, m3.containsKey(1));
-        assertEquals(true, m3.containsKey(2));
-        assertEquals(Integer.valueOf(2), m3.get(2).get());
+        assertEquals(false, m3.containsKey(1L));
+        assertEquals(true, m3.containsKey(2L));
+        assertEquals(Integer.valueOf(2), m3.get(2L).get());
 
-        final AMap<Integer, Integer> m4 = m3.removed(2);
+        final AMap<Long, Integer> m4 = m3.removed(2L);
         assertEquals(0, m4.size());
         assertEquals(true, m4.isEmpty());
         assertEquals(false, m4.nonEmpty());
 
-        assertEquals(false, m4.containsKey(1));
-        assertEquals(false, m4.get(1).isDefined());
-        assertEquals(false, m4.containsKey(2));
+        assertEquals(false, m4.containsKey(1L));
+        assertEquals(false, m4.get(1L).isDefined());
+        assertEquals(false, m4.containsKey(2L));
     }
 
     @Test
     public void testKeysValues() {
-        final AMap<Integer, Integer> map = EMPTY
-                .updated(11, 1)
-                .updated (22, 2)
-                .updated (33, 3)
-                .updated (44, 4);
+        final AMap<Long, Integer> map = EMPTY
+                .updated(11L, 1)
+                .updated (22L, 2)
+                .updated (33L, 3)
+                .updated (44L, 4);
 
-        final Set<Integer> keys = map.keys();
+        final Set<Long> keys = map.keys();
         assertEquals(4, keys.size());
-        assertTrue (keys.contains (11));
-        assertTrue(keys.contains(22));
-        assertTrue(keys.contains(33));
-        assertTrue(keys.contains(44));
+        assertTrue (keys.contains (11L));
+        assertTrue(keys.contains(22L));
+        assertTrue(keys.contains(33L));
+        assertTrue(keys.contains(44L));
 
 //        ((ARedBlackTree) map).dump();
 
@@ -119,45 +120,60 @@ public class AMapTest {
         assertEquals(EMPTY, EMPTY);
         assertEquals(EMPTY.hashCode (), EMPTY.hashCode ());
 
-        assertEquals(EMPTY.updated ("a", "a1"),
-                EMPTY.updated ("a", "a1"));
-        assertEquals(EMPTY.updated ("a", "a1").updated("b", "b1"),
-                EMPTY.updated ("a", "a1").updated("b", "b1"));
-        assertEquals(EMPTY.updated ("a", "a1").updated("b", "b1").updated("a", "a2").removed("b"),
-                EMPTY.updated ("a", "a1").updated("b", "b1").updated("a", "a2").removed("b"));
-        assertEquals(EMPTY.updated ("a", "a1").hashCode(),
-                EMPTY.updated ("a", "a1").hashCode());
-        assertEquals(EMPTY.updated ("a", "a1").updated("b", "b1").hashCode(),
-                EMPTY.updated ("a", "a1").updated("b", "b1").hashCode());
-        assertEquals(EMPTY.updated ("a", "a1").updated("b", "b1").updated("a", "a2").removed("b").hashCode(),
-                EMPTY.updated ("a", "a1").updated("b", "b1").updated("a", "a2").removed("b").hashCode());
+        assertEquals(
+                EMPTY.updated (1L, "a1"),
+                EMPTY.updated (1L, "a1"));
+        assertEquals(
+                EMPTY.updated (1L, "a1").updated(2L, "b1"),
+                EMPTY.updated (1L, "a1").updated(2L, "b1"));
+        assertEquals(
+                EMPTY.updated (1L, "a1").updated(2L, "b1").updated(1L, "a2").removed(2L),
+                EMPTY.updated (1L, "a1").updated(2L, "b1").updated(1L, "a2").removed(2L));
+        assertEquals(
+                EMPTY.updated (1L, "a1").hashCode(),
+                EMPTY.updated (1L, "a1").hashCode());
+        assertEquals(
+                EMPTY.updated (1L, "a1").updated(2L, "b1").hashCode(),
+                EMPTY.updated (1L, "a1").updated(2L, "b1").hashCode());
+        assertEquals(
+                EMPTY.updated (1L, "a1").updated(2L, "b1").updated(1L, "a2").removed(2L).hashCode(),
+                EMPTY.updated (1L, "a1").updated(2L, "b1").updated(1L, "a2").removed(2L).hashCode());
 
-        assertEquals(EMPTY.updated ("a", "a").updated("b", "b"),
-                EMPTY.updated ("b", "b").updated("a", "a"));
-        assertEquals(EMPTY.updated ("a", "a").updated("b", "b").hashCode(),
-                EMPTY.updated ("b", "b").updated("a", "a").hashCode());
+        assertEquals(
+                EMPTY.updated (1L, "a").updated(2L, "b"),
+                EMPTY.updated (2L, "b").updated(1L, "a"));
+        assertEquals(
+                EMPTY.updated (1L, "a").updated(2L, "b").hashCode(),
+                EMPTY.updated (2L, "b").updated(1L, "a").hashCode());
 
-        assertNotEquals(EMPTY.updated ("a", "1"),
-                EMPTY.updated ("a", "2"));
-        assertNotEquals(EMPTY.updated ("a", "1"),
-                EMPTY.updated ("b", "1"));
-        assertNotEquals(EMPTY.updated ("a", "1").hashCode(),
-                EMPTY.updated ("a", "2").hashCode());
-        assertNotEquals(EMPTY.updated ("a", "1").hashCode(),
-                EMPTY.updated ("b", "1").hashCode());
+        assertNotEquals(
+                EMPTY.updated (1L, "1"),
+                EMPTY.updated (1L, "2"));
+        assertNotEquals(
+                EMPTY.updated (1L, "1"),
+                EMPTY.updated (2L, "1"));
+        assertNotEquals(
+                EMPTY.updated (1L, "1").hashCode(),
+                EMPTY.updated (1L, "2").hashCode());
+        assertNotEquals(
+                EMPTY.updated (1L, "1").hashCode(),
+                EMPTY.updated (2L, "1").hashCode());
     }
 
     @Test
     public void testShotgun() {
         final Random rand = new Random(12345);
 
-        final Map<Integer, Integer> ju = new HashMap<>();
-        AMap<Integer, Integer> a = EMPTY;
+        final Map<Long, Integer> ju = new HashMap<>();
+        AMap<Long, Integer> a = EMPTY;
 
-        final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
+        final int numIters =
+                (EMPTY == AListMap.empty () || EMPTY == ALongListMap.empty ()) ?
+                        10_000 :
+                        10_000_000;
 
         for(int i=0; i<numIters; i++) {
-            final int key = rand.nextInt(100*1000);
+            final long key = rand.nextInt(100*1000);
             final boolean add = rand.nextBoolean();
 
             if(add) {
@@ -173,7 +189,7 @@ public class AMapTest {
         }
 
         assertEquals (ju.size (), a.size ());
-        for(int k: ju.keySet()) {
+        for(long k: ju.keySet()) {
             assertEquals (AOption.some (ju.get (k)), a.get (k));
         }
     }
@@ -182,13 +198,16 @@ public class AMapTest {
     public void testShotgunSmall() {
         final Random rand = new Random(12345);
 
-        final Map<Integer, Integer> ju = new HashMap<>();
-        AMap<Integer, Integer> a = EMPTY;
+        final Map<Long, Integer> ju = new HashMap<>();
+        AMap<Long, Integer> a = EMPTY;
 
-        final int numIters = EMPTY == AListMap.empty () ? 10_000 : 10_000_000;
+        final int numIters =
+                (EMPTY == AListMap.empty () || EMPTY == ALongListMap.empty ()) ?
+                        10_000 :
+                        10_000_000;
 
         for(int i=0; i<numIters; i++) {
-            final int key = rand.nextInt(100);
+            final long key = rand.nextInt(100);
             final boolean add = rand.nextBoolean();
 
             if(add) {
@@ -204,7 +223,7 @@ public class AMapTest {
         }
 
         assertEquals (ju.size (), a.size ());
-        for(int k: ju.keySet()) {
+        for(long k: ju.keySet()) {
             assertEquals (AOption.some (ju.get (k)), a.get (k));
         }
     }

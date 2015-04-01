@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.immutable.*;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.Comparator;
@@ -25,9 +24,9 @@ public class AMapShotgunUpdateBenchmark {
 
     @Setup
     public void setUp() {
-        final Comparator<Integer> NATURAL_ORDER = new Comparator<Integer> () {
+        final Comparator<Long> NATURAL_ORDER = new Comparator<Long> () {
             @SuppressWarnings ("unchecked")
-            @Override public int compare (Integer o1, Integer o2) {
+            @Override public int compare (Long o1, Long o2) {
                 return o1.compareTo (o2);
             }
         };
@@ -43,17 +42,17 @@ public class AMapShotgunUpdateBenchmark {
         }
     }
 
-    private AMap<Integer, Integer> EMPTY;
+    private AMap<Long, Integer> EMPTY;
 
-//    @Benchmark
+    @Benchmark
     public void testShotgunUpdate() {
         final Random rand = new Random(12345);
-        AMap<Integer, Integer> a = EMPTY;
+        AMap<Long, Integer> a = EMPTY;
 
         final int numIters = 100_000;
 
         for(int i=0; i<numIters; i++) {
-            final int key = rand.nextInt (size);
+            final long key = rand.nextInt (size);
             final boolean add = rand.nextBoolean ();
 
             if (add) {

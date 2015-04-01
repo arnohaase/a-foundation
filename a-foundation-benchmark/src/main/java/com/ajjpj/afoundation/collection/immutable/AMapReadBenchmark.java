@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.immutable.*;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import org.openjdk.jmh.annotations.*;
 
@@ -26,9 +25,9 @@ public class AMapReadBenchmark {
 
     @Setup
     public void setUp() {
-        final Comparator<Integer> NATURAL_ORDER = new Comparator<Integer> () {
+        final Comparator<Long> NATURAL_ORDER = new Comparator<Long> () {
             @SuppressWarnings ("unchecked")
-            @Override public int compare (Integer o1, Integer o2) {
+            @Override public int compare (Long o1, Long o2) {
                 return o1.compareTo (o2);
             }
         };
@@ -43,11 +42,11 @@ public class AMapReadBenchmark {
         }
 
         for (int i=0; i<size; i++) {
-            map = map.updated (i, i);
+            map = map.updated ((long) i, i);
         }
     }
 
-    private AMap<Integer, Integer> map;
+    private AMap<Long, Integer> map;
 
     @Benchmark
     public void testRandomRead() {
@@ -56,7 +55,7 @@ public class AMapReadBenchmark {
         final int numIters = 1_000_000;
 
         for (int i=0; i<numIters; i++) {
-            map.get (rand.nextInt (size));
+            map.get ((long) rand.nextInt (size));
         }
     }
 
