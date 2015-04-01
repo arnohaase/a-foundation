@@ -1,5 +1,11 @@
 todo
 ----
+* maps: specialization for long
+  * LongIterator? LongEntryIterator?
+  * LongSet? --> generic 'Set' wrapper for maps
+* hash map: 64-way instead of 32-way?
+
+
 * documentation
 * JUnit tests:
   * ACompositeIterator

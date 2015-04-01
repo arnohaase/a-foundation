@@ -1,7 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACompositeIterator;
-import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
@@ -10,123 +9,78 @@ import java.util.*;
 
 
 /**
- * This is an immutable hash map based on 32-way hash tries. Its implementation is optimized to minimize copying when
- *  the map is modified.<p>
- *
- * The code in this class is essentially a port of the HashMap class from the Scala standard library. Thank you for
- *  the excellent code, Scala team!
+ * This is an {@link AHashMap} that is specialized for keys of type long, i.e. primitive numbers rather than objects. It duplicates its API
+ *  to support both efficient primitive 'long' values and generified 'Long's,
  *
  * @author arno
  */
-public class AHashMap<K, V> implements AMap<K,V>, Serializable {
+public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     private static final int LEVEL_INCREMENT = 5;
-    private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
-
-    private static final AHashMap<Object, Object> emptyEquals = new AHashMap<>(AEquality.EQUALS);
-    private static final AHashMap<Object, Object> emptyIdentity = new AHashMap<>(AEquality.IDENTITY);
-
-    final AEquality equality;
 
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
+    private static final ALongHashMap EMPTY = new ALongHashMap ();
+
 
     /**
-     * Returns an empty AHashMap instance with default (i.e. equals-based) equalityForEquals. Calling this factory method instead
-     *  of the constructor allows internal reuse of empty map instances since they are immutable.
-     */
-    public static <K,V> AHashMap<K,V> empty() {
-        return empty(DEFAULT_EQUALITY);
-    }
-    /**
-     * Returns an empty AHashMap instance with the given equalityForEquals strategy. Calling this factory method instead of
+     * Returns an empty ALongHashMap instance. Calling this factory method instead of
      *  the constructor allows internal reuse of empty map instances since they are immutable.
      */
     @SuppressWarnings("unchecked")
-    public static <K,V> AHashMap<K,V> empty(AEquality equality) {
-        // for typical equalityForEquals implementations, return pre-instantiated objects
-        if(equality == AEquality.EQUALS) return (AHashMap<K, V>) emptyEquals;
-        if(equality == AEquality.IDENTITY) return (AHashMap<K, V>) emptyIdentity;
-        return new AHashMap<>(equality);
+    public static <V> ALongHashMap<V> empty() {
+        return EMPTY;
     }
 
-    /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from the contents of
-     *  a given <code>java.util.Map</code>.
-     */
-    @SuppressWarnings("unused")
-    public static <K,V> AHashMap<K,V> fromJavaUtilMap(Map<K,V> map) {
-        return fromJavaUtilMap(DEFAULT_EQUALITY, map);
-    }
-    /**
-     * Returns an AHashMap instance for a given equalityForEquals, initializing it from the contents of a given
-     *  <code>java.util.Map</code>.
-     */
-    public static <K,V> AHashMap<K,V> fromJavaUtilMap(AEquality equality, Map<K,V> map) {
-        AHashMap<K,V> result = empty(equality);
+    public static <V> ALongHashMap<V> fromJavaUtilMap(Map<? extends Number,V> map) {
+        ALongHashMap<V> result = empty ();
 
-        for(Map.Entry<K,V> entry: map.entrySet()) {
-            result = result.updated(entry.getKey(), entry.getValue());
+        for(Map.Entry<? extends Number,V> entry: map.entrySet()) {
+            result = result.updated(entry.getKey().longValue (), entry.getValue());
         }
 
         return result;
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
-     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
+     * Returns an ALongHashMap initialized from separate 'keys' and 'values' collections. Both collections
+     *  are iterated exactly once and are expected to have the same size.
      */
-    public static <K,V> AHashMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
-        return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
-    }
-    /**
-     * Returns an AHashMap instance with a given equalityForEquals, initializing it from separate 'keys'
-     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
-     */
-    public static <K,V> AHashMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
-        final Iterator<K> ki = keys.iterator();
+    public static <V> ALongHashMap<V> fromKeysAndValues(Iterable<? extends Number> keys, Iterable<V> values) {
+        final Iterator<? extends Number> ki = keys.iterator();
         final Iterator<V> vi = values.iterator();
 
-        AHashMap<K,V> result = empty(equality);
+        ALongHashMap<V> result = ALongHashMap.empty ();
 
         while(ki.hasNext()) {
-            final K key = ki.next();
+            final Number key = ki.next();
             final V value = vi.next();
 
-            result = result.updated(key, value);
+            result = result.updated(key.longValue (), value);
         }
         return result;
     }
 
     /**
-     * Returns an AHashMap instance with default (i.e. equals-based) equalityForEquals, initializing it from a collection of
+     * Returns an ALongHashMap instance initialized from a collection of
      *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
      *  determine the corresponding value, and the pair is then stored in the map.
      */
     @SuppressWarnings("unused")
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
-        return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
-    }
-    /**
-     * Returns an AHashMap instance with a given equalityForEquals, initializing it from a collection of
-     *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
-     *  determine the corresponding value, and the pair is then stored in the map.
-     */
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
+    public static <K extends Number, V, E extends Exception> ALongHashMap<V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
-        AHashMap<K,V> result = AHashMap.empty(equality);
+        ALongHashMap<V> result = empty ();
 
         while(ki.hasNext()) {
             final K key = ki.next();
             final V value = f.apply(key);
 
-            result = result.updated(key, value);
+            result = result.updated(key.longValue (), value);
         }
         return result;
     }
 
-    private AHashMap(AEquality equality) {
-        this.equality = equality;
+    private ALongHashMap () {
     }
 
     @Override
@@ -143,47 +97,56 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public boolean containsKey(K key) {
+    public boolean containsKey(Long key) {
+        return containsKey (key.longValue ());
+    }
+    public boolean containsKey(long key) {
         return get(key).isDefined();
     }
 
     @Override
     public boolean containsValue(V value) {
-        for(V cur: values()) {
-            if(equality.equals(value, cur)) {
+        for (V cur: values()) {
+            if (Objects.equals (value, cur)) {
                 return true;
             }
         }
         return false;
     }
 
-    @Override
-    public AOption<V> get(K key) {
-        return doGet(key, computeHash(key, equality), 0);
+    @Override public AOption<V> get (Long key) {
+        return get (key.longValue ());
+    }
+    public AOption<V> get(long key) {
+        return doGet(key, computeHash(key), 0);
     }
 
-    @Override
-    public V getRequired(K key) {
+    @Override public V getRequired (Long key) {
+        return getRequired (key.longValue());
+    }
+    public V getRequired (long key) {
         return get(key).get();
     }
 
-    @Override
-    public AHashMap<K,V> updated(K key, V value) {
-        return doUpdated(key, computeHash(key, equality), 0, value);
+    @Override public ALongHashMap<V> updated (Long key, V value) {
+        return updated (key.longValue (), value);
+    }
+    public ALongHashMap<V> updated (long key, V value) {
+        return doUpdated(key, computeHash(key), 0, value);
     }
 
-    @Override
-    public AHashMap<K,V> removed(K key) {
-        return doRemoved(key, computeHash(key, equality), 0);
+    @Override public ALongHashMap<V> removed (Long key) {
+        return removed (key.longValue ());
+    }
+    public ALongHashMap<V> removed (long key) {
+        return doRemoved(key, computeHash(key), 0);
     }
 
-    @Override
-    public AMap<K, V> withDefaultValue(V defaultValue) {
+    @Override public AMap<Long, V> withDefaultValue(V defaultValue) {
         return new AMapWithDefaultValue<>(this, defaultValue);
     }
 
-    @Override
-    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
+    @Override public AMap<Long, V> withDefault(AFunction1<? super Long, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<>(this, function);
     }
 
@@ -202,13 +165,13 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(ATuple2<K,V> el: this) {
+        for(ATuple2<Long,V> el: this) {
             final AOption<V> otherValue = other.get(el._1);
             if(otherValue.isEmpty()) {
                 return false;
             }
 
-            if(! equality.equals(el._2, otherValue.get())) {
+            if(! Objects.equals(el._2, otherValue.get())) {
                 return false;
             }
         }
@@ -220,8 +183,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
+            for(ATuple2<Long,V> el: this) {
+                result = result ^ (31*el._1.hashCode () + Objects.hashCode(el._2));
             }
 
             cachedHashcode = result;
@@ -231,15 +194,15 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<ATuple2<K, V>> iterator() {
-        return new Iterator<ATuple2<K, V>>() {
+    public Iterator<ATuple2<Long, V>> iterator() {
+        return new Iterator<ATuple2<Long, V>>() {
             @Override
             public boolean hasNext() {
                 return false;
             }
 
             @Override
-            public ATuple2<K, V> next() {
+            public ATuple2<Long, V> next() {
                 throw new NoSuchElementException();
             }
 
@@ -250,7 +213,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         };
     }
 
-    @Override public Set<K> keys() {
+    @Override public Set<Long> keys() {
         return Collections.emptySet();
     }
 
@@ -258,8 +221,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         return Collections.emptyList();
     }
 
-    @Override
-    public Map<K, V> asJavaUtilMap() {
+    @Override public Map<Long, V> asJavaUtilMap() {
         return new JavaUtilMapWrapper<>(this);
     }
 
@@ -267,20 +229,20 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
      * @param level number of least significant bits of the hash to discard for local hash lookup. This mechanism
      *              is used to create a 32-way hash trie - level increases by 5 at each level
      */
-    AOption<V> doGet(K key, int hash, int level) {
+    AOption<V> doGet(long key, int hash, int level) {
         return AOption.none();
     }
 
-    AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
-        return new HashMap1<> (key, hash, value, equality);
+    ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+        return new LongHashMap1<> (key, hash, value);
     }
 
-    AHashMap<K,V> doRemoved(K key, int hash, int level) {
+    ALongHashMap<V> doRemoved(long key, int hash, int level) {
         return this;
     }
 
-    private static int computeHash(Object key, AEquality equality) { //TODO ask why this algorithm is used
-        int h = equality.hashCode(key);
+    private static int computeHash (long key) {
+        int h = new Long(key).hashCode (); // this is caught by Escape Analysis and then inlined, so efficiency is not impacted by creating a temp object
         h = h + ~(h << 9);
         h = h ^ (h >>> 14);
         h = h + (h << 4);
@@ -288,8 +250,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    private static <K,V> AHashMap<K,V>[] createArray(int size) {
-        return new AHashMap[size];
+    private static <K,V> ALongHashMap<V>[] createArray(int size) {
+        return new ALongHashMap[size];
     }
 
     @Override
@@ -297,7 +259,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
         boolean first = true;
 
-        for(ATuple2<K,V> e: this) {
+        for(ATuple2<Long, V> e: this) {
             if(first) {
                 first = false;
             }
@@ -315,12 +277,12 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     /**
      * very internal method. It assumes hash0 != hash1.
      */
-    private static<K,V> HashTrieMap<K,V> mergeLeafMaps(int hash0, AHashMap<K,V> elem0, int hash1, AHashMap<K,V> elem1, int level, int size, AEquality equality) {
+    private static<K,V> LongHashTrieMap<V> mergeLeafMaps(int hash0, ALongHashMap<V> elem0, int hash1, ALongHashMap<V> elem1, int level, int size) {
         final int index0 = (hash0 >>> level) & 0x1f;
         final int index1 = (hash1 >>> level) & 0x1f;
         if(index0 != index1) {
             final int bitmap = (1 << index0) | (1 << index1);
-            final AHashMap<K,V>[] elems = createArray(2);
+            final ALongHashMap<V>[] elems = createArray(2);
             if(index0 < index1) {
                 elems[0] = elem0;
                 elems[1] = elem1;
@@ -329,25 +291,25 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 elems[0] = elem1;
                 elems[1] = elem0;
             }
-            return new HashTrieMap<>(bitmap, elems, size, equality);
+            return new LongHashTrieMap<>(bitmap, elems, size);
         }
         else {
-            final AHashMap<K,V>[] elems = createArray(1);
+            final ALongHashMap<V>[] elems = createArray(1);
             final int bitmap = (1 << index0);
             // try again, based on the
-            elems[0] = mergeLeafMaps(hash0, elem0, hash1, elem1, level + LEVEL_INCREMENT, size, equality);
-            return new HashTrieMap<>(bitmap, elems, size, equality);
+            elems[0] = mergeLeafMaps(hash0, elem0, hash1, elem1, level + LEVEL_INCREMENT, size);
+            return new LongHashTrieMap<>(bitmap, elems, size);
         }
     }
 
 
-    static class HashMap1<K,V> extends AHashMap<K,V> {
-        private final K key;
+    static class LongHashMap1<V> extends ALongHashMap<V> {
+        private final long key;
         private final int hash;
         private final V value;
 
-        HashMap1(K key, int hash, V value, AEquality equality) {
-            super(equality);
+        LongHashMap1(long key, int hash, V value) {
+            super();
 
             this.key = key;
             this.hash = hash;
@@ -360,40 +322,38 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        AOption<V> doGet(K key, int hash, int level) {
-            if(equality.equals(this.key, key)) {
+        AOption<V> doGet(long key, int hash, int level) {
+            if(this.key == key) {
                 return AOption.some(value);
             }
             return AOption.none();
         }
 
-        @Override
-        AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
-            if (hash == this.hash && equality.equals(key, this.key)) {
+        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+            if (key == this.key) {
                 if(this.value == value) {
                     return this;
                 }
                 else {
-                    return new HashMap1<>(key, hash, value, equality);
+                    return new LongHashMap1<>(key, hash, value);
                 }
             }
             else {
                 if (hash != this.hash) {
                     // they have different hashes, but may collide at this level - find a level at which they don't
-                    final AHashMap<K,V> that = new HashMap1<>(key, hash, value, equality);
-                    return mergeLeafMaps(this.hash, this, hash, that, level, 2, equality);
+                    final ALongHashMap<V> that = new LongHashMap1<>(key, hash, value);
+                    return mergeLeafMaps(this.hash, this, hash, that, level, 2);
                 }
                 else {
                     // hash collision --> store all elements in the same bin
-                    return new HashMapCollision1<> (hash, AListMap.<K,V>empty(equality).updated(this.key,this.value).updated(key,value));
+                    return new LongHashMapCollision1<> (hash, ALongListMap.<V>empty().updated(this.key,this.value).updated(key,value));
                 }
             }
         }
 
-        @Override
-        AHashMap<K,V> doRemoved(K key, int hash, int level) {
-            if (hash == this.hash && equality.equals(key, this.key)) {
-                return empty(equality);
+        @Override ALongHashMap<V> doRemoved(long key, int hash, int level) {
+            if (key == this.key) {
+                return empty();
             }
             else {
                 return this;
@@ -401,8 +361,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
-            return new Iterator<ATuple2<K, V>>() {
+        public Iterator<ATuple2<Long, V>> iterator() {
+            return new Iterator<ATuple2<Long, V>>() {
                 boolean initial = true;
 
                 @Override
@@ -411,7 +371,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 }
 
                 @Override
-                public ATuple2<K, V> next() {
+                public ATuple2<Long, V> next() {
                     if(initial) {
                         initial = false;
                         return new ATuple2<> (key, value);
@@ -427,7 +387,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Set<K> keys() {
+        public Set<Long> keys() {
             return Collections.singleton(key);
         }
 
@@ -437,12 +397,12 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
     }
 
-    static class HashMapCollision1<K,V> extends AHashMap<K,V> {
+    static class LongHashMapCollision1<V> extends ALongHashMap<V> {
         private final int hash;
-        private final AListMap<K,V> kvs;
+        private final ALongListMap<V> kvs;
 
-        HashMapCollision1(int hash, AListMap<K, V> kvs) {
-            super(kvs.equality);
+        LongHashMapCollision1(int hash, ALongListMap<V> kvs) {
+            super();
 
             this.hash = hash;
             this.kvs = kvs;
@@ -454,7 +414,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        AOption<V> doGet(K key, int hash, int level) {
+        AOption<V> doGet(long key, int hash, int level) {
             if (hash == this.hash) {
                 return kvs.get(key);
             }
@@ -463,29 +423,27 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             }
         }
 
-        @Override
-        AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
+        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
             if (hash == this.hash) {
-                return new HashMapCollision1<>(hash, kvs.updated(key, value));
+                return new LongHashMapCollision1<>(hash, kvs.updated(key, value));
             }
             else {
-                final HashMap1<K,V> that = new HashMap1<>(key, hash, value, equality);
-                return mergeLeafMaps(this.hash, this, hash, that, level, size() + 1, equality);
+                final LongHashMap1<V> that = new LongHashMap1<>(key, hash, value);
+                return mergeLeafMaps(this.hash, this, hash, that, level, size() + 1);
             }
         }
 
-        @Override
-        AHashMap<K,V> doRemoved(K key, int hash, int level) {
+        @Override ALongHashMap<V> doRemoved(long key, int hash, int level) {
             if (hash == this.hash) {
-                final AListMap<K,V> kvs1 = kvs.removed(key);
+                final ALongListMap<V> kvs1 = kvs.removed(key);
                 if (kvs1.isEmpty()) {
-                    return AHashMap.empty(equality);
+                    return ALongHashMap.empty ();
                 }
                 else if(kvs1.tail().isEmpty()) {
-                    return new HashMap1<>(kvs1.key(), computeHash(kvs1.key(), equality), kvs1.value(), equality);
+                    return new LongHashMap1<>(kvs1.key(), computeHash(kvs1.key()), kvs1.value());
                 }
                 else {
-                    return new HashMapCollision1<>(hash, kvs1);
+                    return new LongHashMapCollision1<>(hash, kvs1);
                 }
             }
             else {
@@ -494,12 +452,12 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
+        public Iterator<ATuple2<Long, V>> iterator() {
             return kvs.iterator();
         }
 
         @Override
-        public Set<K> keys() {
+        public Set<Long> keys() {
             return kvs.keys();
         }
 
@@ -510,35 +468,33 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
 
-    static class HashTrieMap<K,V> extends AHashMap<K,V> {
+    static class LongHashTrieMap<V> extends ALongHashMap<V> {
         final int bitmap;
-        final AHashMap<K,V>[] elems;
+        final ALongHashMap<V>[] elems;
         final int size;
 
-        HashTrieMap(int bitmap, AHashMap<K, V>[] elems, int size, AEquality equality) {
-            super(equality);
+        LongHashTrieMap(int bitmap, ALongHashMap<V>[] elems, int size) {
+            super();
 
             this.bitmap = bitmap;
             this.elems = elems;
             this.size = size;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
-            final List<Iterator<ATuple2<K,V>>> innerIter = new ArrayList<>(elems.length);
-            for(AHashMap<K,V> m: elems)  {
+        public Iterator<ATuple2<Long, V>> iterator() {
+            final List<Iterator<ATuple2<Long,V>>> innerIter = new ArrayList<>(elems.length);
+            for(ALongHashMap<V> m: elems)  {
                 innerIter.add(m.iterator());
             }
             return new ACompositeIterator<> (innerIter);
         }
 
-        @Override
-        public Set<K> keys() {
+        @Override public Set<Long> keys() {
             return new KeySet();
         }
 
@@ -548,13 +504,13 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-        class KeySet implements Set<K> {
+        class KeySet implements Set<Long> {
             @Override public int size() { return size; }
             @Override public boolean isEmpty() { return size == 0; }
-            @Override public boolean contains(Object o) { return containsKey((K) o); }
-            @Override public Iterator<K> iterator() {
-                final List<Iterator<K>> innerIter = new ArrayList<>(elems.length);
-                for(AHashMap<K,V> m: elems) {
+            @Override public boolean contains(Object o) { return containsKey((Long) o); }
+            @Override public Iterator<Long> iterator() {
+                final List<Iterator<Long>> innerIter = new ArrayList<>(elems.length);
+                for(ALongHashMap<V> m: elems) {
                     innerIter.add(m.keys().iterator());
                 }
                 return new ACompositeIterator<>(innerIter);
@@ -562,7 +518,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
 
             @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
             @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-            @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
+            @Override public boolean add(Long k) { throw new UnsupportedOperationException(); }
             @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
             @Override public boolean containsAll(Collection<?> c) {
                 for(Object o: c) {
@@ -573,7 +529,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 return true;
             }
 
-            @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
+            @Override public boolean addAll(Collection<? extends Long> c) { throw new UnsupportedOperationException(); }
             @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
             @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
             @Override public void clear() { throw new UnsupportedOperationException(); }
@@ -586,7 +542,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             @Override public boolean contains(Object o) { return containsValue((V) o); }
             @Override public Iterator<V> iterator() {
                 final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
-                for(AHashMap<K,V> m: elems) {
+                for(ALongHashMap<V> m: elems) {
                     innerIter.add(m.values().iterator());
                 }
                 return new ACompositeIterator<>(innerIter);
@@ -612,7 +568,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        AOption<V> doGet(K key, int hash, int level) {
+        AOption<V> doGet(long key, int hash, int level) {
             final int index = (hash >>> level) & 0x1f;
             final int mask = 1 << index;
 
@@ -628,43 +584,41 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             }
         }
 
-        @Override
-        AHashMap<K,V>  doUpdated(K key, int hash, int level, V value) {
+        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
             final int index = (hash >>> level) & 0x1f;
             final int mask = (1 << index);
             final int offset = Integer.bitCount(bitmap & (mask - 1));
             if ((bitmap & mask) != 0) {
-                final AHashMap<K,V> sub = elems[offset];
+                final ALongHashMap<V> sub = elems[offset];
 
-                final AHashMap<K,V> subNew = sub.doUpdated(key, hash, level + LEVEL_INCREMENT, value);
+                final ALongHashMap<V> subNew = sub.doUpdated(key, hash, level + LEVEL_INCREMENT, value);
                 if(subNew == sub) {
                     return this;
                 }
                 else {
-                    final AHashMap<K,V>[] elemsNew = createArray(elems.length);
+                    final ALongHashMap<V>[] elemsNew = createArray(elems.length);
                     System.arraycopy(elems, 0, elemsNew, 0, elems.length);
                     elemsNew[offset] = subNew;
-                    return new HashTrieMap<> (bitmap, elemsNew, size + (subNew.size() - sub.size()), equality);
+                    return new LongHashTrieMap<> (bitmap, elemsNew, size + (subNew.size() - sub.size()));
                 }
             }
             else {
-                final AHashMap<K,V>[] elemsNew = createArray(elems.length + 1);
+                final ALongHashMap<V>[] elemsNew = createArray(elems.length + 1);
                 System.arraycopy(elems, 0, elemsNew, 0, offset);
-                elemsNew[offset] = new HashMap1<>(key, hash, value, equality);
+                elemsNew[offset] = new LongHashMap1<>(key, hash, value);
                 System.arraycopy(elems, offset, elemsNew, offset + 1, elems.length - offset);
-                return new HashTrieMap<>(bitmap | mask, elemsNew, size + 1, equality);
+                return new LongHashTrieMap<>(bitmap | mask, elemsNew, size + 1);
             }
         }
 
-        @Override
-        AHashMap<K,V> doRemoved(K key, int hash, int level) {
+        @Override ALongHashMap<V> doRemoved (long key, int hash, int level) {
             final int index = (hash >>> level) & 0x1f;
             final int mask = (1 << index);
             final int  offset = Integer.bitCount(bitmap & (mask - 1));
 
             if ((bitmap & mask) != 0) {
-                final AHashMap<K,V> sub = elems[offset];
-                final AHashMap<K,V> subNew = sub.doRemoved(key, hash, level + LEVEL_INCREMENT);
+                final ALongHashMap<V> sub = elems[offset];
+                final ALongHashMap<V> subNew = sub.doRemoved(key, hash, level + LEVEL_INCREMENT);
 
                 if (subNew == sub) {
                     return this;
@@ -672,46 +626,34 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 else if (subNew.isEmpty()) {
                     final int  bitmapNew = bitmap ^ mask;
                     if (bitmapNew != 0) {
-                        final AHashMap<K,V>[] elemsNew = createArray(elems.length - 1);
+                        final ALongHashMap<V>[] elemsNew = createArray(elems.length - 1);
                         System.arraycopy(elems, 0, elemsNew, 0, offset);
                         System.arraycopy(elems, offset + 1, elemsNew, offset, elems.length - offset - 1);
                         final int sizeNew = size - sub.size();
-                        if (elemsNew.length == 1 && ! (elemsNew[0] instanceof HashTrieMap)) {
+                        if (elemsNew.length == 1 && ! (elemsNew[0] instanceof LongHashTrieMap)) {
                             return elemsNew[0];
                         }
                         else {
-                            return new HashTrieMap<>(bitmapNew, elemsNew, sizeNew, equality);
+                            return new LongHashTrieMap<>(bitmapNew, elemsNew, sizeNew);
                         }
                     }
                     else {
-                        return AHashMap.empty(equality);
+                        return ALongHashMap.empty ();
                     }
                 }
-                else if(elems.length == 1 && ! (subNew instanceof HashTrieMap)) {
+                else if(elems.length == 1 && ! (subNew instanceof LongHashTrieMap)) {
                     return subNew;
                 }
                 else {
-                    final AHashMap<K,V>[] elemsNew = createArray(elems.length);
+                    final ALongHashMap<V>[] elemsNew = createArray(elems.length);
                     System.arraycopy(elems, 0, elemsNew, 0, elems.length);
                     elemsNew[offset] = subNew;
                     final int sizeNew = size + (subNew.size() - sub.size());
-                    return new HashTrieMap<>(bitmap, elemsNew, sizeNew, equality);
+                    return new LongHashTrieMap<>(bitmap, elemsNew, sizeNew);
                 }
             } else {
                 return this;
             }
         }
-    }
-
-    private Object readResolve() {
-        // rebuild the map in case hashCodes of entries were changed by serialization
-
-        AHashMap<K,V> result = AHashMap.empty (equality);
-
-        for (ATuple2<K,V> entry: this) {
-            result = result.updated (entry._1, entry._2);
-        }
-
-        return result;
     }
 }

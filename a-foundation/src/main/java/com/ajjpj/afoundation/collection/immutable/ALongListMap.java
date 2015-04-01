@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
@@ -9,114 +8,84 @@ import java.util.*;
 
 
 /**
- * This AMap implementation stores entries in a linked list, giving all lookup operations O(n) complexity. That makes
- *  AHashMap the better choice most of the time.<p>
- *
- * This class is however useful when keys are known to have the same hash codes (e.g. deep in the innards of AHashMap),
- *  or if control over iteration order is desirable.
+ * This is an {@link AListMap} specialized for primitive keys of type {@code long}. It duplicates its API to support
+ *  both primitive {@code long} values and {@code Long} objects as keys, but uses only primitive {@code long}s internally.
  *
  * @author arno
  */
-public class AListMap <K,V> implements AMap<K,V>, Serializable {
-    private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
-
-    private static final AListMap<Object, Object> emptyEquals = new AListMap<>(AEquality.EQUALS);
-    private static final AListMap<Object, Object> emptyIdentity = new AListMap<>(AEquality.IDENTITY);
+public class ALongListMap<V> implements AMap<Long,V>, Serializable {
+    private static final ALongListMap EMPTY = new ALongListMap<> ();
 
     /**
-     * Returns an empty AListMap instance with default (i.e. equals-based) equalityForEquals. Calling this factory method instead
+     * Returns an empty AListMap instance. Calling this factory method instead
      *  of the constructor allows internal reuse of empty map instances since they are immutable.
      */
-    public static <K,V> AListMap<K,V> empty() {
-        return empty(DEFAULT_EQUALITY);
-    }
-    /**
-     * Returns an empty AListMap instance with a given equalityForEquals. Calling this factory method instead
-     *  of the constructor allows internal reuse of empty map instances since they are immutable.
-     */
-    @SuppressWarnings("unchecked")
-    public static <K,V> AListMap<K,V> empty(AEquality equality) {
-        if(equality == AEquality.EQUALS) return (AListMap<K, V>) emptyEquals;
-        if(equality == AEquality.IDENTITY) return (AListMap<K, V>) emptyIdentity;
-
-        return new AListMap<> (equality);
+    public static <V> ALongListMap<V> empty() {
+        return EMPTY;
     }
 
     /**
-     * Returns an AListMap instance with default (i.e. equals-based) equalityForEquals, initializing it from separate 'keys'
+     * Returns an ALongListMap instance initialized from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
-    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<ATuple2<K,V>> elements) {
-        return fromKeysAndValues(DEFAULT_EQUALITY, elements);
-    }
-    /**
-     * Returns an AHashMap instance with a given equalityForEquals, initializing it from separate 'keys'
-     *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
-     */
-    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<ATuple2<K,V>> elements) {
-        AListMap<K,V> result = empty(equality);
+    public static <V> ALongListMap<V> fromKeysAndValues(Iterable<ATuple2<? extends Number,V>> elements) {
+        ALongListMap<V> result = empty();
 
-        for(ATuple2<K,V> el: elements) {
-            result = result.updated(el._1, el._2);
+        for(ATuple2<? extends Number,V> el: elements) {
+            result = result.updated(el._1.longValue (), el._2);
         }
         return result;
     }
 
-    public static <K,V> AListMap<K,V> fromKeysAndValues(Iterable<K> keys, Iterable<V> values) {
-        return fromKeysAndValues(DEFAULT_EQUALITY, keys, values);
-    }
-
     /**
-     * Returns an AListMap instance with a given equalityForEquals, initializing it from separate 'keys'
+     * Returns an AListMap instance initialized from separate 'keys'
      *  and 'values' collections. Both collections are iterated exactly once, and are expected to have the same size.
      */
-    public static <K,V> AListMap<K,V> fromKeysAndValues(AEquality equality, Iterable<K> keys, Iterable<V> values) {
-        final Iterator<K> ki = keys.iterator();
+    public static <V> ALongListMap<V> fromKeysAndValues(Iterable<? extends Number> keys, Iterable<V> values) {
+        final Iterator<? extends Number> ki = keys.iterator();
         final Iterator<V> vi = values.iterator();
 
-        AListMap<K,V> result = empty (equality);
+        ALongListMap<V> result = empty ();
 
         while(ki.hasNext()) {
-            final K key = ki.next();
+            final Number key = ki.next();
             final V value = vi.next();
 
-            result = result.updated(key, value);
+            result = result.updated(key.longValue (), value);
         }
         return result;
     }
-
-    final AEquality equality;
 
     private Integer cachedHashcode = null; // intentionally not volatile - potentially recalculating for different threads is traded for better single threaded performance
 
-    private AListMap(AEquality equality) {
-        this.equality = equality;
+    private ALongListMap () {
     }
 
-    @Override
-    public int size() {
+    @Override public int size() {
         return 0;
     }
-    @Override
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return true;
     }
-    @Override
-    public boolean nonEmpty() {
+    @Override public boolean nonEmpty() {
         return false;
     }
 
-    @Override
-    public AOption<V> get(K key) {
+    @Override public AOption<V> get(Long key) {
+        return get (key.longValue ());
+    }
+    public AOption<V> get(long key) {
         return AOption.none();
     }
 
-    @Override
-    public V getRequired(K key) {
+    @Override public V getRequired (Long key) {
+        return getRequired (key.longValue ());
+    }
+    public V getRequired (long key) {
         return get(key).get();
     }
 
-    public K key() {
+    public long key() {
         throw new NoSuchElementException("empty map");
     }
 
@@ -124,42 +93,47 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         throw new NoSuchElementException("empty map");
     }
 
-    @Override
-    public boolean containsKey(K key) {
+    @Override public boolean containsKey (Long key) {
+        return containsKey (key.longValue ());
+    }
+    public boolean containsKey (long key) {
         return get(key).isDefined();
     }
 
-    @Override
-    public boolean containsValue(V value) {
+    @Override public boolean containsValue(V value) {
         return false;
     }
 
-    @Override
-    public AListMap<K,V> updated(K key, V value) {
+    @Override public ALongListMap<V> updated (Long key, V value) {
+        return updated (key.longValue (), value);
+    }
+    public ALongListMap<V> updated(long key, V value) {
         return new Node<>(key, value, this);
     }
 
-    @Override
-    public AListMap<K,V> removed(K key) {
+    @Override public ALongListMap<V> removed (Long key) {
+        return removed (key.longValue ());
+    }
+    public ALongListMap<V> removed (long key) {
         return this;
     }
 
-    public AListMap<K,V> tail() {
+    public ALongListMap<V> tail() {
         throw new NoSuchElementException("empty map");
     }
 
     @Override
-    public Map<K, V> asJavaUtilMap() {
+    public Map<Long, V> asJavaUtilMap() {
         return new JavaUtilMapWrapper<>(this);
     }
 
     @Override
-    public Iterator<ATuple2<K,V>> iterator() {
+    public Iterator<ATuple2<Long,V>> iterator() {
         return new ListMapIterator<>(this);
     }
 
     @Override
-    public Set<K> keys() {
+    public Set<Long> keys() {
         return new KeySet();
     }
 
@@ -169,23 +143,23 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
     }
 
     @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-    class KeySet implements Set<K> {
-        @Override public int size() { return AListMap.this.size(); }
+    class KeySet implements Set<Long> {
+        @Override public int size() { return ALongListMap.this.size(); }
         @Override public boolean isEmpty() { return size() == 0; }
-        @Override public boolean contains(Object o) { return containsKey((K) o); }
-        @Override public Iterator<K> iterator() {
-            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
+        @Override public boolean contains(Object o) { return containsKey((Long) o); }
+        @Override public Iterator<Long> iterator() {
+            final Iterator<ATuple2<Long,V>> lmi = ALongListMap.this.iterator();
 
-            return new Iterator<K>() {
+            return new Iterator<Long>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
-                @Override public K next() { return lmi.next()._1; }
+                @Override public Long next() { return lmi.next()._1; }
                 @Override public void remove() { lmi.remove(); }
             };
         }
 
         @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
         @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-        @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
+        @Override public boolean add(Long k) { throw new UnsupportedOperationException(); }
         @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
         @Override public boolean containsAll(Collection<?> c) {
             for(Object o: c) {
@@ -196,7 +170,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return true;
         }
 
-        @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
+        @Override public boolean addAll(Collection<? extends Long> c) { throw new UnsupportedOperationException(); }
         @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
         @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
         @Override public void clear() { throw new UnsupportedOperationException(); }
@@ -204,11 +178,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
 
     @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
     class ValueCollection implements Collection<V> {
-        @Override public int size() { return AListMap.this.size(); }
+        @Override public int size() { return ALongListMap.this.size(); }
         @Override public boolean isEmpty() { return size() == 0; }
         @Override public boolean contains(Object o) { return containsValue((V) o); }
         @Override public Iterator<V> iterator() {
-            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
+            final Iterator<ATuple2<Long,V>> lmi = ALongListMap.this.iterator();
 
             return new Iterator<V>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
@@ -237,12 +211,12 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public AMap<K, V> withDefaultValue(V defaultValue) {
+    public AMap<Long, V> withDefaultValue(V defaultValue) {
         return new AMapWithDefaultValue<>(this, defaultValue);
     }
 
     @Override
-    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
+    public AMap<Long, V> withDefault(AFunction1<? super Long, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<>(this, function);
     }
 
@@ -251,7 +225,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
 
         boolean first = true;
-        for(ATuple2<K,V> el: this) {
+        for(ATuple2<Long,V> el: this) {
             if(first) {
                 first = false;
             }
@@ -280,8 +254,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(ATuple2<K,V> el: this) {
-            if(! equality.equals(other.get(el._1), AOption.some(el._2))) {
+        for(ATuple2<Long,V> el: this) {
+            if(! Objects.equals(other.get(el._1), AOption.some(el._2))) {
                 return false;
             }
         }
@@ -293,21 +267,21 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
+            for(ATuple2<Long,V> el: this) {
+                result = result ^ (31*el._1.hashCode () + Objects.hashCode (el._2));
             }
             cachedHashcode = result;
         }
         return cachedHashcode;
     }
 
-    static class Node<K,V> extends AListMap<K,V> {
-        private final K key;
+    static class Node<V> extends ALongListMap<V> {
+        private final long key;
         private final V value;
-        private final AListMap<K,V> tail;
+        private final ALongListMap<V> tail;
 
-        Node(K key, V value, AListMap<K, V> tail) {
-            super(tail.equality);
+        Node(long key, V value, ALongListMap<V> tail) {
+            super();
 
             this.key = key;
             this.value = value;
@@ -324,7 +298,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public K key() {
+        public long key() {
             return key;
         }
         @Override
@@ -332,7 +306,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return value;
         }
         @Override
-        public AListMap<K,V> tail() {
+        public ALongListMap<V> tail() {
             return tail;
         }
 
@@ -340,7 +314,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         public int size() {
             int result = 0;
 
-            AListMap<K,V> m = this;
+            ALongListMap<V> m = this;
             while(m.nonEmpty()) {
                 m = m.tail();
                 result += 1;
@@ -349,11 +323,14 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public AOption<V> get(K key) {
-            AListMap<K,V> m = this;
+        public AOption<V> get(Long key) {
+            return get (key.longValue ());
+        }
+        public AOption<V> get(long key) {
+            ALongListMap<V> m = this;
 
-            while(m.nonEmpty()) {
-                if(equality.equals(m.key(), key)) {
+            while (m.nonEmpty()) {
+                if(m.key() == key) {
                     return AOption.some(m.value());
                 }
                 m = m.tail();
@@ -361,24 +338,27 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return AOption.none();
         }
 
-        @Override
-        public boolean containsValue(V value) {
-            return equality.equals(this.value, value) || tail().containsValue(value);
+        @Override public boolean containsValue(V value) {
+            return Objects.equals(this.value, value) || tail().containsValue(value);
         }
 
-        @Override
-        public AListMap<K,V> updated(K key, V value) {
-            final AListMap<K,V> m = removed(key);
+        @Override public ALongListMap<V> updated (Long key, V value) {
+            return updated (key.longValue (), value);
+        }
+        public ALongListMap<V> updated (long key, V value) {
+            final ALongListMap<V> m = removed(key);
             return new Node<>(key, value, m);
         }
 
-        @Override
-        public AListMap<K,V> removed(K key) {
+        @Override public ALongListMap<V> removed (Long key) {
+            return removed (key.longValue ());
+        }
+        public ALongListMap<V> removed (long key) {
             int idx = 0;
 
-            AListMap<K,V> remaining = this;
+            ALongListMap<V> remaining = this;
             while(remaining.nonEmpty()) {
-                if(equality.equals(remaining.key(), key)) {
+                if(remaining.key() == key) {
                     remaining = remaining.tail();
                     break;
                 }
@@ -386,9 +366,9 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
                 remaining = remaining.tail();
             }
 
-            AListMap<K,V> result = remaining;
+            ALongListMap<V> result = remaining;
 
-            AListMap<K,V> iter = this;
+            ALongListMap<V> iter = this;
             for (int i=0; i<idx; i++) {
                 result = new Node<> (iter.key (), iter.value (), result);
                 iter = iter.tail ();
@@ -402,10 +382,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
     }
 
-    static class ListMapIterator<K,V> implements Iterator<ATuple2<K,V>> {
-        private AListMap<K,V> pos;
+    //TODO interface LongMapIterator, LongIterator
+    static class ListMapIterator<V> implements Iterator<ATuple2<Long, V>> {
+        private ALongListMap<V> pos;
 
-        ListMapIterator(AListMap<K, V> pos) {
+        ListMapIterator(ALongListMap<V> pos) {
             this.pos = pos;
         }
 
@@ -415,8 +396,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public ATuple2<K, V> next() {
-            final ATuple2<K,V> result = new ATuple2<> (pos.key(), pos.value());
+        public ATuple2<Long, V> next() {
+            final ATuple2<Long,V> result = new ATuple2<> (pos.key(), pos.value());
             pos = pos.tail();
             return result;
         }
