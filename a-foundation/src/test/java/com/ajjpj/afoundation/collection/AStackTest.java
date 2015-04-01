@@ -1,7 +1,7 @@
 package com.ajjpj.afoundation.collection;
 
 import com.ajjpj.afoundation.collection.immutable.AOption;
-import com.ajjpj.afoundation.collection.mutable.ArrayStack;
+import com.ajjpj.afoundation.collection.mutable.AStack;
 import org.junit.Test;
 
 import java.util.Iterator;
@@ -12,10 +12,10 @@ import static org.junit.Assert.*;
 /**
  * @author arno
  */
-public class ArrayStackTest {
+public class AStackTest {
     @Test
     public void testEmpty() {
-        final ArrayStack<String> stack = new ArrayStack<>();
+        final AStack<String> stack = new AStack<>();
 
         assertEquals(0, stack.size());
 
@@ -30,7 +30,7 @@ public class ArrayStackTest {
 
     @Test
     public void testPushPop() {
-        final ArrayStack<String> stack = new ArrayStack<>();
+        final AStack<String> stack = new AStack<>();
 
         stack.push("a");
         assertEquals(1, stack.size());
