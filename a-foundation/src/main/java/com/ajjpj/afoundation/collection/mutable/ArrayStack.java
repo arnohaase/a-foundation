@@ -3,13 +3,20 @@ package com.ajjpj.afoundation.collection.mutable;
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.immutable.AOption;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
 /**
  * This is a mutable array-based implementation of a LIFO stack. It is intended as a replacement of Java's
- *  <code>java.util.Stack</code> that is broken in many ways.<p>
+ *  {@link java.util.Stack}, which class is broken in many ways.<p>
+ *
+ * While there are other classes in {@code java.util} that provide stack functionality - e.g all implementations
+ *  of {@link java.util.Deque}, and {@link java.util.ArrayDeque} in particular - this class provides a
+ *  smaller API that is specific to its intended use as a stack. The more specific functionality also
+ *  allows for some additional optimizations. And last but not least, this class' API has 'try' operations
+ *  that return {@link com.ajjpj.afoundation.collection.immutable.AOption}s.<p>
  *
  * This class is <em>not</em> thread safe.
  *
@@ -38,9 +45,7 @@ public class ArrayStack<T> implements Iterable<T> {
     @SuppressWarnings("unchecked")
     public void push(T el) {
         if(size >= data.length) {
-            final T[] oldData = data;
-            data = (T[]) new Object[2*oldData.length];
-            System.arraycopy(oldData, 0, data, 0, oldData.length);
+            data = Arrays.copyOf (data, 2*data.length);
         }
 
         data[size] = el;
@@ -48,7 +53,7 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * Removes and returns the element at the top of the stack, throwing a <code>NoSuchElementException</code> if the
+     * Removes and returns the element at the top of the stack, throwing a {@link java.util.NoSuchElementException} if the
      *  stack is empty.
      */
     public T pop() {
@@ -62,7 +67,7 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * Returns the element at the top of the stack without removing it, throwing a <code>NoSuchElementException</code>
+     * Returns the element at the top of the stack without removing it, throwing a {@link java.util.NoSuchElementException}
      *  if the stack is empty.
      */
     public T peek() {
@@ -73,8 +78,8 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * Removes the element at the top of the stack and returns it in an <code>AOption.some(...)</code> if the stack
-     *  is non-empty, and returns <code>AOption.none()</code> otherwise.
+     * Removes the element at the top of the stack and returns it in an {@link AOption#some(Object)} if the stack
+     *  is non-empty, and returns {@link AOption#none()} otherwise.
      */
     public AOption<T> tryPop() {
         if(isEmpty()) {
@@ -84,8 +89,8 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * Returns the element at the top of the stack in an <code>AOption.some(...)</code> without removing it, or returns
-     *  <code>AOption.none()</code> if the stack is empty.
+     * Returns the element at the top of the stack in an {@link AOption#some(Object)} without removing it, or returns
+     *  {@link AOption#none()} if the stack is empty.
      */
     public AOption<T> tryPeek() {
         if(isEmpty()) {
@@ -114,7 +119,7 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * iterates through the stack's elements in <code>pop()</code> order without modifying the stack
+     * iterates through the stack's elements in {@link #pop()} order without modifying the stack
      */
     public Iterator<T> iterator() {
         return new Iterator<T>() {
@@ -136,7 +141,7 @@ public class ArrayStack<T> implements Iterable<T> {
     }
 
     /**
-     * iterates through the stack's elements in reverse <code>pop()</code> order, i.e. starting with the element that
+     * iterates through the stack's elements in reverse {@link #pop()} order, i.e. starting with the element that
      *  was added first end finishing with the most recently added element.
      */
     public Iterator<T> reverseIterator() {
