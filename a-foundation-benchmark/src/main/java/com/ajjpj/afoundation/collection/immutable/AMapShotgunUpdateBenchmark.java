@@ -16,7 +16,7 @@ import java.util.Random;
 @State (Scope.Benchmark)
 public class AMapShotgunUpdateBenchmark {
 
-    @Param ({"AHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
+    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
     private String mapType;
 
     @Param ({"100", "10000", "1000000", "100000000"})
@@ -33,11 +33,12 @@ public class AMapShotgunUpdateBenchmark {
 
 
         switch (mapType) {
-            case "AHashMap": EMPTY = AHashMap.empty (); break;
+            case "AHashMap":      EMPTY = AHashMap.empty (); break;
+            case "ALongHashMap":  EMPTY = ALongHashMap.empty (); break;
             case "ARedBlackTree": EMPTY = ARedBlackTree.empty (NATURAL_ORDER); break;
-            case "ABTree4":  EMPTY = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
-            case "ABTree8":  EMPTY = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
-            case "ABTree16": EMPTY = ABTree.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
+            case "ABTree4":       EMPTY = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
+            case "ABTree8":       EMPTY = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
+            case "ABTree16":      EMPTY = ABTree.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
             default: throw new IllegalArgumentException (mapType);
         }
     }
