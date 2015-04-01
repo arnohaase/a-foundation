@@ -29,9 +29,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git@github.com:arnohaase/a-base.git</connection>
-        <developerConnection>scm:git:git@github.com:arnohaase/a-base.git</developerConnection>
-        <url>git@github.com:arnohaase/a-base.git</url>
+        <connection>scm:git:git@github.com:arnohaase/a-foundation.git</connection>
+        <developerConnection>scm:git:git@github.com:arnohaase/a-foundation.git</developerConnection>
+        <url>git@github.com:arnohaase/a-foundation.git</url>
     </scm>
     <developers>
         <developer>

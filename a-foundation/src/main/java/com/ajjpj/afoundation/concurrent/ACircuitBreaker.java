@@ -26,8 +26,9 @@ public class ACircuitBreaker implements ATaskScheduler {
     private final int maxNumFailures;
     private final long recoveryMillis;
 
+    @SuppressWarnings ("unused")
     public ACircuitBreaker (ATaskScheduler threadPool) {
-        this (threadPool, 3, 5, TimeUnit.MINUTES);
+        this (threadPool, 3, 1, TimeUnit.MINUTES);
     }
 
     public ACircuitBreaker (ATaskScheduler threadPool, int maxNumFailures, long recoveryDelay, TimeUnit recoveryTimeUnit) {
@@ -98,6 +99,7 @@ public class ACircuitBreaker implements ATaskScheduler {
 
         // we need to remember this initial value of 'retryAt' for both the initial check and the later compareAndSet(), otherwise we would have a race condition
         final long retryAtValue = retryAt.get ();
+        //noinspection SimplifiableIfStatement
         if (retryAtValue > now) {
             return false;
         }
@@ -107,8 +109,8 @@ public class ACircuitBreaker implements ATaskScheduler {
 
     private <T> AFuture<T> withCircuitBreaker (AFuture<T> f) {
         f.onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 == null) {
+            @Override public void apply (T result, Throwable th) {
+                if (th != null) {
                     numFailures.incrementAndGet ();
                     retryAt.set (System.currentTimeMillis () + recoveryMillis);
                 }

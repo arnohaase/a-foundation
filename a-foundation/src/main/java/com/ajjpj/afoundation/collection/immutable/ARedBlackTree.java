@@ -275,6 +275,9 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
             return nextResult (cur);
         }
 
+        @Override public void remove () {
+            throw new UnsupportedOperationException ();
+        }
 
         private Tree<K,V> findNext (Tree<K,V> tree) {
             while (true) {
