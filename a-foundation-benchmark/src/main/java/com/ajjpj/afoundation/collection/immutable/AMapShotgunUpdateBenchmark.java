@@ -9,18 +9,18 @@ import java.util.Random;
 /**
  * @author arno
  */
-@Fork(2)
+@Fork(1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
 @Measurement (iterations = 5, time = 10)
 @State (Scope.Benchmark)
 public class AMapShotgunUpdateBenchmark {
 
-    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
-    private String mapType;
-
     @Param ({"100", "10000", "1000000", "100000000"})
     private int size;
+
+    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
+    private String mapType;
 
     @Setup
     public void setUp() {
@@ -45,7 +45,7 @@ public class AMapShotgunUpdateBenchmark {
 
     private AMap<Long, Integer> EMPTY;
 
-    @Benchmark
+//    @Benchmark
     public void testShotgunUpdate() {
         final Random rand = new Random(12345);
         AMap<Long, Integer> a = EMPTY;

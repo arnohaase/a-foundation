@@ -12,16 +12,15 @@ import java.util.Random;
  */
 @Fork(1)
 @Threads (1)
-@Warmup (iterations = 2, time = 1)
-@Measurement (iterations = 3, time = 1)
+@Warmup (iterations = 3, time = 1)
+@Measurement (iterations = 5, time = 10)
 @State (Scope.Benchmark)
 public class AMapReadBenchmark {
-
-    @Param ({"AHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
-    private String mapType;
-
     @Param ({"100", "10000", "1000000"})
     private int size;
+
+    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
+    private String mapType;
 
     @Setup
     public void setUp() {
@@ -34,6 +33,7 @@ public class AMapReadBenchmark {
 
         switch (mapType) {
             case "AHashMap": map = AHashMap.empty (); break;
+            case "ALongHashMap": map = ALongHashMap.empty (); break;
             case "ARedBlackTree": map = ARedBlackTree.empty (NATURAL_ORDER); break;
             case "ABTree4":  map = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":  map = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
@@ -48,7 +48,7 @@ public class AMapReadBenchmark {
 
     private AMap<Long, Integer> map;
 
-    @Benchmark
+//    @Benchmark
     public void testRandomRead() {
         final Random rand = new Random (12345);
 
@@ -59,7 +59,7 @@ public class AMapReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void testIterate() {
         for (int i=0; i<1_000_000/size; i++) {
             for (ATuple2 el : map) {
