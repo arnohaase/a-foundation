@@ -14,12 +14,12 @@ import java.util.*;
  *
  * @author arno
  */
-public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
+public class ALongHashMap32<V> implements AMap<Long,V>, Serializable {
     private static final int LEVEL_INCREMENT = 5;
 
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
-    private static final ALongHashMap EMPTY = new ALongHashMap ();
+    private static final ALongHashMap32 EMPTY = new ALongHashMap32 ();
 
 
     /**
@@ -27,12 +27,12 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
      *  the constructor allows internal reuse of empty map instances since they are immutable.
      */
     @SuppressWarnings("unchecked")
-    public static <V> ALongHashMap<V> empty() {
+    public static <V> ALongHashMap32<V> empty() {
         return EMPTY;
     }
 
-    public static <V> ALongHashMap<V> fromJavaUtilMap(Map<? extends Number,V> map) {
-        ALongHashMap<V> result = empty ();
+    public static <V> ALongHashMap32<V> fromJavaUtilMap(Map<? extends Number,V> map) {
+        ALongHashMap32<V> result = empty ();
 
         for(Map.Entry<? extends Number,V> entry: map.entrySet()) {
             result = result.updated(entry.getKey().longValue (), entry.getValue());
@@ -45,11 +45,11 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
      * Returns an ALongHashMap initialized from separate 'keys' and 'values' collections. Both collections
      *  are iterated exactly once and are expected to have the same size.
      */
-    public static <V> ALongHashMap<V> fromKeysAndValues(Iterable<? extends Number> keys, Iterable<V> values) {
+    public static <V> ALongHashMap32<V> fromKeysAndValues(Iterable<? extends Number> keys, Iterable<V> values) {
         final Iterator<? extends Number> ki = keys.iterator();
         final Iterator<V> vi = values.iterator();
 
-        ALongHashMap<V> result = ALongHashMap.empty ();
+        ALongHashMap32<V> result = ALongHashMap32.empty ();
 
         while(ki.hasNext()) {
             final Number key = ki.next();
@@ -66,10 +66,10 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
      *  determine the corresponding value, and the pair is then stored in the map.
      */
     @SuppressWarnings("unused")
-    public static <K extends Number, V, E extends Exception> ALongHashMap<V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
+    public static <K extends Number, V, E extends Exception> ALongHashMap32<V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
-        ALongHashMap<V> result = empty ();
+        ALongHashMap32<V> result = empty ();
 
         while(ki.hasNext()) {
             final K key = ki.next();
@@ -80,7 +80,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         return result;
     }
 
-    private ALongHashMap () {
+    private ALongHashMap32 () {
     }
 
     @Override
@@ -128,17 +128,17 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         return get(key).get();
     }
 
-    @Override public ALongHashMap<V> updated (Long key, V value) {
+    @Override public ALongHashMap32<V> updated (Long key, V value) {
         return updated (key.longValue (), value);
     }
-    public ALongHashMap<V> updated (long key, V value) {
+    public ALongHashMap32<V> updated (long key, V value) {
         return doUpdated(key, computeHash(key), 0, value);
     }
 
-    @Override public ALongHashMap<V> removed (Long key) {
+    @Override public ALongHashMap32<V> removed (Long key) {
         return removed (key.longValue ());
     }
-    public ALongHashMap<V> removed (long key) {
+    public ALongHashMap32<V> removed (long key) {
         return doRemoved(key, computeHash(key), 0);
     }
 
@@ -233,11 +233,11 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         return AOption.none();
     }
 
-    ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+    ALongHashMap32<V> doUpdated(long key, int hash, int level, V value) {
         return new LongHashMap1<> (key, hash, value);
     }
 
-    ALongHashMap<V> doRemoved(long key, int hash, int level) {
+    ALongHashMap32<V> doRemoved(long key, int hash, int level) {
         return this;
     }
 
@@ -250,8 +250,8 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    private static <K,V> ALongHashMap<V>[] createArray(int size) {
-        return new ALongHashMap[size];
+    private static <K,V> ALongHashMap32<V>[] createArray(int size) {
+        return new ALongHashMap32[size];
     }
 
     @Override
@@ -277,12 +277,12 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     /**
      * very internal method. It assumes hash0 != hash1.
      */
-    private static<K,V> LongHashTrieMap<V> mergeLeafMaps(int hash0, ALongHashMap<V> elem0, int hash1, ALongHashMap<V> elem1, int level, int size) {
+    private static<K,V> LongHashTrieMap<V> mergeLeafMaps(int hash0, ALongHashMap32<V> elem0, int hash1, ALongHashMap32<V> elem1, int level, int size) {
         final int index0 = (hash0 >>> level) & 0x1f;
         final int index1 = (hash1 >>> level) & 0x1f;
         if(index0 != index1) {
             final int bitmap = (1 << index0) | (1 << index1);
-            final ALongHashMap<V>[] elems = createArray(2);
+            final ALongHashMap32<V>[] elems = createArray(2);
             if(index0 < index1) {
                 elems[0] = elem0;
                 elems[1] = elem1;
@@ -294,7 +294,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             return new LongHashTrieMap<>(bitmap, elems, size);
         }
         else {
-            final ALongHashMap<V>[] elems = createArray(1);
+            final ALongHashMap32<V>[] elems = createArray(1);
             final int bitmap = (1 << index0);
             // try again, based on the
             elems[0] = mergeLeafMaps(hash0, elem0, hash1, elem1, level + LEVEL_INCREMENT, size);
@@ -303,7 +303,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     }
 
 
-    static class LongHashMap1<V> extends ALongHashMap<V> {
+    static class LongHashMap1<V> extends ALongHashMap32<V> {
         private final long key;
         private final int hash;
         private final V value;
@@ -329,7 +329,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             return AOption.none();
         }
 
-        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+        @Override ALongHashMap32<V> doUpdated(long key, int hash, int level, V value) {
             if (key == this.key) {
                 if(this.value == value) {
                     return this;
@@ -341,7 +341,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             else {
                 if (hash != this.hash) {
                     // they have different hashes, but may collide at this level - find a level at which they don't
-                    final ALongHashMap<V> that = new LongHashMap1<>(key, hash, value);
+                    final ALongHashMap32<V> that = new LongHashMap1<>(key, hash, value);
                     return mergeLeafMaps(this.hash, this, hash, that, level, 2);
                 }
                 else {
@@ -351,7 +351,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override ALongHashMap<V> doRemoved(long key, int hash, int level) {
+        @Override ALongHashMap32<V> doRemoved(long key, int hash, int level) {
             if (key == this.key) {
                 return empty();
             }
@@ -397,7 +397,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         }
     }
 
-    static class LongHashMapCollision1<V> extends ALongHashMap<V> {
+    static class LongHashMapCollision1<V> extends ALongHashMap32<V> {
         private final int hash;
         private final ALongListMap<V> kvs;
 
@@ -423,7 +423,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+        @Override ALongHashMap32<V> doUpdated(long key, int hash, int level, V value) {
             if (hash == this.hash) {
                 return new LongHashMapCollision1<>(hash, kvs.updated(key, value));
             }
@@ -433,11 +433,11 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override ALongHashMap<V> doRemoved(long key, int hash, int level) {
+        @Override ALongHashMap32<V> doRemoved(long key, int hash, int level) {
             if (hash == this.hash) {
                 final ALongListMap<V> kvs1 = kvs.removed(key);
                 if (kvs1.isEmpty()) {
-                    return ALongHashMap.empty ();
+                    return ALongHashMap32.empty ();
                 }
                 else if(kvs1.tail().isEmpty()) {
                     return new LongHashMap1<>(kvs1.key(), computeHash(kvs1.key()), kvs1.value());
@@ -468,12 +468,12 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     }
 
 
-    static class LongHashTrieMap<V> extends ALongHashMap<V> {
+    static class LongHashTrieMap<V> extends ALongHashMap32<V> {
         final int bitmap;
-        final ALongHashMap<V>[] elems;
+        final ALongHashMap32<V>[] elems;
         final int size;
 
-        LongHashTrieMap(int bitmap, ALongHashMap<V>[] elems, int size) {
+        LongHashTrieMap(int bitmap, ALongHashMap32<V>[] elems, int size) {
             super();
 
             this.bitmap = bitmap;
@@ -488,7 +488,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         @Override
         public Iterator<ATuple2<Long, V>> iterator() {
             final List<Iterator<ATuple2<Long,V>>> innerIter = new ArrayList<>(elems.length);
-            for(ALongHashMap<V> m: elems)  {
+            for(ALongHashMap32<V> m: elems)  {
                 innerIter.add(m.iterator());
             }
             return new ACompositeIterator<> (innerIter);
@@ -510,7 +510,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             @Override public boolean contains(Object o) { return containsKey((Long) o); }
             @Override public Iterator<Long> iterator() {
                 final List<Iterator<Long>> innerIter = new ArrayList<>(elems.length);
-                for(ALongHashMap<V> m: elems) {
+                for(ALongHashMap32<V> m: elems) {
                     innerIter.add(m.keys().iterator());
                 }
                 return new ACompositeIterator<>(innerIter);
@@ -542,7 +542,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             @Override public boolean contains(Object o) { return containsValue((V) o); }
             @Override public Iterator<V> iterator() {
                 final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
-                for(ALongHashMap<V> m: elems) {
+                for(ALongHashMap32<V> m: elems) {
                     innerIter.add(m.values().iterator());
                 }
                 return new ACompositeIterator<>(innerIter);
@@ -584,26 +584,26 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override ALongHashMap<V> doUpdated(long key, int hash, int level, V value) {
+        @Override ALongHashMap32<V> doUpdated(long key, int hash, int level, V value) {
             final int index = (hash >>> level) & 0x1f;
             final int mask = (1 << index);
             final int offset = Integer.bitCount(bitmap & (mask - 1));
             if ((bitmap & mask) != 0) {
-                final ALongHashMap<V> sub = elems[offset];
+                final ALongHashMap32<V> sub = elems[offset];
 
-                final ALongHashMap<V> subNew = sub.doUpdated(key, hash, level + LEVEL_INCREMENT, value);
+                final ALongHashMap32<V> subNew = sub.doUpdated(key, hash, level + LEVEL_INCREMENT, value);
                 if(subNew == sub) {
                     return this;
                 }
                 else {
-                    final ALongHashMap<V>[] elemsNew = createArray(elems.length);
+                    final ALongHashMap32<V>[] elemsNew = createArray(elems.length);
                     System.arraycopy(elems, 0, elemsNew, 0, elems.length);
                     elemsNew[offset] = subNew;
                     return new LongHashTrieMap<> (bitmap, elemsNew, size + (subNew.size() - sub.size()));
                 }
             }
             else {
-                final ALongHashMap<V>[] elemsNew = createArray(elems.length + 1);
+                final ALongHashMap32<V>[] elemsNew = createArray(elems.length + 1);
                 System.arraycopy(elems, 0, elemsNew, 0, offset);
                 elemsNew[offset] = new LongHashMap1<>(key, hash, value);
                 System.arraycopy(elems, offset, elemsNew, offset + 1, elems.length - offset);
@@ -611,14 +611,14 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override ALongHashMap<V> doRemoved (long key, int hash, int level) {
+        @Override ALongHashMap32<V> doRemoved (long key, int hash, int level) {
             final int index = (hash >>> level) & 0x1f;
             final int mask = (1 << index);
             final int  offset = Integer.bitCount(bitmap & (mask - 1));
 
             if ((bitmap & mask) != 0) {
-                final ALongHashMap<V> sub = elems[offset];
-                final ALongHashMap<V> subNew = sub.doRemoved(key, hash, level + LEVEL_INCREMENT);
+                final ALongHashMap32<V> sub = elems[offset];
+                final ALongHashMap32<V> subNew = sub.doRemoved(key, hash, level + LEVEL_INCREMENT);
 
                 if (subNew == sub) {
                     return this;
@@ -626,7 +626,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
                 else if (subNew.isEmpty()) {
                     final int  bitmapNew = bitmap ^ mask;
                     if (bitmapNew != 0) {
-                        final ALongHashMap<V>[] elemsNew = createArray(elems.length - 1);
+                        final ALongHashMap32<V>[] elemsNew = createArray(elems.length - 1);
                         System.arraycopy(elems, 0, elemsNew, 0, offset);
                         System.arraycopy(elems, offset + 1, elemsNew, offset, elems.length - offset - 1);
                         final int sizeNew = size - sub.size();
@@ -638,14 +638,14 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
                         }
                     }
                     else {
-                        return ALongHashMap.empty ();
+                        return ALongHashMap32.empty ();
                     }
                 }
                 else if(elems.length == 1 && ! (subNew instanceof LongHashTrieMap)) {
                     return subNew;
                 }
                 else {
-                    final ALongHashMap<V>[] elemsNew = createArray(elems.length);
+                    final ALongHashMap32<V>[] elemsNew = createArray(elems.length);
                     System.arraycopy(elems, 0, elemsNew, 0, elems.length);
                     elemsNew[offset] = subNew;
                     final int sizeNew = size + (subNew.size() - sub.size());

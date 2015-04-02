@@ -25,7 +25,8 @@ public class AMapTest {
     public static Collection<Object> emptyMaps () {
         return Arrays.<Object>asList (
                 new Object[] {AHashMap.empty ()},
-                new Object[] {ALongHashMap.empty ()},
+                new Object[] {ALongHashMap32.empty ()},
+                new Object[] {ALongHashMap64.empty ()},
                 new Object[] {AListMap.empty ()},
                 new Object[] {ALongListMap.empty ()},
                 new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
@@ -93,7 +94,7 @@ public class AMapTest {
     @Test
     public void testKeysValues() {
         final AMap<Long, Integer> map = EMPTY
-                .updated(11L, 1)
+                .updated (11L, 1)
                 .updated (22L, 2)
                 .updated (33L, 3)
                 .updated (44L, 4);
@@ -101,18 +102,18 @@ public class AMapTest {
         final Set<Long> keys = map.keys();
         assertEquals(4, keys.size());
         assertTrue (keys.contains (11L));
-        assertTrue(keys.contains(22L));
-        assertTrue(keys.contains(33L));
-        assertTrue(keys.contains(44L));
+        assertTrue (keys.contains(22L));
+        assertTrue (keys.contains(33L));
+        assertTrue (keys.contains(44L));
 
 //        ((ARedBlackTree) map).dump();
 
         final Collection<Integer> values = map.values();
-        assertEquals(4, values.size());
-        assertTrue(values.contains(1));
-        assertTrue(values.contains(2));
-        assertTrue(values.contains(3));
-        assertTrue(values.contains(4));
+        assertEquals (4, values.size());
+        assertTrue (values.contains(1));
+        assertTrue (values.contains(2));
+        assertTrue (values.contains(3));
+        assertTrue (values.contains(4));
     }
 
     @Test
@@ -220,6 +221,11 @@ public class AMapTest {
                 ju.remove (key);
                 a = a.removed(key);
             }
+
+//            assertEquals (ju.size (), a.size ());
+//            for(long k: ju.keySet()) {
+//                assertEquals (AOption.some (ju.get (k)), a.get (k));
+//            }
         }
 
         assertEquals (ju.size (), a.size ());

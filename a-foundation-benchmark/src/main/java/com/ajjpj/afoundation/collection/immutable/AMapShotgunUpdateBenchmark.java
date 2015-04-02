@@ -12,14 +12,25 @@ import java.util.Random;
 @Fork(1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
-@Measurement (iterations = 5, time = 10)
+@Measurement (iterations = 3, time = 5)
 @State (Scope.Benchmark)
 public class AMapShotgunUpdateBenchmark {
 
-    @Param ({"100", "10000", "1000000", "100000000"})
+    @Param ({"100",
+//            "10000",
+//            "1000000",
+            "100000000"})
     private int size;
 
-    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
+    @Param ({
+//            "AHashMap",
+            "ALongHashMap32",
+            "ALongHashMap64"
+//            "ARedBlackTree",
+//            "ABTree4",
+//            "ABTree8",
+//            "ABTree16"
+    })
     private String mapType;
 
     @Setup
@@ -34,7 +45,8 @@ public class AMapShotgunUpdateBenchmark {
 
         switch (mapType) {
             case "AHashMap":      EMPTY = AHashMap.empty (); break;
-            case "ALongHashMap":  EMPTY = ALongHashMap.empty (); break;
+            case "ALongHashMap32":EMPTY = ALongHashMap32.empty (); break;
+            case "ALongHashMap64":EMPTY = ALongHashMap64.empty (); break;
             case "ARedBlackTree": EMPTY = ARedBlackTree.empty (NATURAL_ORDER); break;
             case "ABTree4":       EMPTY = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":       EMPTY = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
@@ -45,7 +57,7 @@ public class AMapShotgunUpdateBenchmark {
 
     private AMap<Long, Integer> EMPTY;
 
-//    @Benchmark
+    @Benchmark
     public void testShotgunUpdate() {
         final Random rand = new Random(12345);
         AMap<Long, Integer> a = EMPTY;

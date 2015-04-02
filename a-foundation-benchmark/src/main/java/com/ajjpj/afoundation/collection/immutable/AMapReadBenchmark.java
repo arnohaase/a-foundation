@@ -13,13 +13,23 @@ import java.util.Random;
 @Fork(1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
-@Measurement (iterations = 5, time = 10)
+@Measurement (iterations = 3, time = 5)
 @State (Scope.Benchmark)
 public class AMapReadBenchmark {
-    @Param ({"100", "10000", "1000000"})
+    @Param ({"100",
+//            "10000",
+            "1000000"})
     private int size;
 
-    @Param ({"AHashMap", "ALongHashMap", "ARedBlackTree", "ABTree4", "ABTree8", "ABTree16"})
+    @Param ({
+//            "AHashMap",
+            "ALongHashMap32",
+            "ALongHashMap64"
+//            "ARedBlackTree",
+//            "ABTree4",
+//            "ABTree8",
+//            "ABTree16"
+    })
     private String mapType;
 
     @Setup
@@ -33,7 +43,8 @@ public class AMapReadBenchmark {
 
         switch (mapType) {
             case "AHashMap": map = AHashMap.empty (); break;
-            case "ALongHashMap": map = ALongHashMap.empty (); break;
+            case "ALongHashMap32": map = ALongHashMap32.empty (); break;
+            case "ALongHashMap64": map = ALongHashMap64.empty (); break;
             case "ARedBlackTree": map = ARedBlackTree.empty (NATURAL_ORDER); break;
             case "ABTree4":  map = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":  map = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
@@ -48,7 +59,7 @@ public class AMapReadBenchmark {
 
     private AMap<Long, Integer> map;
 
-//    @Benchmark
+    @Benchmark
     public void testRandomRead() {
         final Random rand = new Random (12345);
 
