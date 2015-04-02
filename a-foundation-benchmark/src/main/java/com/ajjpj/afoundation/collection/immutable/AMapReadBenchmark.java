@@ -22,8 +22,7 @@ public class AMapReadBenchmark {
     private int size;
 
     @Param ({
-//            "AHashMap",
-            "ALongHashMap32",
+            "AHashMap",
             "ALongHashMap64"
 //            "ARedBlackTree",
 //            "ABTree4",
@@ -43,8 +42,7 @@ public class AMapReadBenchmark {
 
         switch (mapType) {
             case "AHashMap": map = AHashMap.empty (); break;
-            case "ALongHashMap32": map = ALongHashMap32.empty (); break;
-            case "ALongHashMap64": map = ALongHashMap64.empty (); break;
+            case "ALongHashMap64": map = ALongHashMap.empty (); break;
             case "ARedBlackTree": map = ARedBlackTree.empty (NATURAL_ORDER); break;
             case "ABTree4":  map = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":  map = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;

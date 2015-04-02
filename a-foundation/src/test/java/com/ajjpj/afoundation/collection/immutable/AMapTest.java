@@ -25,8 +25,7 @@ public class AMapTest {
     public static Collection<Object> emptyMaps () {
         return Arrays.<Object>asList (
                 new Object[] {AHashMap.empty ()},
-                new Object[] {ALongHashMap32.empty ()},
-                new Object[] {ALongHashMap64.empty ()},
+                new Object[] {ALongHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
                 new Object[] {ALongListMap.empty ()},
                 new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
