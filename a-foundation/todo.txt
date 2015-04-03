@@ -1,19 +1,7 @@
 todo
 ----
-* maps: slow iteration for hash maps?!
-* maps: specialization for long
-  * LongIterator? LongEntryIterator?
-  * LongSet? --> generic 'Set' wrapper for maps
-
-Iteration throughput before optimization
-
-Benchmark                           (mapType)   (size)   Mode  Cnt    Score    Error  Units
-AMapReadBenchmark.testIterate        AHashMap      100  thrpt    3   17,421 ±  1,623  ops/s
-AMapReadBenchmark.testIterate        AHashMap  1000000  thrpt    3    3,647 ±  1,284  ops/s
-AMapReadBenchmark.testIterate  ALongHashMap64      100  thrpt    3   19,586 ±  3,921  ops/s
-AMapReadBenchmark.testIterate  ALongHashMap64  1000000  thrpt    3    5,569 ±  0,879  ops/s
-AMapReadBenchmark.testIterate   ARedBlackTree      100  thrpt    3  542,729 ± 42,420  ops/s
-AMapReadBenchmark.testIterate   ARedBlackTree  1000000  thrpt    3  109,386 ± 28,794  ops/s
+* ALongRedBlackTree
+* LongSet? --> generic 'Set' wrapper for maps
 
 
 * documentation

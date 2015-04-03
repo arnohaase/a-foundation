@@ -230,23 +230,59 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<AMapEntry<K, V>> iterator() { //TODO optimize this
-        return new Iterator<AMapEntry<K, V>>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+    public Iterator<AMapEntry<K, V>> iterator() {
+        return new HashMapIterator<> (this);
+    }
 
-            @Override
-            public AMapEntry<K, V> next() {
-                throw new NoSuchElementException();
-            }
+    static class HashMapIterator<K,V> implements Iterator<AMapEntry<K,V>> {
+        private final Deque<Object> stack = new ArrayDeque<> ();
 
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
+        public HashMapIterator (AHashMap<K,V> root) {
+            if (! root.isEmpty ()) {
+                if (root instanceof HashMapCollision1) {
+                    pushCollision ((HashMapCollision1<K, V>) root);
+                }
+                else {
+                    stack.push (root);
+                }
             }
-        };
+        }
+
+        private void pushCollision (HashMapCollision1<K,V> collision) {
+            for (AMapEntry entry: collision.kvs) {
+                stack.push (entry);
+            }
+        }
+
+        @Override public boolean hasNext () {
+            return ! stack.isEmpty ();
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public AMapEntry<K, V> next () {
+            Object next;
+
+            while (true) {
+                next = stack.pop ();
+
+                if (next.getClass () == HashMap1.class || next.getClass () == AListMap.Node.class) {
+                    return (AMapEntry<K, V>) next;
+                }
+                if (next.getClass () == HashTrieMap.class) {
+                    final HashTrieMap trie = (HashTrieMap) next;
+                    for (Object child: trie.elems) {
+                        stack.push (child);
+                    }
+                }
+                else if (next.getClass () == HashMapCollision1.class) {
+                    pushCollision ((HashMapCollision1<K, V>) next);
+                }
+            }
+        }
+
+        @Override public void remove () {
+            throw new UnsupportedOperationException ();
+        }
     }
 
     @Override public Set<K> keys() {
@@ -340,7 +376,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
 
-    static class HashMap1<K,V> extends AHashMap<K,V> {
+    static class HashMap1<K,V> extends AHashMap<K,V> implements AMapEntry<K,V> {
         private final K key;
         private final int hash;
         private final V value;
@@ -353,6 +389,12 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             this.value = value;
         }
 
+        @Override public K getKey () {
+            return key;
+        }
+        @Override public V getValue () {
+            return value;
+        }
         @Override
         public int size() {
             return 1;
@@ -400,39 +442,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<AMapEntry<K, V>> iterator() {
-            return new Iterator<AMapEntry<K, V>>() {
-                boolean initial = true;
-
-                @Override
-                public boolean hasNext() {
-                    return initial;
-                }
-
-                @Override
-                public AMapEntry<K, V> next() {
-                    if(initial) {
-                        initial = false;
-                        return new AMapEntry<K, V>() {
-                            @Override public K getKey () {
-                                return key;
-                            }
-                            @Override public V getValue () {
-                                return value;
-                            }
-                        };
-                    }
-                    throw new NoSuchElementException();
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        }
-
-        @Override
         public Set<K> keys() {
             return Collections.singleton(key);
         }
@@ -465,7 +474,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 return kvs.get(key);
             }
             else {
-                return AOption.none();
+                return AOption.none ();
             }
         }
 
@@ -500,11 +509,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<AMapEntry<K, V>> iterator() {
-            return kvs.iterator();
-        }
-
-        @Override
         public Set<K> keys() {
             return kvs.keys();
         }
@@ -532,15 +536,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         @Override
         public int size() {
             return size;
-        }
-
-        @Override
-        public Iterator<AMapEntry<K, V>> iterator() {
-            final List<Iterator<AMapEntry<K,V>>> innerIter = new ArrayList<>(elems.length);
-            for(AHashMap<K,V> m: elems)  {
-                innerIter.add(m.iterator());
-            }
-            return new ACompositeIterator<> (innerIter);
         }
 
         @Override
