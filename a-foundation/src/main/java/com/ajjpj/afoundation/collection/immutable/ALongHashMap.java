@@ -195,22 +195,27 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
 
     @Override
     public Iterator<ATuple2<Long, V>> iterator() {
-        return new Iterator<ATuple2<Long, V>>() {
-            @Override
-            public boolean hasNext() {
-                return false;
+        return new Iterator<ATuple2<Long, V>> () {
+            final ALongMapIterator<V> inner = longIterator ();
+
+            @Override public boolean hasNext () {
+                return inner.hasNext ();
             }
 
-            @Override
-            public ATuple2<Long, V> next() {
-                throw new NoSuchElementException();
+            @Override public ATuple2<Long, V> next () { //TODO return 'AMapEntry' --> allow optimization, avoid creating objects
+                inner.next ();
+                return null;
+//                return new ATuple2<> (inner.getCurrentKey (), inner.getCurrentValue ());
             }
 
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
+            @Override public void remove () {
+                throw new UnsupportedOperationException ();
             }
         };
+    }
+
+    public ALongMapIterator<V> longIterator() { //TODO test this - and all map iterator() implementations
+        return new LongIteratorImpl<> (this);
     }
 
     @Override public Set<Long> keys() {
@@ -302,6 +307,60 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         }
     }
 
+    static class LongIteratorImpl<V> implements ALongMapIterator<V> { //TODO test this - and all 'iterator()' methods for all maps
+        private final Deque<ALongHashMap<V>> stack = new ArrayDeque<> ();
+        private LongHashMap1<V> current;
+
+        LongIteratorImpl (ALongHashMap<V> root) {
+            if (root.nonEmpty ()) {
+                stack.push (root);
+            }
+        }
+
+        @Override public boolean hasNext () {
+            return !stack.isEmpty ();
+        }
+
+        @Override public void next () {
+            ALongHashMap<V> next;
+
+            try {
+                while (true) {
+                    next = stack.pop ();
+                    if (next.getClass () == LongHashMap1.class) {
+                        current = (LongHashMap1<V>) next;
+                        break;
+                    }
+
+                    for (ALongHashMap<V> child: ((LongHashTrieMap<V>) next).elems) {
+                        stack.push (child);
+                    }
+                }
+            }
+            catch (Exception e) { // avoid the 'empty' check to put the penalty on the exceptional rather than the regular case
+                current = null;
+                throw new NoSuchElementException ();
+            }
+        }
+
+        @Override public long getCurrentKey () {
+            try {
+                return current.key;
+            }
+            catch (Exception e) { // avoid the 'null' check to put the penalty on the exceptional rather than the regular case
+                throw new NoSuchElementException ();
+            }
+        }
+
+        @Override public V getCurrentValue () {
+            try {
+                return current.value;
+            }
+            catch (Exception e) { // avoid the 'null' check to put the penalty on the exceptional rather than the regular case
+                throw new NoSuchElementException ();
+            }
+        }
+    }
 
     static class LongHashMap1<V> extends ALongHashMap<V> {
         private final long key;
@@ -324,7 +383,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         @Override
         AOption<V> doGet(long key, long hash, int level) {
             if(this.key == key) {
-                return AOption.some(value);
+                return AOption.some (value);
             }
             return AOption.none();
         }
@@ -355,32 +414,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<Long, V>> iterator() {
-            return new Iterator<ATuple2<Long, V>>() {
-                boolean initial = true;
-
-                @Override
-                public boolean hasNext() {
-                    return initial;
-                }
-
-                @Override
-                public ATuple2<Long, V> next() {
-                    if(initial) {
-                        initial = false;
-                        return new ATuple2<> (key, value);
-                    }
-                    throw new NoSuchElementException();
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
-        }
-
-        @Override
         public Set<Long> keys() {
             return Collections.singleton(key);
         }
@@ -405,15 +438,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
 
         @Override public int size() {
             return size;
-        }
-
-        @Override
-        public Iterator<ATuple2<Long, V>> iterator() {
-            final List<Iterator<ATuple2<Long,V>>> innerIter = new ArrayList<>(elems.length);
-            for(ALongHashMap<V> m: elems)  {
-                innerIter.add(m.iterator());
-            }
-            return new ACompositeIterator<> (innerIter);
         }
 
         @Override public Set<Long> keys() {

@@ -27,7 +27,6 @@ public class AMapTest {
                 new Object[] {AHashMap.empty ()},
                 new Object[] {ALongHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
-                new Object[] {ALongListMap.empty ()},
                 new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
@@ -168,7 +167,7 @@ public class AMapTest {
         AMap<Long, Integer> a = EMPTY;
 
         final int numIters =
-                (EMPTY == AListMap.empty () || EMPTY == ALongListMap.empty ()) ?
+                (EMPTY == AListMap.empty ()) ?
                         10_000 :
                         10_000_000;
 
@@ -202,7 +201,7 @@ public class AMapTest {
         AMap<Long, Integer> a = EMPTY;
 
         final int numIters =
-                (EMPTY == AListMap.empty () || EMPTY == ALongListMap.empty ()) ?
+                (EMPTY == AListMap.empty ()) ?
                         10_000 :
                         10_000_000;
 

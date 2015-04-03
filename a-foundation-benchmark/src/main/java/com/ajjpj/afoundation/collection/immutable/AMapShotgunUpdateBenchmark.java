@@ -55,7 +55,7 @@ public class AMapShotgunUpdateBenchmark {
 
     private AMap<Long, Integer> EMPTY;
 
-    @Benchmark
+//    @Benchmark
     public void testShotgunUpdate() {
         final Random rand = new Random(12345);
         AMap<Long, Integer> a = EMPTY;

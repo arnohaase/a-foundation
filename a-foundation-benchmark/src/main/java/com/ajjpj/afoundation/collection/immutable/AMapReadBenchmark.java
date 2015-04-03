@@ -23,8 +23,8 @@ public class AMapReadBenchmark {
 
     @Param ({
             "AHashMap",
-            "ALongHashMap64"
-//            "ARedBlackTree",
+            "ALongHashMap64",
+            "ARedBlackTree",
 //            "ABTree4",
 //            "ABTree8",
 //            "ABTree16"
@@ -57,7 +57,7 @@ public class AMapReadBenchmark {
 
     private AMap<Long, Integer> map;
 
-    @Benchmark
+//    @Benchmark
     public void testRandomRead() {
         final Random rand = new Random (12345);
 
@@ -68,12 +68,12 @@ public class AMapReadBenchmark {
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void testIterate() {
         for (int i=0; i<1_000_000/size; i++) {
             for (ATuple2 el : map) {
                 // just iterate
-                Object key = el._1;
+//                Object key = el._1;
             }
         }
     }
