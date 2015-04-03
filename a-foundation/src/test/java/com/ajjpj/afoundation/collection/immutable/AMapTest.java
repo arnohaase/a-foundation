@@ -30,7 +30,8 @@ public class AMapTest {
                 new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
                 new Object[] {ABTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
-                new Object[] {ARedBlackTree.empty (NATURAL_ORDER)}
+                new Object[] {ARedBlackTree.empty (NATURAL_ORDER)},
+                new Object[] {ALongRedBlackTree.empty ()}
         );
     }
 

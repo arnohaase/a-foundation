@@ -1,8 +1,7 @@
 todo
 ----
-* ALongRedBlackTree
+* Why is iterator() 30% *slower* for ALongRedBlackTree than for ARedBlackTree?!
 * LongSet? --> generic 'Set' wrapper for maps
-
 
 * documentation
 * JUnit tests:

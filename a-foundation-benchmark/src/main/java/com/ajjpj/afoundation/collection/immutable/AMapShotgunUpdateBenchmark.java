@@ -24,8 +24,9 @@ public class AMapShotgunUpdateBenchmark {
 
     @Param ({
             "AHashMap",
-            "ALongHashMap64"
-//            "ARedBlackTree",
+            "ALongHashMap64",
+            "ARedBlackTree",
+            "ALongRedBlackTree",
 //            "ABTree4",
 //            "ABTree8",
 //            "ABTree16"
@@ -46,6 +47,7 @@ public class AMapShotgunUpdateBenchmark {
             case "AHashMap":      EMPTY = AHashMap.empty (); break;
             case "ALongHashMap64":EMPTY = ALongHashMap.empty (); break;
             case "ARedBlackTree": EMPTY = ARedBlackTree.empty (NATURAL_ORDER); break;
+            case "ALongRedBlackTree": EMPTY = ALongRedBlackTree.empty (); break;
             case "ABTree4":       EMPTY = ABTree.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":       EMPTY = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
             case "ABTree16":      EMPTY = ABTree.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
