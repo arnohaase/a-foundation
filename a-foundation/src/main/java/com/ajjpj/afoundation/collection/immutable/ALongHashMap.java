@@ -1,7 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACompositeIterator;
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
@@ -165,13 +164,13 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             return false;
         }
 
-        for(ATuple2<Long,V> el: this) {
-            final AOption<V> otherValue = other.get(el._1);
+        for(AMapEntry<Long,V> el: this) {
+            final AOption<V> otherValue = other.get(el.getKey ());
             if(otherValue.isEmpty()) {
                 return false;
             }
 
-            if(! Objects.equals(el._2, otherValue.get())) {
+            if(! Objects.equals(el.getValue (), otherValue.get())) {
                 return false;
             }
         }
@@ -183,8 +182,8 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<Long,V> el: this) {
-                result = result ^ (31*el._1.hashCode () + Objects.hashCode(el._2));
+            for(AMapEntry<Long,V> el: this) {
+                result = result ^ (31*el.getKey ().hashCode () + Objects.hashCode(el.getValue()));
             }
 
             cachedHashcode = result;
@@ -194,18 +193,17 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     }
 
     @Override
-    public Iterator<ATuple2<Long, V>> iterator() {
-        return new Iterator<ATuple2<Long, V>> () {
+    public Iterator<AMapEntry<Long, V>> iterator() {
+        return new Iterator<AMapEntry<Long, V>> () {
             final ALongMapIterator<V> inner = longIterator ();
 
             @Override public boolean hasNext () {
                 return inner.hasNext ();
             }
 
-            @Override public ATuple2<Long, V> next () { //TODO return 'AMapEntry' --> allow optimization, avoid creating objects
+            @Override public AMapEntry<Long, V> next () {
                 inner.next ();
-                return null;
-//                return new ATuple2<> (inner.getCurrentKey (), inner.getCurrentValue ());
+                return inner;
             }
 
             @Override public void remove () {
@@ -264,7 +262,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
         boolean first = true;
 
-        for(ATuple2<Long, V> e: this) {
+        for(AMapEntry<Long, V> e: this) {
             if(first) {
                 first = false;
             }
@@ -272,7 +270,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
                 result.append(", ");
             }
 
-            result.append(e._1).append("->").append(e._2);
+            result.append(e.getKey ()).append("->").append(e.getValue());
         }
 
         result.append("}");
@@ -343,7 +341,7 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override public long getCurrentKey () {
+        @Override public long getLongKey () {
             try {
                 return current.key;
             }
@@ -352,7 +350,11 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             }
         }
 
-        @Override public V getCurrentValue () {
+        @Override public Long getKey () {
+            return getLongKey ();
+        }
+
+        @Override public V getValue () {
             try {
                 return current.value;
             }

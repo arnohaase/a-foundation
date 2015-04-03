@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author arno
  */
-public class AListMap <K,V> implements AMap<K,V>, Serializable {
+public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
     private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
     private static final AListMap<Object, Object> emptyEquals = new AListMap<>(AEquality.EQUALS);
@@ -116,11 +116,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         return get(key).get();
     }
 
-    public K key() {
+    public K getKey() {
         throw new NoSuchElementException("empty map");
     }
 
-    public V value() {
+    public V getValue() {
         throw new NoSuchElementException("empty map");
     }
 
@@ -154,7 +154,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<ATuple2<K,V>> iterator() {
+    public Iterator<AMapEntry<K,V>> iterator() {
         return new ListMapIterator<>(this);
     }
 
@@ -174,11 +174,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         @Override public boolean isEmpty() { return size() == 0; }
         @Override public boolean contains(Object o) { return containsKey((K) o); }
         @Override public Iterator<K> iterator() {
-            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
+            final Iterator<AMapEntry<K,V>> lmi = AListMap.this.iterator();
 
             return new Iterator<K>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
-                @Override public K next() { return lmi.next()._1; }
+                @Override public K next() { return lmi.next().getKey (); }
                 @Override public void remove() { lmi.remove(); }
             };
         }
@@ -208,11 +208,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         @Override public boolean isEmpty() { return size() == 0; }
         @Override public boolean contains(Object o) { return containsValue((V) o); }
         @Override public Iterator<V> iterator() {
-            final Iterator<ATuple2<K,V>> lmi = AListMap.this.iterator();
+            final Iterator<AMapEntry<K,V>> lmi = AListMap.this.iterator();
 
             return new Iterator<V>() {
                 @Override public boolean hasNext() { return lmi.hasNext(); }
-                @Override public V next() {return lmi.next()._2; }
+                @Override public V next() {return lmi.next().getValue (); }
                 @Override public void remove() { lmi.remove(); }
             };
         }
@@ -251,14 +251,14 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
 
         boolean first = true;
-        for(ATuple2<K,V> el: this) {
+        for(AMapEntry<K,V> el: this) {
             if(first) {
                 first = false;
             }
             else {
                 result.append(", ");
             }
-            result.append(el._1).append(" -> ").append(el._2);
+            result.append(el.getKey ()).append(" -> ").append(el.getValue ());
         }
 
         result.append("}");
@@ -280,8 +280,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(ATuple2<K,V> el: this) {
-            if(! equality.equals(other.get(el._1), AOption.some(el._2))) {
+        for(AMapEntry<K,V> el: this) {
+            if(! equality.equals(other.get(el.getKey ()), AOption.some(el.getValue ()))) {
                 return false;
             }
         }
@@ -293,8 +293,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
+            for(AMapEntry<K,V> el: this) {
+                result = result ^ (31*equality.hashCode(el.getKey ()) + equality.hashCode(el.getValue ()));
             }
             cachedHashcode = result;
         }
@@ -324,11 +324,11 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public K key() {
+        public K getKey() {
             return key;
         }
         @Override
-        public V value() {
+        public V getValue() {
             return value;
         }
         @Override
@@ -353,8 +353,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
             AListMap<K,V> m = this;
 
             while(m.nonEmpty()) {
-                if(equality.equals(m.key(), key)) {
-                    return AOption.some(m.value());
+                if(equality.equals(m.getKey (), key)) {
+                    return AOption.some(m.getValue ());
                 }
                 m = m.tail();
             }
@@ -378,7 +378,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
 
             AListMap<K,V> remaining = this;
             while(remaining.nonEmpty()) {
-                if(equality.equals(remaining.key(), key)) {
+                if(equality.equals(remaining.getKey (), key)) {
                     remaining = remaining.tail();
                     break;
                 }
@@ -390,7 +390,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
 
             AListMap<K,V> iter = this;
             for (int i=0; i<idx; i++) {
-                result = new Node<> (iter.key (), iter.value (), result);
+                result = new Node<> (iter.getKey (), iter.getValue (), result);
                 iter = iter.tail ();
             }
 
@@ -402,7 +402,7 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
     }
 
-    static class ListMapIterator<K,V> implements Iterator<ATuple2<K,V>> {
+    static class ListMapIterator<K,V> implements Iterator<AMapEntry<K,V>> {
         private AListMap<K,V> pos;
 
         ListMapIterator(AListMap<K, V> pos) {
@@ -415,8 +415,8 @@ public class AListMap <K,V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public ATuple2<K, V> next() {
-            final ATuple2<K,V> result = new ATuple2<> (pos.key(), pos.value());
+        public AMapEntry<K, V> next() {
+            final AMapEntry<K,V> result = pos;
             pos = pos.tail();
             return result;
         }

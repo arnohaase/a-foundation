@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.Collection;
@@ -26,7 +25,7 @@ import java.util.Set;
  *
  * @author arno
  */
-public interface AMap<K,V> extends Iterable<ATuple2<K,V>> {
+public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
     int size();
     boolean isEmpty();
     boolean nonEmpty();
@@ -88,7 +87,7 @@ public interface AMap<K,V> extends Iterable<ATuple2<K,V>> {
      *  with the <code>for(...: map)</code> syntax introduced with Java 5.
      */
     @Override
-    Iterator<ATuple2<K,V>> iterator();
+    Iterator<AMapEntry<K,V>> iterator();
 
     /**
      * Returns a read-only <code>java.util.Map</code> view of the AMap. Constructing the view takes constant time (i.e.

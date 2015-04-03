@@ -51,7 +51,7 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
             @Override
             public Iterator<K> iterator() {
                 return new Iterator<K>() {
-                    final Iterator<ATuple2<K,V>> it = inner.iterator();
+                    final Iterator<AMapEntry<K,V>> it = inner.iterator();
 
                     @Override
                     public boolean hasNext() {
@@ -60,7 +60,7 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
 
                     @Override
                     public K next() {
-                        return it.next()._1;
+                        return it.next().getKey ();
                     }
 
                     @Override
@@ -83,7 +83,7 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
             @Override
             public Iterator<V> iterator() {
                 return new Iterator<V>() {
-                    final Iterator<ATuple2<K,V>> it = inner.iterator();
+                    final Iterator<AMapEntry<K,V>> it = inner.iterator();
 
                     @Override
                     public boolean hasNext() {
@@ -92,7 +92,7 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
 
                     @Override
                     public V next() {
-                        return it.next()._2;
+                        return it.next().getValue ();
                     }
 
                     @Override
@@ -115,7 +115,7 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
             @Override
             public Iterator<Entry<K, V>> iterator() {
                 return new Iterator<Entry<K, V>>() {
-                    final Iterator<ATuple2<K,V>> it = inner.iterator();
+                    final Iterator<AMapEntry<K,V>> it = inner.iterator();
 
                     @Override
                     public boolean hasNext() {
@@ -124,17 +124,17 @@ class JavaUtilMapWrapper<K,V> implements java.util.Map<K,V> {
 
                     @Override
                     public Entry<K, V> next() {
-                        final ATuple2<K,V> kv = it.next();
+                        final AMapEntry<K,V> kv = it.next();
 
                         return new Entry<K, V>() {
                             @Override
                             public K getKey() {
-                                return kv._1;
+                                return kv.getKey ();
                             }
 
                             @Override
                             public V getValue() {
-                                return kv._2;
+                                return kv.getValue ();
                             }
 
                             @Override

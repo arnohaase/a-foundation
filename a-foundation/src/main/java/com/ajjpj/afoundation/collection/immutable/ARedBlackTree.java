@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.*;
@@ -104,10 +103,10 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         return new ARedBlackTree<> (blacken (del (root, key, comparator)), comparator);
     }
 
-    @Override public Iterator<ATuple2<K, V>> iterator () {
-        return new TreeIterator<ATuple2<K, V>> () {
-            @Override ATuple2<K, V> nextResult (Tree<K, V> tree) {
-                return new ATuple2<> (tree.key, tree.value);
+    @Override public Iterator<AMapEntry<K, V>> iterator () {
+        return new TreeIterator<AMapEntry<K, V>> () {
+            @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
+                return tree;
             }
         };
     }
@@ -156,8 +155,8 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*Objects.hashCode(el._1) + Objects.hashCode(el._2));
+            for(AMapEntry<K,V> el: this) {
+                result = result ^ (31*Objects.hashCode(el.getKey ()) + Objects.hashCode(el.getValue ()));
             }
 
             cachedHashcode = result;
@@ -493,7 +492,7 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
         Tree<K,V> create (Tree<K,V> left, Tree<K,V> right);
     }
 
-    static abstract class Tree<K,V> implements TreeFactory<K,V> {
+    static abstract class Tree<K,V> implements TreeFactory<K,V>, AMapEntry<K,V> {
         final K key;
         final V value;
         final int count;
@@ -510,6 +509,13 @@ public class ARedBlackTree<K,V> implements AMap<K,V> {
             this.count = 1 +
                     (left == null ? 0 : left.count) +
                     (right == null ? 0 : right.count);
+        }
+
+        @Override public K getKey () {
+            return key;
+        }
+        @Override public V getValue () {
+            return value;
         }
 
         abstract Tree<K,V> withNewValue (K key, V value);

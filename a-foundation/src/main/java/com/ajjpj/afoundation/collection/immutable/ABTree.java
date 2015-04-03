@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.*;
@@ -97,16 +96,30 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
             }
         };
     }
-    @Override public Iterator<ATuple2<K, V>> iterator () {
-        return new Iterator<ATuple2<K, V>> () {
+    @Override public Iterator<AMapEntry<K, V>> iterator () {
+        return new Iterator<AMapEntry<K, V>> () {
             final Iterator<K> keyIter = keys ().iterator ();
 
             @Override public boolean hasNext () {
                 return keyIter.hasNext ();
             }
-            @Override public ATuple2<K, V> next () {
+            @Override public AMapEntry<K, V> next () { //TODO optimize this
                 final K key = keyIter.next ();
-                return new ATuple2<> (key, getRequired (key));
+                return new AMapEntry<K, V> () {
+                    private boolean hasValue = false;
+                    private V value;
+
+                    @Override public K getKey () {
+                        return key;
+                    }
+                    @Override public V getValue () {
+                        if (!hasValue) {
+                            hasValue = true;
+                            value = getRequired (key);
+                        }
+                        return value;
+                    }
+                };
             }
             @Override public void remove () {
                 throw new UnsupportedOperationException ();
@@ -164,8 +177,8 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*el._1.hashCode() + el._2.hashCode ());
+            for(AMapEntry<K,V> el: this) {
+                result = result ^ (31*el.getKey ().hashCode () + el.getValue ().hashCode ());
             }
 
             cachedHashcode = result;

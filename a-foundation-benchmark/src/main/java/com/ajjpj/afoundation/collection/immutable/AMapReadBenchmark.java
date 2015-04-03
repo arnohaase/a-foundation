@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.Comparator;
@@ -71,9 +70,9 @@ public class AMapReadBenchmark {
     @Benchmark
     public void testIterate() {
         for (int i=0; i<1_000_000/size; i++) {
-            for (ATuple2 el : map) {
+            for (AMapEntry el : map) {
                 // just iterate
-//                Object key = el._1;
+                Object key = el.getKey ();
             }
         }
     }

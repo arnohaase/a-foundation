@@ -2,7 +2,6 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACompositeIterator;
 import com.ajjpj.afoundation.collection.AEquality;
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
@@ -202,13 +201,13 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             return false;
         }
 
-        for(ATuple2<K,V> el: this) {
-            final AOption<V> otherValue = other.get(el._1);
+        for(AMapEntry<K,V> el: this) {
+            final AOption<V> otherValue = other.get(el.getKey ());
             if(otherValue.isEmpty()) {
                 return false;
             }
 
-            if(! equality.equals(el._2, otherValue.get())) {
+            if(! equality.equals(el.getValue (), otherValue.get())) {
                 return false;
             }
         }
@@ -220,8 +219,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(ATuple2<K,V> el: this) {
-                result = result ^ (31*equality.hashCode(el._1) + equality.hashCode(el._2));
+            for (AMapEntry<K,V> el: this) {
+                result = result ^ (31*equality.hashCode (el.getKey ()) + equality.hashCode (el.getValue ()));
             }
 
             cachedHashcode = result;
@@ -231,15 +230,15 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<ATuple2<K, V>> iterator() {
-        return new Iterator<ATuple2<K, V>>() {
+    public Iterator<AMapEntry<K, V>> iterator() { //TODO optimize this
+        return new Iterator<AMapEntry<K, V>>() {
             @Override
             public boolean hasNext() {
                 return false;
             }
 
             @Override
-            public ATuple2<K, V> next() {
+            public AMapEntry<K, V> next() {
                 throw new NoSuchElementException();
             }
 
@@ -297,7 +296,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         final StringBuilder result = new StringBuilder("{");
         boolean first = true;
 
-        for(ATuple2<K,V> e: this) {
+        for(AMapEntry<K,V> e: this) {
             if(first) {
                 first = false;
             }
@@ -305,7 +304,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 result.append(", ");
             }
 
-            result.append(e._1).append("->").append(e._2);
+            result.append(e.getKey ()).append("->").append(e.getValue ());
         }
 
         result.append("}");
@@ -401,8 +400,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
-            return new Iterator<ATuple2<K, V>>() {
+        public Iterator<AMapEntry<K, V>> iterator() {
+            return new Iterator<AMapEntry<K, V>>() {
                 boolean initial = true;
 
                 @Override
@@ -411,10 +410,17 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 }
 
                 @Override
-                public ATuple2<K, V> next() {
+                public AMapEntry<K, V> next() {
                     if(initial) {
                         initial = false;
-                        return new ATuple2<> (key, value);
+                        return new AMapEntry<K, V>() {
+                            @Override public K getKey () {
+                                return key;
+                            }
+                            @Override public V getValue () {
+                                return value;
+                            }
+                        };
                     }
                     throw new NoSuchElementException();
                 }
@@ -482,7 +488,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                     return AHashMap.empty(equality);
                 }
                 else if(kvs1.tail().isEmpty()) {
-                    return new HashMap1<>(kvs1.key(), computeHash(kvs1.key(), equality), kvs1.value(), equality);
+                    return new HashMap1<>(kvs1.getKey (), computeHash (kvs1.getKey (), equality), kvs1.getValue (), equality);
                 }
                 else {
                     return new HashMapCollision1<>(hash, kvs1);
@@ -494,7 +500,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
+        public Iterator<AMapEntry<K, V>> iterator() {
             return kvs.iterator();
         }
 
@@ -529,8 +535,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
 
         @Override
-        public Iterator<ATuple2<K, V>> iterator() {
-            final List<Iterator<ATuple2<K,V>>> innerIter = new ArrayList<>(elems.length);
+        public Iterator<AMapEntry<K, V>> iterator() {
+            final List<Iterator<AMapEntry<K,V>>> innerIter = new ArrayList<>(elems.length);
             for(AHashMap<K,V> m: elems)  {
                 innerIter.add(m.iterator());
             }
@@ -708,8 +714,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
 
         AHashMap<K,V> result = AHashMap.empty (equality);
 
-        for (ATuple2<K,V> entry: this) {
-            result = result.updated (entry._1, entry._2);
+        for (AMapEntry<K,V> entry: this) {
+            result = result.updated (entry.getKey (), entry.getValue ());
         }
 
         return result;

@@ -1,6 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
@@ -73,7 +72,7 @@ abstract class AWrappedMap<K,V> implements AMap<K,V>, Serializable {
     }
 
     @Override
-    public Iterator<ATuple2<K,V>> iterator() {
+    public Iterator<AMapEntry<K,V>> iterator() {
         return inner.iterator();
     }
 
