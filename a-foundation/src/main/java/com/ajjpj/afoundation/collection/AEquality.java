@@ -2,6 +2,8 @@ package com.ajjpj.afoundation.collection;
 
 
 import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Objects;
 
 
 /**
@@ -35,9 +37,19 @@ public interface AEquality {
      */
     AEquality IDENTITY = new Identity();
 
+    /**
+     * This AEquality implementation requires objects to be {@link Comparable} and implements
+     *  equality based on the result of {@link Comparable#compareTo(Object)}. Hashing is
+     *  <em>not</em> supported.
+     */
+    AEquality NATURAL_ORDER = new NaturalOrder ();
+
     class Equals implements AEquality, Serializable {
         private Object readResolve() {
             return EQUALS;
+        }
+
+        private Equals () {
         }
 
         @Override
@@ -50,21 +62,66 @@ public interface AEquality {
             }
         }
 
-        @Override
-        public int hashCode(Object o) {
+        @Override public int hashCode(Object o) {
             return o != null ? o.hashCode() : 0;
         }
     }
 
-    class Identity implements AEquality {
-        @Override
-        public boolean equals(Object o1, Object o2) {
-            return o1 == o2;
+    class Identity implements AEquality, Serializable {
+        private Object readResolve () {
+            return IDENTITY;
         }
 
-        @Override
-        public int hashCode(Object o) {
+        private Identity() {
+        }
+
+        @Override public boolean equals(Object o1, Object o2) {
+            return o1 == o2;
+        }
+        @Override public int hashCode(Object o) {
             return System.identityHashCode(o);
+        }
+    }
+
+    class NaturalOrder implements AEquality, Serializable {
+        private NaturalOrder() {}
+
+        private Object readResolve() {
+            return NATURAL_ORDER;
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public boolean equals (Object o1, Object o2) {
+            return ((Comparable) o1).compareTo (o2) == 0;
+        }
+        @Override public int hashCode (Object o) {
+            throw new UnsupportedOperationException ();
+        }
+
+        @Override public boolean equals (Object obj) {
+            return getClass () == obj.getClass ();
+        }
+    }
+
+    class ComparatorBased implements AEquality, Serializable {
+        private final Comparator comparator;
+
+        public ComparatorBased (Comparator comparator) {
+            this.comparator = comparator;
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public boolean equals (Object o1, Object o2) {
+            return comparator.compare (o1, o2) == 0;
+        }
+        @Override public int hashCode (Object o) {
+            throw new UnsupportedOperationException ();
+        }
+
+        @Override public boolean equals (Object obj) {
+            //noinspection SimplifiableIfStatement
+            if (getClass () != obj.getClass ()) return false;
+            return Objects.equals (comparator, ((ComparatorBased) obj).comparator);
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.ACompositeIterator;
+import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
@@ -82,29 +82,32 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     private ALongHashMap () {
     }
 
-    @Override
-    public int size() {
+    @Override public AEquality keyEquality () {
+        return AEquality.NATURAL_ORDER;
+    }
+
+    @Override public AMap<Long, V> clear () {
+        return null;
+    }
+
+    @Override public int size() {
         return 0;
     }
-    @Override
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return size() == 0;
     }
-    @Override
-    public boolean nonEmpty() {
+    @Override public boolean nonEmpty() {
         return size() > 0;
     }
 
-    @Override
-    public boolean containsKey(Long key) {
+    @Override public boolean containsKey(Long key) {
         return containsKey (key.longValue ());
     }
     public boolean containsKey(long key) {
         return get(key).isDefined();
     }
 
-    @Override
-    public boolean containsValue(V value) {
+    @Override public boolean containsValue(V value) {
         for (V cur: values()) {
             if (Objects.equals (value, cur)) {
                 return true;
@@ -216,12 +219,12 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         return new LongIteratorImpl<> (this);
     }
 
-    @Override public Set<Long> keys() {
-        return Collections.emptySet();
+    @Override public ASet<Long> keys() {
+        return new ALongHashSet (this);
     }
 
-    @Override public Collection<V> values() {
-        return Collections.emptyList();
+    @Override public ACollection<V> values() {
+        return new MapValueCollection<> (this);
     }
 
     @Override public Map<Long, V> asJavaUtilMap() {
@@ -377,13 +380,11 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
             this.value = value;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        AOption<V> doGet(long key, long hash, int level) {
+        @Override AOption<V> doGet(long key, long hash, int level) {
             if(this.key == key) {
                 return AOption.some (value);
             }
@@ -414,16 +415,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
                 return this;
             }
         }
-
-        @Override
-        public Set<Long> keys() {
-            return Collections.singleton(key);
-        }
-
-        @Override
-        public Collection<V> values() {
-            return Collections.singletonList(value);
-        }
     }
 
 
@@ -440,79 +431,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
 
         @Override public int size() {
             return size;
-        }
-
-        @Override public Set<Long> keys() {
-            return new KeySet();
-        }
-
-        @Override
-        public Collection<V> values() {
-            return new ValueCollection();
-        }
-
-        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-        class KeySet implements Set<Long> {
-            @Override public int size() { return size; }
-            @Override public boolean isEmpty() { return size == 0; }
-            @Override public boolean contains(Object o) { return containsKey((Long) o); }
-            @Override public Iterator<Long> iterator() {
-                final List<Iterator<Long>> innerIter = new ArrayList<>(elems.length);
-                for(ALongHashMap<V> m: elems) {
-                    innerIter.add(m.keys().iterator());
-                }
-                return new ACompositeIterator<>(innerIter);
-            }
-
-            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-            @Override public boolean add(Long k) { throw new UnsupportedOperationException(); }
-            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-            @Override public boolean containsAll(Collection<?> c) {
-                for(Object o: c) {
-                    if(!contains(o)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override public boolean addAll(Collection<? extends Long> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public void clear() { throw new UnsupportedOperationException(); }
-        }
-
-        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-        class ValueCollection implements Collection<V> {
-            @Override public int size() { return size; }
-            @Override public boolean isEmpty() { return size == 0; }
-            @Override public boolean contains(Object o) { return containsValue((V) o); }
-            @Override public Iterator<V> iterator() {
-                final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
-                for(ALongHashMap<V> m: elems) {
-                    innerIter.add(m.values().iterator());
-                }
-                return new ACompositeIterator<>(innerIter);
-            }
-
-            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-            @Override public boolean add(V v) { throw new UnsupportedOperationException(); }
-            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-            @Override public boolean containsAll(Collection<?> c) {
-                for(Object o: c) {
-                    if(!contains(o)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override public boolean addAll(Collection<? extends V> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public void clear() { throw new UnsupportedOperationException(); }
         }
 
         @Override

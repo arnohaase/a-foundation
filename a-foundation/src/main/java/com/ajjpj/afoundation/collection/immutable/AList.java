@@ -205,6 +205,10 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         @Override public boolean contains (T el) {
             return AEquality.EQUALS.equals (el, head) || tail.contains (el);
         }
+
+        @Override public ACollection<T> clear () {
+            return nil;
+        }
     }
 
     static final class Nil extends AList<Object> {
@@ -228,6 +232,10 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
 
         @Override public AList<Object> tail() {
             throw new NoSuchElementException("no 'tail' for an empty list.");
+        }
+
+        @Override public ACollection<Object> clear () {
+            return this;
         }
 
         @Override public <E extends Exception> boolean forAll(APredicate<? super Object, E> pred) throws E {

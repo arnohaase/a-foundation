@@ -101,11 +101,11 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
     }
 
     @Override public AHashSet<T> toSet() {
-        return AHashSet.create(this);
+        return AHashSet.create (this);
     }
 
     @Override public AHashSet<T> toSet(AEquality equality) {
-        return AHashSet.create(equality, this);
+        return AHashSet.create (equality, this);
     }
 
     @Override public String mkString() {
@@ -145,7 +145,7 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         int result = 0;
 
         for(T o: this) {
-            result = 31*result + (o != null ? equalityForEquals().hashCode(o) : 0);
+            result = 31*result + (o != null ? equalityForEquals ().hashCode (o) : 0);
         }
 
         return result;

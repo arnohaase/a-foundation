@@ -174,7 +174,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
     public void testFlatten() {
         final ACollection<String> flattened = createIter(Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("b", "c", "d"))).flatten();
 
-        assertEquals(AHashSet.create ("a", "b", "c", "d"), flattened.toSet());
+        assertEquals(AHashSet1.create ("a", "b", "c", "d"), flattened.toSet());
         if(!removesDuplicates) {
             assertEquals(5, flattened.size());
             final List<String> flattenedList = new ArrayList<>(flattened.toList().asJavaUtilList());
@@ -244,9 +244,9 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testToSetEquals() {
-        assertEquals(AHashSet.<String>empty(), create().toSet());
-        assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c").toSet());
-        assertEquals(AHashSet.create("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
+        assertEquals(AHashSet1.<String>empty (), create().toSet());
+        assertEquals(AHashSet1.create ("a", "b", "c"), create("a", "b", "c").toSet());
+        assertEquals(AHashSet1.create ("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
     }
 
     @Test
@@ -261,7 +261,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        assertEquals(AHashSet.create(1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
+        assertEquals(AHashSet1.create (1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
     }
 
     @Test

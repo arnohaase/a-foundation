@@ -1,5 +1,7 @@
 package com.ajjpj.afoundation.collection.immutable;
 
+import com.ajjpj.afoundation.collection.AEquality;
+
 import java.util.Comparator;
 
 

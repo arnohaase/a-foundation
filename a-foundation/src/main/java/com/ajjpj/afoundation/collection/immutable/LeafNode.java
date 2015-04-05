@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * @author arno
  */
-class LeafNode extends ABTree {
+class LeafNode extends ABTreeMap {
     final Object[] keys;
     final Object[] values;
 
@@ -69,7 +69,7 @@ class LeafNode extends ABTree {
         return AOption.none ();
     }
 
-    @Override UpdateResult merge (ABTree rightNeighbour, Object separator) {
+    @Override UpdateResult merge (ABTreeMap rightNeighbour, Object separator) {
         final LeafNode rightLeaf = (LeafNode) rightNeighbour;
 
         if (keys.length + rightLeaf.keys.length <= spec.maxNumEntries) {
@@ -230,6 +230,7 @@ class LeafNode extends ABTree {
     @Override public boolean isEmpty () {
         return size () == 0;
     }
+
     @Override public Set keys () {
         return new AbstractSet () {
             @Override public boolean contains (Object o) {

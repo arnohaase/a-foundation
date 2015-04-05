@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.collection.graph;
 
 import com.ajjpj.afoundation.collection.immutable.AHashSet;
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.collection.immutable.ASet;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
     private final AList<E> edges;
-    private final AHashSet<N> nodes;
+    private final ASet<N> nodes;
     private final N to;
 
     @SuppressWarnings ("unchecked")
@@ -24,7 +25,7 @@ public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
         return new AEdgePath (AList.create (edge), AHashSet.create (edge.getFrom (), edge.getTo ()), edge.getTo ());
     }
 
-    AEdgePath (AList<E> edges, AHashSet<N> nodes, N to) {
+    AEdgePath (AList<E> edges, ASet<N> nodes, N to) {
         this.edges = edges;
         this.nodes = nodes;
         this.to = to;

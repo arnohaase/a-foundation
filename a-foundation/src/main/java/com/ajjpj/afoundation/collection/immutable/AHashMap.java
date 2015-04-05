@@ -1,11 +1,13 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.ACompositeIterator;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.Map;
 
 
 /**
@@ -128,26 +130,29 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         this.equality = equality;
     }
 
-    @Override
-    public int size() {
+    @Override public AEquality keyEquality () {
+        return equality;
+    }
+
+    @Override public AMap<K, V> clear () {
+        return empty (equality);
+    }
+
+    @Override public int size() {
         return 0;
     }
-    @Override
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return size() == 0;
     }
-    @Override
-    public boolean nonEmpty() {
+    @Override public boolean nonEmpty() {
         return size() > 0;
     }
 
-    @Override
-    public boolean containsKey(K key) {
+    @Override public boolean containsKey(K key) {
         return get(key).isDefined();
     }
 
-    @Override
-    public boolean containsValue(V value) {
+    @Override public boolean containsValue(V value) {
         for(V cur: values()) {
             if(equality.equals(value, cur)) {
                 return true;
@@ -156,39 +161,32 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         return false;
     }
 
-    @Override
-    public AOption<V> get(K key) {
+    @Override public AOption<V> get(K key) {
         return doGet(key, computeHash(key, equality), 0);
     }
 
-    @Override
-    public V getRequired(K key) {
+    @Override public V getRequired(K key) {
         return get(key).get();
     }
 
-    @Override
-    public AHashMap<K,V> updated(K key, V value) {
+    @Override public AHashMap<K,V> updated(K key, V value) {
         return doUpdated(key, computeHash(key, equality), 0, value);
     }
 
-    @Override
-    public AHashMap<K,V> removed(K key) {
+    @Override public AHashMap<K,V> removed(K key) {
         return doRemoved(key, computeHash(key, equality), 0);
     }
 
-    @Override
-    public AMap<K, V> withDefaultValue(V defaultValue) {
+    @Override public AMap<K, V> withDefaultValue(V defaultValue) {
         return new AMapWithDefaultValue<>(this, defaultValue);
     }
 
-    @Override
-    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
+    @Override public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<>(this, function);
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
         if(o == this) {
             return true;
         }
@@ -214,8 +212,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         return true;
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         if(cachedHashcode == null) {
             int result = 0;
 
@@ -229,8 +226,7 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         return cachedHashcode;
     }
 
-    @Override
-    public Iterator<AMapEntry<K, V>> iterator() {
+    @Override public Iterator<AMapEntry<K, V>> iterator() {
         return new HashMapIterator<> (this);
     }
 
@@ -285,12 +281,12 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         }
     }
 
-    @Override public Set<K> keys() {
-        return Collections.emptySet();
+    @Override public ASet<K> keys() {
+        return AHashSet.create (this);
     }
 
-    @Override public Collection<V> values() {
-        return Collections.emptyList();
+    @Override public ACollection<V> values() {
+        return new MapValueCollection<> (this);
     }
 
     @Override
@@ -395,21 +391,18 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         @Override public V getValue () {
             return value;
         }
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        AOption<V> doGet(K key, int hash, int level) {
+        @Override AOption<V> doGet(K key, int hash, int level) {
             if(equality.equals(this.key, key)) {
                 return AOption.some(value);
             }
             return AOption.none();
         }
 
-        @Override
-        AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
+        @Override AHashMap<K,V> doUpdated(K key, int hash, int level, V value) {
             if (hash == this.hash && equality.equals(key, this.key)) {
                 if(this.value == value) {
                     return this;
@@ -431,24 +424,13 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             }
         }
 
-        @Override
-        AHashMap<K,V> doRemoved(K key, int hash, int level) {
+        @Override AHashMap<K,V> doRemoved(K key, int hash, int level) {
             if (hash == this.hash && equality.equals(key, this.key)) {
                 return empty(equality);
             }
             else {
                 return this;
             }
-        }
-
-        @Override
-        public Set<K> keys() {
-            return Collections.singleton(key);
-        }
-
-        @Override
-        public Collection<V> values() {
-            return Collections.singletonList(value);
         }
     }
 
@@ -507,16 +489,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 return this;
             }
         }
-
-        @Override
-        public Set<K> keys() {
-            return kvs.keys();
-        }
-
-        @Override
-        public Collection<V> values() {
-            return kvs.values();
-        }
     }
 
 
@@ -533,83 +505,8 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
             this.size = size;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
-        }
-
-        @Override
-        public Set<K> keys() {
-            return new KeySet();
-        }
-
-        @Override
-        public Collection<V> values() {
-            return new ValueCollection();
-        }
-
-        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-        class KeySet implements Set<K> {
-            @Override public int size() { return size; }
-            @Override public boolean isEmpty() { return size == 0; }
-            @Override public boolean contains(Object o) { return containsKey((K) o); }
-            @Override public Iterator<K> iterator() {
-                final List<Iterator<K>> innerIter = new ArrayList<>(elems.length);
-                for(AHashMap<K,V> m: elems) {
-                    innerIter.add(m.keys().iterator());
-                }
-                return new ACompositeIterator<>(innerIter);
-            }
-
-            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-            @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
-            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-            @Override public boolean containsAll(Collection<?> c) {
-                for(Object o: c) {
-                    if(!contains(o)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public void clear() { throw new UnsupportedOperationException(); }
-        }
-
-        @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-        class ValueCollection implements Collection<V> {
-            @Override public int size() { return size; }
-            @Override public boolean isEmpty() { return size == 0; }
-            @Override public boolean contains(Object o) { return containsValue((V) o); }
-            @Override public Iterator<V> iterator() {
-                final List<Iterator<V>> innerIter = new ArrayList<>(elems.length);
-                for(AHashMap<K,V> m: elems) {
-                    innerIter.add(m.values().iterator());
-                }
-                return new ACompositeIterator<>(innerIter);
-            }
-
-            @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-            @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-            @Override public boolean add(V v) { throw new UnsupportedOperationException(); }
-            @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-            @Override public boolean containsAll(Collection<?> c) {
-                for(Object o: c) {
-                    if(!contains(o)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override public boolean addAll(Collection<? extends V> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-            @Override public void clear() { throw new UnsupportedOperationException(); }
         }
 
         @Override

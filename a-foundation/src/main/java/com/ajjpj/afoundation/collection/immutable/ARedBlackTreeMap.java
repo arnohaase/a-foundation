@@ -1,27 +1,38 @@
 package com.ajjpj.afoundation.collection.immutable;
 
+import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.*;
 
 
+//TODO extract 'ASortedMap' / 'ASortedSet'
+//TODO generify ASet creation based on AMap
+//TODO map performance comparison benchmarks
+
 /**
- * This is a {@link ARedBlackTree} specialization for keys of primitive 'long' values.
- *
  * @author arno
  */
-public class ALongRedBlackTree<V> implements AMap<Long,V> {
-    final Tree<V> root;
+public class ARedBlackTreeMap<K,V> implements AMap<K,V> {
+    final Tree<K,V> root;
+    private final Comparator<K> comparator;
 
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
-    private static final ALongRedBlackTree EMPTY = new ALongRedBlackTree (null);
-    public static <V> ALongRedBlackTree<V> empty () {
-        return EMPTY;
+    public static <K,V> ARedBlackTreeMap<K,V> empty (Comparator<K> comparator) {
+        return new ARedBlackTreeMap<> (null, comparator);
     }
 
-    private ALongRedBlackTree (Tree<V> root) {
+    private ARedBlackTreeMap (Tree<K, V> root, Comparator<K> comparator) {
         this.root = root;
+        this.comparator = comparator;
+    }
+
+    @Override public AEquality keyEquality () {
+        return new AEquality.ComparatorBased (comparator);
+    }
+    @Override public AMap<K, V> clear () {
+        return empty (comparator);
     }
 
     @Override public int size () {
@@ -36,104 +47,59 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         return root != null;
     }
 
-    @Override public boolean containsKey (Long key) {
-        return containsKey (key.longValue ());
-    }
-    public boolean containsKey (long key) {
-        return lookup (root, key) != null;
+    @Override public boolean containsKey (K key) {
+        return lookup (root, key, comparator) != null;
     }
 
     @Override public boolean containsValue (V value) {
         return values ().contains (value);
     }
 
-    @Override public AOption<V> get (Long key) {
-        return get (key.longValue ());
-    }
-    public AOption<V> get (long key) {
-        final Tree<V> raw = lookup (root, key);
+    @Override public AOption<V> get (K key) {
+        final Tree<K,V> raw = lookup (root, key, comparator);
         if (raw == null) {
             return AOption.none ();
         }
         return AOption.some (raw.value);
     }
 
-    @Override public V getRequired (Long key) {
-        return getRequired (key.longValue ());
-    }
-    public V getRequired (long key) {
+    @Override public V getRequired (K key) {
         return get (key).get ();
     }
 
-    @Override public Set<Long> keys () {
-        return new AbstractSet<Long> () {
-            @SuppressWarnings ("unchecked")
-            @Override public boolean contains (Object o) {
-                return ALongRedBlackTree.this.containsKey ((Long) o);
-            }
-
-            @SuppressWarnings ("NullableProblems")
-            @Override public Iterator<Long> iterator () {
-                return new TreeIterator<Long> () {
-                    @Override Long nextResult (Tree<V> tree) {
-                        return tree.key;
-                    }
-                };
-            }
-
-            @Override public int size () {
-                return ALongRedBlackTree.this.size ();
-            }
-        };
+    @Override public ASet<K> keys () {
+        return ARedBlackTreeSet.create (this);
     }
 
-    @Override public Collection<V> values () {
-        return new AbstractCollection<V> () {
-            @SuppressWarnings ("NullableProblems")
-            @Override public Iterator<V> iterator () {
-                return new TreeIterator<V> () {
-                    @Override V nextResult (Tree<V> tree) {
-                        return tree.value;
-                    }
-                };
-            }
-            @Override public int size () {
-                return ALongRedBlackTree.this.size ();
-            }
-        };
+    @Override public ACollection<V> values () {
+        return new MapValueCollection<> (this);
     }
 
-    @Override public AMap<Long, V> updated (Long key, V value) {
-        return updated (key.longValue (), value);
-    }
-    public ALongRedBlackTree<V> updated (long key, V value) {
-        return new ALongRedBlackTree<> (blacken (upd (root, key, value)));
+    @Override public AMap<K, V> updated (K key, V value) {
+        return new ARedBlackTreeMap<> (blacken (upd (root, key, value, comparator)), comparator);
     }
 
-    @Override public AMap<Long, V> removed (Long key) {
-        return removed (key.longValue ());
-    }
-    public ALongRedBlackTree<V> removed (long key) {
-        return new ALongRedBlackTree<> (blacken (del (root, key)));
+    @Override public AMap<K, V> removed (K key) {
+        return new ARedBlackTreeMap<> (blacken (del (root, key, comparator)), comparator);
     }
 
-    @Override public Iterator<AMapEntry<Long, V>> iterator () {
-        return new TreeIterator<AMapEntry<Long, V>> () {
-            @Override AMapEntry<Long, V> nextResult (Tree<V> tree) {
+    @Override public Iterator<AMapEntry<K, V>> iterator () {
+        return new TreeIterator<AMapEntry<K, V>> () {
+            @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
                 return tree;
             }
         };
     }
 
-    @Override public Map<Long, V> asJavaUtilMap () {
+    @Override public Map<K, V> asJavaUtilMap () {
         return new JavaUtilMapWrapper<> (this);
     }
 
-    @Override public AMap<Long, V> withDefaultValue (V defaultValue) {
+    @Override public AMap<K, V> withDefaultValue (V defaultValue) {
         return new AMapWithDefaultValue<> (this, defaultValue);
     }
 
-    @Override public AMap<Long, V> withDefault (AFunction1<? super Long, ? extends V, ? extends RuntimeException> function) {
+    @Override public AMap<K, V> withDefault (AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
         return new AMapWithDefault<> (this, function);
     }
 
@@ -141,11 +107,11 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         if (obj == this) {
             return true;
         }
-        if (! (obj instanceof ALongRedBlackTree)) {
+        if (! (obj instanceof ARedBlackTreeMap)) {
             return false;
         }
 
-        final ALongRedBlackTree other = (ALongRedBlackTree) obj;
+        final ARedBlackTreeMap other = (ARedBlackTreeMap) obj;
         if (size () != other.size ()) {
             return false;
         }
@@ -169,7 +135,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         if(cachedHashcode == null) {
             int result = 0;
 
-            for(AMapEntry<Long, V> el: this) {
+            for(AMapEntry<K,V> el: this) {
                 result = result ^ (31*Objects.hashCode(el.getKey ()) + Objects.hashCode(el.getValue ()));
             }
 
@@ -251,11 +217,11 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
          * We also don't store the deepest nodes in the pathStack so the maximum pathStack length is further reduced by one.
          */
         @SuppressWarnings ("unchecked")
-        private final Tree<V>[] pathStack;
+        private final Tree<K,V>[] pathStack;
         private int stackIndex = 0;
-        private Tree<V> next;
+        private Tree<K,V> next;
 
-        abstract R nextResult (Tree<V> tree); //TODO rename this
+        abstract R nextResult (Tree<K,V> tree); //TODO rename this
 
         @SuppressWarnings ("unchecked")
         private TreeIterator() {
@@ -283,7 +249,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
                 throw new NoSuchElementException ();
             }
 
-            final Tree<V> cur = next;
+            final Tree<K,V> cur = next;
             next = findNext (next.right);
             return nextResult (cur);
         }
@@ -292,7 +258,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
             throw new UnsupportedOperationException ();
         }
 
-        private Tree<V> findNext (Tree<V> tree) {
+        private Tree<K,V> findNext (Tree<K,V> tree) {
             while (true) {
                 if (tree == null) {
                     return popPath ();
@@ -305,12 +271,12 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
             }
         }
 
-        private void pushPath (Tree<V> tree) {
+        private void pushPath (Tree<K,V> tree) {
             pathStack[stackIndex] = tree;
             stackIndex += 1;
         }
 
-        private Tree<V> popPath() {
+        private Tree<K,V> popPath() {
             if (stackIndex == 0) {
                 // convenience for handling the end of iteration
                 return null;
@@ -324,14 +290,16 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
 
 
 
-    static <V> Tree<V> lookup(Tree<V> tree, long key) {
+    static <K,V> Tree<K,V> lookup(Tree<K,V> tree, K key, Comparator<K> comparator) {
         while (tree != null) {
-            if (key == tree.key) return tree;
+            final int cmp = comparator.compare (key, tree.key);
+            if (cmp == 0) return tree;
 
-            tree = (key < tree.key) ? tree.left : tree.right;
+            tree = (cmp < 0) ? tree.left : tree.right;
         }
         return null;
     }
+
 
     static boolean isRedTree (Tree tree) {
         return tree != null && tree.isRed ();
@@ -340,14 +308,14 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         return tree != null && tree.isBlack ();
     }
 
-    static <V> Tree<V> blacken (Tree<V> tree) {
+    static <K,V> Tree<K,V> blacken (Tree<K,V> tree) {
         if (tree == null) {
             return null;
         }
         return tree.blacken ();
     }
 
-    static <V> Tree<V> balanceLeft (TreeFactory<V> treeFactory, long key, V value, Tree<V> l, Tree<V> d) {
+    static <K,V> Tree<K,V> balanceLeft (TreeFactory<K,V> treeFactory, K key, V value, Tree<K,V> l, Tree<K,V> d) {
         if (isRedTree (l) && isRedTree (l.left)) {
             return new RedTree<> (l.key, l.value,
                     new BlackTree<> (l.left.key, l.left.value, l.left.left, l.left.right),
@@ -361,7 +329,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         return treeFactory.create (l, d);
     }
 
-    static <V> Tree<V> balanceRight (TreeFactory<V> treeFactory, long key, V value, Tree<V> a, Tree<V> r) {
+    static <K,V> Tree<K,V> balanceRight (TreeFactory<K,V> treeFactory, K key, V value, Tree<K,V> a, Tree<K,V> r) {
         if (isRedTree (r) && isRedTree (r.left)) {
             return new RedTree<> (r.left.key, r.left.value,
                     new BlackTree<> (key, value, a, r.left.left),
@@ -375,37 +343,39 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         return treeFactory.create (a, r);
     }
 
-    static <V> Tree<V> upd (Tree<V> tree, long key, V value) {
+    static <K,V> Tree<K,V> upd (Tree<K,V> tree, K key, V value, Comparator<K> comparator) {
         if (tree == null) {
             return new RedTree<> (key, value, null, null);
         }
-        if (key < tree.key) {
-            return balanceLeft (tree, tree.key, tree.value, upd (tree.left, key, value), tree.right);
+        final int cmp = comparator.compare (key, tree.key);
+        if (cmp < 0) {
+            return balanceLeft (tree, tree.key, tree.value, upd (tree.left, key, value, comparator), tree.right);
         }
-        if (key > tree.key) {
-            return balanceRight (tree, tree.key, tree.value, tree.left, upd (tree.right, key, value));
+        if (cmp > 0) {
+            return balanceRight (tree, tree.key, tree.value, tree.left, upd (tree.right, key, value, comparator));
         }
         return tree.withNewValue (key, value);
     }
 
-    static <V> Tree<V> del (Tree<V> tree, long key) {
+    static <K,V> Tree<K,V> del (Tree<K,V> tree, K key, Comparator<K> comparator) {
         if (tree == null) {
             return null;
         }
 
-        if (key < tree.key) {
+        final int cmp = comparator.compare(key, tree.key);
+        if (cmp < 0) {
             // the node that must be deleted is to the left
             return isBlackTree (tree.left) ?
-                    balanceLeft (tree.key, tree.value, del (tree.left, key), tree.right) :
+                    balanceLeft (tree.key, tree.value, del (tree.left, key, comparator), tree.right) :
 
                 // tree.left is 'redden', so its children are guaranteed to be blacken.
-                new RedTree<> (tree.key, tree.value, del (tree.left, key), tree.right);
+                new RedTree<> (tree.key, tree.value, del (tree.left, key, comparator), tree.right);
         }
-        else if (key > tree.key) {
+        else if (cmp > 0) {
             // the node that must be deleted is to the right
             return isBlackTree (tree.right) ?
-                    balanceRight (tree.key, tree.value, tree.left, del (tree.right, key)) :
-                new RedTree<> (tree.key, tree.value, tree.left, del (tree.right, key));
+                    balanceRight (tree.key, tree.value, tree.left, del (tree.right, key, comparator)) :
+                new RedTree<> (tree.key, tree.value, tree.left, del (tree.right, key, comparator));
         }
 
         // delete this node and we are finished
@@ -413,7 +383,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
 
     }
 
-    static <V> Tree<V> balance (long key, V value, Tree<V> tl, Tree<V> tr) {
+    static <K,V> Tree<K,V> balance (K key, V value, Tree<K, V> tl, Tree<K, V> tr) {
         if (isRedTree (tl) && isRedTree (tr)) return new RedTree<> (key, value, tl.blacken (), tr.blacken ());
 
         if (isRedTree (tl)) {
@@ -438,7 +408,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         return new BlackTree<> (key, value, tl, tr);
     }
 
-    private static <V> Tree<V> balanceLeft (long key, V value, Tree<V> tl, Tree<V> tr) { //TODO merge with other 'balanceLeft' method?
+    private static <K,V> Tree<K,V> balanceLeft (K key, V value, Tree<K, V> tl, Tree<K, V> tr) { //TODO merge with other 'balanceLeft' method?
         if (isRedTree (tl)) {
             return new RedTree<> (key, value, tl.blacken (), tr);
         }
@@ -451,7 +421,7 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
         throw new IllegalStateException ("invariant violation");
     }
 
-    static <V> Tree<V> balanceRight (long key, V value, Tree<V> tl, Tree<V> tr) {
+    static <K,V> Tree<K,V> balanceRight (K key, V value, Tree<K, V> tl, Tree<K, V> tr) {
         if (isRedTree (tr)) {
             return new RedTree<> (key, value, tl, tr.blacken ());
         }
@@ -469,18 +439,18 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
      *  balanced and that all elements in 'tl' are smaller than all elements in 'tr'. This situation occurs when a
      *  node is deleted and its child nodes must be combined into a resulting tree.
      */
-    private static <V> Tree<V> append (Tree<V> tl, Tree<V> tr) {
+    private static <K,V> Tree<K,V> append (Tree<K,V> tl, Tree<K,V> tr) {
         if (tl == null) return tr;
         if (tr == null) return tl;
 
         if (isRedTree (tl) && isRedTree (tr)) {
-            final Tree<V> bc = append (tl.right, tr.left);
+            final Tree<K,V> bc = append (tl.right, tr.left);
             return isRedTree (bc) ?
                     new RedTree<> (bc.key, bc.value, new RedTree<> (tl.key, tl.value, tl.left, bc.left), new RedTree<> (tr.key, tr.value, bc.right, tr.right)) :
                     new RedTree<> (tl.key, tl.value, tl.left, new RedTree<> (tr.key, tr.value, bc, tr.right));
         }
         if (isBlackTree (tl) && isBlackTree (tr)) {
-            final Tree<V> bc = append (tl.right, tr.left);
+            final Tree<K,V> bc = append (tl.right, tr.left);
             return isRedTree (bc) ?
                     new RedTree<> (bc.key, bc.value, new BlackTree<> (tl.key, tl.value, tl.left, bc.left), new BlackTree<> (tr.key, tr.value, bc.right, tr.right)) :
                     balanceLeft (tl.key, tl.value, tl.left, new BlackTree<> (tr.key, tr.value, bc, tr.right));
@@ -498,19 +468,19 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
     /**
      * encapsulates tree creation for a given colour
      */
-    interface TreeFactory<V> {
-        Tree<V> create (Tree<V> left, Tree<V> right);
+    interface TreeFactory<K,V> {
+        Tree<K,V> create (Tree<K,V> left, Tree<K,V> right);
     }
 
-    static abstract class Tree<V> implements TreeFactory<V>, AMapEntry<Long, V> {
-        final long key;
+    static abstract class Tree<K,V> implements TreeFactory<K,V>, AMapEntry<K,V> {
+        final K key;
         final V value;
         final int count;
 
-        final Tree<V> left;
-        final Tree<V> right;
+        final Tree<K,V> left;
+        final Tree<K,V> right;
 
-        public Tree (long key, V value, Tree<V> left, Tree<V> right) {
+        public Tree (K key, V value, Tree<K, V> left, Tree<K, V> right) {
             this.key = key;
             this.value = value;
             this.left = left;
@@ -521,37 +491,37 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
                     (right == null ? 0 : right.count);
         }
 
-        @Override public Long getKey () {
+        @Override public K getKey () {
             return key;
         }
         @Override public V getValue () {
             return value;
         }
 
-        abstract Tree<V> withNewValue (long key, V value);
+        abstract Tree<K,V> withNewValue (K key, V value);
 
-        abstract Tree<V> blackToRed();
+        abstract Tree<K,V> blackToRed();
 
         abstract boolean isRed();
         abstract boolean isBlack();
 
-        abstract Tree<V> redden ();
-        abstract Tree<V> blacken ();
+        abstract Tree<K,V> redden ();
+        abstract Tree<K,V> blacken ();
     }
 
-    static class BlackTree<V> extends Tree<V> {
-        public BlackTree (long key, V value, Tree<V> left, Tree<V> right) {
+    static class BlackTree<K,V> extends Tree<K,V> {
+        public BlackTree (K key, V value, Tree<K, V> left, Tree<K, V> right) {
             super(key, value, left, right);
         }
 
-        @Override Tree<V> withNewValue (long key, V value) {
+        @Override Tree<K, V> withNewValue (K key, V value) {
             return new BlackTree<> (key, value, left, right);
         }
-        @Override public Tree<V> create (Tree<V> left, Tree<V> right) {
+        @Override public Tree<K, V> create (Tree<K, V> left, Tree<K, V> right) {
             return new BlackTree<> (key, value, left, right);
         }
 
-        @Override Tree<V> blackToRed () {
+        @Override Tree<K, V> blackToRed () {
             return redden ();
         }
 
@@ -562,27 +532,27 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
             return true;
         }
 
-        @Override Tree<V> redden () {
+        @Override Tree<K, V> redden () {
             return new RedTree<> (key, value, left, right);
         }
-        @Override Tree<V> blacken () {
+        @Override Tree<K, V> blacken () {
             return this;
         }
     }
 
-    static class RedTree<V> extends Tree<V> {
-        public RedTree (long key, V value, Tree<V> left, Tree<V> right) {
+    static class RedTree<K,V> extends Tree<K,V> {
+        public RedTree (K key, V value, Tree<K, V> left, Tree<K, V> right) {
             super (key, value, left, right);
         }
 
-        @Override Tree<V> withNewValue (long key, V value) {
+        @Override Tree<K, V> withNewValue (K key, V value) {
             return new RedTree<> (key, value, left, right);
         }
-        @Override public Tree<V> create (Tree<V> left, Tree<V> right) {
+        @Override public Tree<K, V> create (Tree<K, V> left, Tree<K, V> right) {
             return new RedTree<> (key, value, left, right);
         }
 
-        @Override Tree<V> blackToRed () {
+        @Override Tree<K, V> blackToRed () {
             throw new IllegalStateException ();
         }
 
@@ -593,10 +563,10 @@ public class ALongRedBlackTree<V> implements AMap<Long,V> {
             return false;
         }
 
-        @Override Tree<V> redden () {
+        @Override Tree<K, V> redden () {
             return this;
         }
-        @Override Tree<V> blacken () {
+        @Override Tree<K, V> blacken () {
             return new BlackTree<> (key, value, left, right);
         }
     }

@@ -11,13 +11,13 @@ import java.util.Set;
 /**
  * @author arno
  */
-class IndexNode extends ABTree {
+class IndexNode extends ABTreeMap {
     // one more child than separators, i.e. one separator *between* every pair of adjacent children. The separator contains
     //  the smallest key value for the right child.
     final Object[] separators;
-    final ABTree[] children;
+    final ABTreeMap[] children;
 
-    IndexNode (BTreeSpec spec, Object[] separators, ABTree[] children) {
+    IndexNode (BTreeSpec spec, Object[] separators, ABTreeMap[] children) {
         super (spec);
         this.separators = separators;
         this.children = children;
@@ -56,7 +56,7 @@ class IndexNode extends ABTree {
         return children[lookupKey (key)].get (key);
     }
 
-    @Override UpdateResult merge (ABTree rightNeighbour, Object separator) {
+    @Override UpdateResult merge (ABTreeMap rightNeighbour, Object separator) {
         final IndexNode right = (IndexNode) rightNeighbour;
         final int len = children.length + right.children.length;
 
@@ -65,7 +65,7 @@ class IndexNode extends ABTree {
             newSeparators[separators.length] = separator;
             System.arraycopy (right.separators, 0, newSeparators, separators.length + 1, right.separators.length);
 
-            final ABTree[] newChildren = Arrays.copyOf (children, children.length + right.children.length);
+            final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length + right.children.length);
             System.arraycopy (right.children, 0, newChildren, children.length, right.children.length);
 
             return new UpdateResult (new IndexNode (spec, newSeparators, newChildren), null, null);
@@ -78,11 +78,11 @@ class IndexNode extends ABTree {
                 leftSeparators[separators.length] = separator;
                 System.arraycopy (right.separators, 0, leftSeparators, separators.length + 1, leftSeparators.length - separators.length - 1);
 
-                final ABTree[] leftChildren = Arrays.copyOf (children, idxMedian);
+                final ABTreeMap[] leftChildren = Arrays.copyOf (children, idxMedian);
                 System.arraycopy (right.children, 0, leftChildren, children.length, idxMedian - children.length);
 
                 final Object[] rightSeparators = Arrays.copyOfRange (right.separators, leftSeparators.length - separators.length, right.separators.length);
-                final ABTree[] rightChildren = Arrays.copyOfRange (right.children, leftChildren.length - children.length, right.children.length);
+                final ABTreeMap[] rightChildren = Arrays.copyOfRange (right.children, leftChildren.length - children.length, right.children.length);
 
                 return new UpdateResult (
                         new IndexNode (spec, leftSeparators, leftChildren),
@@ -91,14 +91,14 @@ class IndexNode extends ABTree {
             }
             else {
                 final Object[] leftSeparators = Arrays.copyOf (separators, idxMedian - 1);
-                final ABTree[] leftChildren = Arrays.copyOf (children, idxMedian);
+                final ABTreeMap[] leftChildren = Arrays.copyOf (children, idxMedian);
 
                 final Object[] rightSeparators = new Object[len - idxMedian - 1];
                 System.arraycopy (separators, idxMedian, rightSeparators, 0, separators.length - leftSeparators.length - 1);
                 rightSeparators[separators.length - leftSeparators.length-1] = separator;
                 System.arraycopy (right.separators, 0, rightSeparators, separators.length - leftSeparators.length, right.separators.length);
 
-                final ABTree[] rightChildren = new ABTree[len - idxMedian];
+                final ABTreeMap[] rightChildren = new ABTreeMap[len - idxMedian];
                 System.arraycopy (children, leftChildren.length, rightChildren, 0, children.length - leftChildren.length);
                 System.arraycopy (right.children, 0, rightChildren, children.length - leftChildren.length, right.children.length);
 
@@ -126,7 +126,7 @@ class IndexNode extends ABTree {
 
                 if (merged.optRight == null) {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length - 1);
-                    final ABTree[] newChildren = Arrays.copyOf (children, children.length - 1);
+                    final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length - 1);
 
                     newChildren[childIdx - 1] = merged.left;
 
@@ -134,7 +134,7 @@ class IndexNode extends ABTree {
                 }
                 else {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length);
-                    final ABTree[] newChildren = Arrays.copyOf (children, children.length);
+                    final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length);
 
                     newSeparators[newSeparators.length-1] = merged.separator;
                     newChildren[childIdx-1] = merged.left;
@@ -148,7 +148,7 @@ class IndexNode extends ABTree {
 
                 if (merged.optRight == null) {
                     final Object[] newSeparators = new Object[separators.length - 1];
-                    final ABTree[] newChildren = new ABTree[children.length - 1];
+                    final ABTreeMap[] newChildren = new ABTreeMap[children.length - 1];
 
                     final Object newLeftSeparator;
                     if (childIdx > 0) {
@@ -169,7 +169,7 @@ class IndexNode extends ABTree {
                 }
                 else {
                     final Object[] newSeparators = Arrays.copyOf (separators, separators.length);
-                    final ABTree[] newChildren = Arrays.copyOf (children, children.length);
+                    final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length);
 
                     final Object newLeftSeparator;
                     if (childIdx == 0) {
@@ -190,7 +190,7 @@ class IndexNode extends ABTree {
             }
         }
         else {
-            final ABTree[] newChildren = Arrays.copyOf (children, children.length);
+            final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length);
             newChildren[childIdx] = childResult.newNode;
             if (childIdx == 0) {
                 return new RemoveResult (new IndexNode (spec, separators, newChildren), false, childResult.leftSeparator);
@@ -208,7 +208,7 @@ class IndexNode extends ABTree {
         final UpdateResult childResult = children[childIdx]._updated (key, value);
 
         if (childResult.optRight == null) {
-            final ABTree[] newChildren = Arrays.copyOf (children, children.length);
+            final ABTreeMap[] newChildren = Arrays.copyOf (children, children.length);
             newChildren[childIdx] = childResult.left;
             return new UpdateResult (new IndexNode (spec, separators, newChildren), null, null);
         }
@@ -216,7 +216,7 @@ class IndexNode extends ABTree {
             if (children.length < spec.maxNumEntries) {
                 // max size not reached --> make room for an additional child
                 final Object[] newSeparators = new Object[separators.length + 1];
-                final ABTree[] newChildren = new ABTree[children.length + 1];
+                final ABTreeMap[] newChildren = new ABTreeMap[children.length + 1];
 
                 System.arraycopy (separators, 0, newSeparators, 0, childIdx);
                 System.arraycopy (children, 0, newChildren, 0, childIdx);
@@ -233,13 +233,13 @@ class IndexNode extends ABTree {
             else {
                 // max size reached --> split
 
-                final ABTree[] leftChildren;
-                final ABTree[] rightChildren;
+                final ABTreeMap[] leftChildren;
+                final ABTreeMap[] rightChildren;
                 final Object[] leftSeparators;
                 final Object[] rightSeparators;
 
                 if (childIdx < spec.maxNumEntries/2) {
-                    leftChildren  = new ABTree[spec.maxNumEntries/2 + 1];
+                    leftChildren  = new ABTreeMap[spec.maxNumEntries/2 + 1];
                     System.arraycopy (children, 0, leftChildren, 0, childIdx);
                     leftChildren[childIdx] = childResult.left;
                     leftChildren[childIdx+1] = childResult.optRight;
@@ -257,7 +257,7 @@ class IndexNode extends ABTree {
                     leftChildren  = Arrays.copyOf (children, spec.maxNumEntries / 2);
                     leftSeparators = Arrays.copyOf (separators, spec.maxNumEntries / 2 - 1);
 
-                    rightChildren = new ABTree[spec.maxNumEntries/2 + 1];
+                    rightChildren = new ABTreeMap[spec.maxNumEntries/2 + 1];
                     System.arraycopy (children, spec.maxNumEntries / 2, rightChildren, 0, childIdx - spec.maxNumEntries / 2);
                     rightChildren[childIdx-spec.maxNumEntries/2]   = childResult.left;
                     rightChildren[childIdx-spec.maxNumEntries/2+1] = childResult.optRight;
@@ -276,7 +276,7 @@ class IndexNode extends ABTree {
 
     @Override public int size () {
         int result = 0;
-        for (ABTree child: children) {
+        for (ABTreeMap child: children) {
             result += child.size ();
         }
         return result;
@@ -293,7 +293,7 @@ class IndexNode extends ABTree {
             }
             @Override public Iterator iterator () {
                 return new Iterator () {
-                    final Iterator<ABTree> childIter = Arrays.asList (children).iterator ();
+                    final Iterator<ABTreeMap> childIter = Arrays.asList (children).iterator ();
                     Iterator<ATuple2> curIter = childIter.next ().iterator ();
 
                     @Override public boolean hasNext () {

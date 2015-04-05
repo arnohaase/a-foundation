@@ -5,7 +5,9 @@ import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -93,54 +95,53 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
         this.equality = equality;
     }
 
-    @Override
-    public int size() {
+    @Override public AEquality keyEquality () {
+        return equality;
+    }
+
+    @Override public AMap<K, V> clear () {
+        return empty (equality);
+    }
+
+    @Override public int size() {
         return 0;
     }
-    @Override
-    public boolean isEmpty() {
+    @Override public boolean isEmpty() {
         return true;
     }
-    @Override
-    public boolean nonEmpty() {
+    @Override public boolean nonEmpty() {
         return false;
     }
 
-    @Override
-    public AOption<V> get(K key) {
+    @Override public AOption<V> get(K key) {
         return AOption.none();
     }
 
-    @Override
-    public V getRequired(K key) {
+    @Override public V getRequired(K key) {
         return get(key).get();
     }
 
-    public K getKey() {
+    @Override public K getKey() {
         throw new NoSuchElementException("empty map");
     }
 
-    public V getValue() {
+    @Override public V getValue() {
         throw new NoSuchElementException("empty map");
     }
 
-    @Override
-    public boolean containsKey(K key) {
+    @Override public boolean containsKey(K key) {
         return get(key).isDefined();
     }
 
-    @Override
-    public boolean containsValue(V value) {
+    @Override public boolean containsValue(V value) {
         return false;
     }
 
-    @Override
-    public AListMap<K,V> updated(K key, V value) {
+    @Override public AListMap<K,V> updated(K key, V value) {
         return new Node<>(key, value, this);
     }
 
-    @Override
-    public AListMap<K,V> removed(K key) {
+    @Override public AListMap<K,V> removed(K key) {
         return this;
     }
 
@@ -148,92 +149,20 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
         throw new NoSuchElementException("empty map");
     }
 
-    @Override
-    public Map<K, V> asJavaUtilMap() {
+    @Override public Map<K, V> asJavaUtilMap() {
         return new JavaUtilMapWrapper<>(this);
     }
 
-    @Override
-    public Iterator<AMapEntry<K,V>> iterator() {
+    @Override public Iterator<AMapEntry<K,V>> iterator() {
         return new ListMapIterator<>(this);
     }
 
-    @Override
-    public Set<K> keys() {
-        return new KeySet();
+    @Override public ASet<K> keys() {
+        return new AListSet<> (this);
     }
 
-    @Override
-    public Collection<V> values() {
-        return new ValueCollection();
-    }
-
-    @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-    class KeySet implements Set<K> {
-        @Override public int size() { return AListMap.this.size(); }
-        @Override public boolean isEmpty() { return size() == 0; }
-        @Override public boolean contains(Object o) { return containsKey((K) o); }
-        @Override public Iterator<K> iterator() {
-            final Iterator<AMapEntry<K,V>> lmi = AListMap.this.iterator();
-
-            return new Iterator<K>() {
-                @Override public boolean hasNext() { return lmi.hasNext(); }
-                @Override public K next() { return lmi.next().getKey (); }
-                @Override public void remove() { lmi.remove(); }
-            };
-        }
-
-        @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-        @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-        @Override public boolean add(K k) { throw new UnsupportedOperationException(); }
-        @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-        @Override public boolean containsAll(Collection<?> c) {
-            for(Object o: c) {
-                if(!contains(o)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override public boolean addAll(Collection<? extends K> c) { throw new UnsupportedOperationException(); }
-        @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-        @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-        @Override public void clear() { throw new UnsupportedOperationException(); }
-    }
-
-    @SuppressWarnings({"NullableProblems", "unchecked", "SuspiciousToArrayCall"})
-    class ValueCollection implements Collection<V> {
-        @Override public int size() { return AListMap.this.size(); }
-        @Override public boolean isEmpty() { return size() == 0; }
-        @Override public boolean contains(Object o) { return containsValue((V) o); }
-        @Override public Iterator<V> iterator() {
-            final Iterator<AMapEntry<K,V>> lmi = AListMap.this.iterator();
-
-            return new Iterator<V>() {
-                @Override public boolean hasNext() { return lmi.hasNext(); }
-                @Override public V next() {return lmi.next().getValue (); }
-                @Override public void remove() { lmi.remove(); }
-            };
-        }
-
-        @Override public Object[] toArray()     { return new ArrayList<>(this).toArray(); }
-        @Override public <T> T[] toArray(T[] a) { return new ArrayList<>(this).toArray(a); }
-        @Override public boolean add(V v) { throw new UnsupportedOperationException(); }
-        @Override public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-        @Override public boolean containsAll(Collection<?> c) {
-            for(Object o: c) {
-                if(!contains(o)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override public boolean addAll(Collection<? extends V> c) { throw new UnsupportedOperationException(); }
-        @Override public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-        @Override public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-        @Override public void clear() { throw new UnsupportedOperationException(); }
+    @Override public ACollection<V> values() {
+        return new MapValueCollection<> (this);
     }
 
     @Override
@@ -314,30 +243,24 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
             this.tail = tail;
         }
 
-        @Override
-        public boolean isEmpty() {
+        @Override public boolean isEmpty() {
             return false;
         }
-        @Override
-        public boolean nonEmpty() {
+        @Override public boolean nonEmpty() {
             return true;
         }
 
-        @Override
-        public K getKey() {
+        @Override public K getKey() {
             return key;
         }
-        @Override
-        public V getValue() {
+        @Override public V getValue() {
             return value;
         }
-        @Override
-        public AListMap<K,V> tail() {
+        @Override public AListMap<K,V> tail() {
             return tail;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             int result = 0;
 
             AListMap<K,V> m = this;
@@ -348,8 +271,7 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
             return result;
         }
 
-        @Override
-        public AOption<V> get(K key) {
+        @Override public AOption<V> get(K key) {
             AListMap<K,V> m = this;
 
             while(m.nonEmpty()) {
@@ -361,19 +283,16 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
             return AOption.none();
         }
 
-        @Override
-        public boolean containsValue(V value) {
+        @Override public boolean containsValue(V value) {
             return equality.equals(this.value, value) || tail().containsValue(value);
         }
 
-        @Override
-        public AListMap<K,V> updated(K key, V value) {
+        @Override public AListMap<K,V> updated(K key, V value) {
             final AListMap<K,V> m = removed(key);
             return new Node<>(key, value, m);
         }
 
-        @Override
-        public AListMap<K,V> removed(K key) {
+        @Override public AListMap<K,V> removed(K key) {
             int idx = 0;
 
             AListMap<K,V> remaining = this;

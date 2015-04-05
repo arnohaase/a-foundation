@@ -27,11 +27,11 @@ public class AMapTest {
                 new Object[] {AHashMap.empty ()},
                 new Object[] {ALongHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
-                new Object[] {ABTree.empty (new BTreeSpec (4, NATURAL_ORDER))},
-                new Object[] {ABTree.empty (new BTreeSpec (8, NATURAL_ORDER))},
-                new Object[] {ABTree.empty (new BTreeSpec (16, NATURAL_ORDER))},
-                new Object[] {ARedBlackTree.empty (NATURAL_ORDER)},
-                new Object[] {ALongRedBlackTree.empty ()}
+                new Object[] {ABTreeMap.empty (new BTreeSpec (4, NATURAL_ORDER))},
+                new Object[] {ABTreeMap.empty (new BTreeSpec (8, NATURAL_ORDER))},
+                new Object[] {ABTreeMap.empty (new BTreeSpec (16, NATURAL_ORDER))},
+                new Object[] {ARedBlackTreeMap.empty (NATURAL_ORDER)},
+                new Object[] {ALongRedBlackTreeMap.empty ()}
         );
     }
 

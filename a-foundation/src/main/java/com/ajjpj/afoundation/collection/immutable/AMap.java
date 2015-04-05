@@ -3,9 +3,7 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
 
 /**
@@ -92,15 +90,7 @@ public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
      * Returns an iterator with all key/value pairs stored in the map. This method allows AMap instances to be used
      *  with the <code>for(...: map)</code> syntax introduced with Java 5.
      */
-    @Override
-    Iterator<AMapEntry<K,V>> iterator();
-
-    /**
-     * @return an {@link java.util.Iterator} over the map's keys. This method is the foundation for using a
-     *         map as the implementation of an {@link ASet}, TODO how
-     *         and this method should <em>not</em> be implemented based on {@link #keys()}.
-     */
-    Iterator<K> keyIterator();
+    @Override Iterator<AMapEntry<K,V>> iterator();
 
     /**
      * Returns an <code>java.util.Set</code> with the map's keys. The returned object throws
@@ -110,7 +100,7 @@ public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
      *  map's equalityForEquals strategy treats two objects as different even if their <code>equals</code> methods return true,
      *  then the returned set may contain both.
      */
-    ASet<K,?> keys();
+    ASet<K> keys();
 
     /**
      * Returns a <code>java.util.Collection</code> with the map's values. Duplicate values are returned as often as they

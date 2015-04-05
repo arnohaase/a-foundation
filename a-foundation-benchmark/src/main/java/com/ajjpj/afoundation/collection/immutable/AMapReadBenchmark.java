@@ -43,11 +43,11 @@ public class AMapReadBenchmark {
         switch (mapType) {
             case "AHashMap": map = AHashMap.empty (); break;
             case "ALongHashMap64": map = ALongHashMap.empty (); break;
-            case "ARedBlackTree": map = ARedBlackTree.empty (NATURAL_ORDER); break;
-            case "ALongRedBlackTree": map = ALongRedBlackTree.empty (); break;
-            case "ABTree4":  map = ABTree.empty (new BTreeSpec ( 4, NATURAL_ORDER)); break;
-            case "ABTree8":  map = ABTree.empty (new BTreeSpec ( 8, NATURAL_ORDER)); break;
-            case "ABTree16": map = ABTree.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
+            case "ARedBlackTree": map = ARedBlackTreeMap.empty (NATURAL_ORDER); break;
+            case "ALongRedBlackTree": map = ALongRedBlackTreeMap.empty (); break;
+            case "ABTree4":  map = ABTreeMap.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
+            case "ABTree8":  map = ABTreeMap.empty (new BTreeSpec (8, NATURAL_ORDER)); break;
+            case "ABTree16": map = ABTreeMap.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
             default: throw new IllegalArgumentException (mapType);
         }
 

@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
+import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.*;
@@ -10,16 +11,16 @@ import java.util.*;
  *
  * @author arno
  */
-public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
+public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a key?
     public final BTreeSpec spec;
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
     @SuppressWarnings ("unchecked")
-    public static <K, V> ABTree<K, V> empty (BTreeSpec spec) {
+    public static <K, V> ABTreeMap<K, V> empty (BTreeSpec spec) {
         return new LeafNode (spec, new Object[0], new Object[0]);
     }
 
-    ABTree (BTreeSpec spec) {
+    ABTreeMap (BTreeSpec spec) {
         this.spec = spec;
     }
 
@@ -30,7 +31,7 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
 //    public Iterable<V> values (K keyMin, K keyMax);
 
     @SuppressWarnings ("unchecked")
-    public ABTree<K,V> updated (K key, V value) {
+    public ABTreeMap<K,V> updated (K key, V value) {
         final UpdateResult result = _updated (key, value);
 
         if (result.optRight == null) {
@@ -39,11 +40,11 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
 
         // This is the only place where the tree depth can grow.
         // The 'minimum number of children' constraint does not apply to root nodes.
-        return new IndexNode (spec, new Object[] {result.separator}, new ABTree[] {result.left, result.optRight});
+        return new IndexNode (spec, new Object[] {result.separator}, new ABTreeMap[] {result.left, result.optRight});
     }
 
     @SuppressWarnings ("unchecked")
-    public ABTree<K,V> removed (K key) {
+    public ABTreeMap<K,V> removed (K key) {
         final RemoveResult removeResult = _removed (key, null);
         if (removeResult.underflowed &&
                 removeResult.newNode instanceof IndexNode &&
@@ -55,7 +56,7 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
 
     abstract UpdateResult _updated (Object key, Object value);
     abstract RemoveResult _removed (Object key, Object leftSeparator);
-    abstract UpdateResult merge (ABTree rightNeighbour, Object separator);
+    abstract UpdateResult merge (ABTreeMap rightNeighbour, Object separator);
 
     @Override public boolean nonEmpty () {
         return ! isEmpty ();
@@ -74,28 +75,19 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
     @Override public V getRequired (K key) {
         return get (key).get ();
     }
-    @Override public Collection<V> values () {
-        return new AbstractCollection<V> () {
-            @Override public Iterator<V> iterator () {
-                return new Iterator<V> () {
-                    final Iterator<K> keyIter = keys ().iterator ();
-
-                    @Override public boolean hasNext () {
-                        return keyIter.hasNext ();
-                    }
-                    @Override public V next () {
-                        return getRequired (keyIter.next ());
-                    }
-                    @Override public void remove () {
-                        throw new UnsupportedOperationException ();
-                    }
-                };
-            }
-            @Override public int size () {
-                return ABTree.this.size ();
-            }
-        };
+    @Override public ACollection<V> values () {
+        return new MapValueCollection<> (this);
     }
+    @Override public ASet<K> keys () {
+    }
+
+    @Override public AMap<K, V> clear () {
+        return empty (spec);
+    }
+    @Override public AEquality keyEquality () {
+        return new AEquality.ComparatorBased (spec.comparator);
+    }
+
     @Override public Iterator<AMapEntry<K, V>> iterator () {
         return new Iterator<AMapEntry<K, V>> () {
             final Iterator<K> keyIter = keys ().iterator ();
@@ -115,7 +107,7 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
                     @Override public V getValue () {
                         if (!hasValue) {
                             hasValue = true;
-                            value = getRequired (key);
+                            value = getRequired (key); //TODO optimize this
                         }
                         return value;
                     }
@@ -141,14 +133,14 @@ public abstract class ABTree<K, V> implements AMap<K,V> { //TODO null as a key?
 
     @SuppressWarnings ("unchecked")
     @Override public boolean equals (Object obj) {
-        if (! (obj instanceof ABTree)) {
+        if (! (obj instanceof ABTreeMap)) {
             return false;
         }
         if (obj == this) {
             return true;
         }
 
-        final ABTree<K,V> other = (ABTree<K, V>) obj;
+        final ABTreeMap<K,V> other = (ABTreeMap<K, V>) obj;
 
         final Iterator<K> keyIter = keys ().iterator ();
         final Iterator<K> keyIter2 = other.keys ().iterator ();

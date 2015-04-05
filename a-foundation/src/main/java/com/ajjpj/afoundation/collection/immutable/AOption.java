@@ -133,6 +133,10 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return true;
         }
 
+        @Override public ACollection<T> clear () {
+            return none ();
+        }
+
         @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E {
             f.apply(el);
         }
@@ -185,12 +189,12 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return AList.<T>nil().cons(el);
         }
 
-        @Override public AHashSet<T> toSet() {
-            return AHashSet.<T>empty().added(el);
+        @Override public ASet<T> toSet() {
+            return AHashSet.<T>empty ().added(el);
         }
 
-        @Override public AHashSet<T> toSet(AEquality equality) {
-            return AHashSet.<T>empty(equality).added(el);
+        @Override public ASet<T> toSet(AEquality equality) {
+            return AHashSet.<T>empty (equality).added(el);
         }
 
         @SuppressWarnings("NullableProblems")
@@ -277,6 +281,10 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return INSTANCE;
         }
 
+        @Override public ACollection<Object> clear () {
+            return this;
+        }
+
         @Override public Object get() {
             throw new NoSuchElementException("no value for ANone");
         }
@@ -333,12 +341,12 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return AList.nil();
         }
 
-        @Override public AHashSet<Object> toSet() {
-            return AHashSet.empty();
+        @Override public ASet<Object> toSet() {
+            return AHashSet.empty ();
         }
 
-        @Override public AHashSet<Object> toSet(AEquality equality) {
-            return AHashSet.empty(equality);
+        @Override public ASet<Object> toSet(AEquality equality) {
+            return AHashSet.empty (equality);
         }
 
         @SuppressWarnings("NullableProblems")
