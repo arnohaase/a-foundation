@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
+import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.Collection;
@@ -26,8 +27,30 @@ import java.util.Set;
  * @author arno
  */
 public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
+    /**
+     * @return an {@link AEquality} that returns {@code true} if and only if two elements are
+     *         'equal' in the sense that one would replace the other as a key.
+     */
+    AEquality keyEquality ();
+
+    /**
+     * @return an empty {@link AMap} instance of the same type and configuration as this instance.
+     */
+    AMap<K,V> clear();
+
+    /**
+     * @return the number of key-value pairs in this map.
+     */
     int size();
+
+    /**
+     * @return true if and only if this map's {@link #size()} is 0.
+     */
     boolean isEmpty();
+
+    /**
+     * @return true if and only if this map's {@link #size()} greater than 0.
+     */
     boolean nonEmpty();
 
     /**
@@ -37,8 +60,7 @@ public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
     boolean containsKey(K key);
 
     /**
-     * Returns true iff the map contains the specified value. The containment check is based on the implementation's
-     *  equalityForEquals strategy, which may or may not use <code>equals()</code>.
+     * Returns true iff the map contains the specified value.
      */
     boolean containsValue(V value);
 
@@ -53,22 +75,6 @@ public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
      *  no entry for the key.
      */
     V getRequired(K key);
-
-    /**
-     * Returns an <code>java.util.Set</code> with the map's keys. The returned object throws
-     *  <code>UnsupportedOperationException</code> for all modifying operations.<p>
-     *
-     * The returned set is <em>not</em> guaranteed to provide uniqueness with regard to <code>equals()</code>. If the
-     *  map's equalityForEquals strategy treats two objects as different even if their <code>equals</code> methods return true,
-     *  then the returned set may contain both.
-     */
-    Set<K> keys();
-
-    /**
-     * Returns a <code>java.util.Collection</code> with the map's values. Duplicate values are returned as often as they
-     *  occur. The returned collection throws <code>UnsupportedOperationException</code> for all modifying operations.
-     */
-    Collection<V> values();
 
     /**
      * This method 'adds' a new value for a given key, returning a modified copy of the map while leaving the original
@@ -88,6 +94,29 @@ public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
      */
     @Override
     Iterator<AMapEntry<K,V>> iterator();
+
+    /**
+     * @return an {@link java.util.Iterator} over the map's keys. This method is the foundation for using a
+     *         map as the implementation of an {@link ASet}, TODO how
+     *         and this method should <em>not</em> be implemented based on {@link #keys()}.
+     */
+    Iterator<K> keyIterator();
+
+    /**
+     * Returns an <code>java.util.Set</code> with the map's keys. The returned object throws
+     *  <code>UnsupportedOperationException</code> for all modifying operations.<p>
+     *
+     * The returned set is <em>not</em> guaranteed to provide uniqueness with regard to <code>equals()</code>. If the
+     *  map's equalityForEquals strategy treats two objects as different even if their <code>equals</code> methods return true,
+     *  then the returned set may contain both.
+     */
+    ASet<K,?> keys();
+
+    /**
+     * Returns a <code>java.util.Collection</code> with the map's values. Duplicate values are returned as often as they
+     *  occur. The returned collection throws <code>UnsupportedOperationException</code> for all modifying operations.
+     */
+    ACollection<V> values();
 
     /**
      * Returns a read-only <code>java.util.Map</code> view of the AMap. Constructing the view takes constant time (i.e.

@@ -17,10 +17,31 @@ import java.util.Collection;
  * @author arno
  */
 public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
+    /**
+     * @return an empty {@link ACollection} of the same size as this one.
+     */
+    ACollection<T> clear();
+
+    /**
+     * @return the number of elements in this {@link ACollection}.
+     */
     int size();
+
+    /**
+     * @return true if and only if this collection's size is 0
+     */
     boolean isEmpty();
+
+    /**
+     * @return true if and only if this collection's size is greater than 0
+     */
     boolean nonEmpty();
 
+    /**
+     * This method checks if the collection has an element that is 'equal' to the parameter {@code el}. For collections
+     *  that have a configurable {@link com.ajjpj.afoundation.collection.AEquality}, that equality is used to check
+     *  containment. This applies to {@link ASet} instances in particular.
+     */
     boolean contains (T el);
 
     /**
@@ -62,12 +83,12 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
     /**
      * Returns an AHashSet instance with this collection's elements.
      */
-    AHashSet<T> toSet();
+    ASet<T> toSet();
 
     /**
      * Returns an AHashSet instance with this collection's elements.
      */
-    AHashSet<T> toSet(AEquality equality);
+    ASet<T> toSet(AEquality equality);
 
     /**
      * Creates a string with all elements of this collections, separated by commas.

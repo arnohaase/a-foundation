@@ -1,11 +1,42 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 
+import com.ajjpj.afoundation.collection.AEquality;
+
+
 /**
- * This interface represents an immutable set. It adds no methods compared to ACollection, but it
- *  specifies 'set' semantics.
+ * This interface represents an immutable set. It inherits most methods from ACollection, but it
+ *  prescribes uniqueness semantics.
  *
  * @author arno
  */
 public interface ASet<T> extends ACollection<T> {
+    /**
+     * @return the specification of equality on which this set maintains uniqueness.
+     *         {@link com.ajjpj.afoundation.collection.AEquality#EQUALS} uses {@link Object#equals(Object)}
+     *         and represents the 'normal' equality used by {@link java.util.Set}.
+     */
+    AEquality equalityForEquals();
+
+    /**
+     * @return a {@link java.util.Set} 'view' of this set's values, i.e. an read-only instance
+     *         of {@link java.util.Set} that contains the exact same elements as this {@code ASet}.
+     *         This operation performs <em>no</em> copying, and the returned collection is based
+     *         on this {@code ASet}'s equality.
+     */
+    java.util.Set<T> asJavaUtilSet();
+
+    /**
+     * @return a new {@link ASet} that is guaranteed to contain the new element, i.e. to contain an
+     *         element which this set's {@link com.ajjpj.afoundation.collection.AEquality} considers
+     *         equal to the parameter {@code el}.
+     */
+    ASet<T> added (T el);
+
+    /**
+     * @return a new {@link ASet} that is guaranteed not to contain the parameter {@code el}, i.e. not
+     *          to contain an element that this set's {@link com.ajjpj.afoundation.collection.AEquality}
+     *          considers equal to the parameter {@code el}.
+     */
+    ASet<T> removed (T el);
 }

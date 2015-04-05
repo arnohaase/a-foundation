@@ -38,7 +38,9 @@ import java.util.Map;
  */
 public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>> implements ACollection<T> {
     protected abstract C createInternal(Collection<T> elements);
-    protected abstract AEquality equalityForEquals();
+    protected AEquality equalityForEquals() {
+        return AEquality.EQUALS;
+    }
 
     @Override public boolean isEmpty() {
         return size() == 0;
@@ -46,14 +48,6 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
 
     @Override public boolean nonEmpty() {
         return size() > 0;
-    }
-
-    @Override public boolean contains (final T el) {
-        return find (new APredicateNoThrow<T> () {
-            @Override public boolean apply (T o) {
-                return equalityForEquals ().equals (o, el);
-            }
-        }).isDefined ();
     }
 
     @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E { //TODO junit

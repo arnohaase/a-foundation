@@ -507,9 +507,21 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(elements);
         }
 
-        @Override
-        protected AEquality equalityForEquals() {
+        @Override protected AEquality equalityForEquals() {
             return AEquality.EQUALS;
+        }
+
+        @Override public ACollection<T> clear () {
+            throw new UnsupportedOperationException ();
+        }
+
+        @Override public boolean contains (T el) {
+            for (T e: inner) {
+                if (Objects.equals (e, el)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override public int size() {
@@ -554,6 +566,19 @@ public class ACollectionHelper {
                 result[idx++] = o;
             }
             return new AArrayWrapper<>(result);
+        }
+
+        @Override public ACollection<T> clear () {
+            throw new UnsupportedOperationException ();
+        }
+
+        @Override public boolean contains (T el) {
+            for (T e: inner) {
+                if (Objects.equals (e, el)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override protected AEquality equalityForEquals() {

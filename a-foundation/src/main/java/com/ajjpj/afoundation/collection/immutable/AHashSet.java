@@ -87,7 +87,7 @@ public class AHashSet<T> extends AbstractACollection<T, AHashSet<T>> implements 
         return create(elements);
     }
 
-    @Override protected AEquality equalityForEquals() {
+    @Override public AEquality equalityForEquals() {
         return inner.equality;
     }
 
