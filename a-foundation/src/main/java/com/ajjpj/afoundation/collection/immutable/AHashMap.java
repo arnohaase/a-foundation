@@ -227,7 +227,7 @@ public class AHashMap<K, V> extends AbstractAMap<K,V> {
         return this;
     }
 
-    private static int computeHash(Object key, AEquality equality) { //TODO ask why this algorithm is used
+    private static int computeHash(Object key, AEquality equality) {
         int h = equality.hashCode(key);
         h = h + ~(h << 9);
         h = h ^ (h >>> 14);

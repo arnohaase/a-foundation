@@ -57,8 +57,6 @@ public class AHashSet<T> extends MapAsSetWrapper<T, AHashSet<T>> {
         return new AHashSet<> (inner);
     }
 
-    //TODO ASortedSet
-
     private Object readResolve() {
         if (isEmpty ()) {
             if (equalityForEquals () == AEquality.EQUALS) return EMPTY_EQUALS;

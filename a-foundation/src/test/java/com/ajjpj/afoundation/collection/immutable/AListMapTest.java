@@ -213,8 +213,6 @@ public class AListMapTest {
                         AListMap.empty().updated("b", "1").hashCode());
     }
 
-    //TODO equalityForEquals
-
     @Test
     public void testShotgun() {
         final Random rand = new Random(12345);
