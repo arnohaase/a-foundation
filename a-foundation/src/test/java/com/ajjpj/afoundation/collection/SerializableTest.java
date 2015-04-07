@@ -31,11 +31,11 @@ public class SerializableTest implements Serializable {
 
     @Test
     public void testHashSetSerializable() throws IOException, ClassNotFoundException {
-        checkSerSame (AHashSet1.empty ());
-        assertEquals (MyEquality.INSTANCE, JUnitTestSupport.equality (serDeser (AHashSet1.empty (MyEquality.INSTANCE))));
+        checkSerSame (AHashSet.empty ());
+        assertEquals (MyEquality.INSTANCE, JUnitTestSupport.equality (serDeser (AHashSet.empty (MyEquality.INSTANCE))));
 
-        checkSerEq (AHashSet1.create (1, 2, 3, 4, 5));
-        checkSerEq (AHashSet1.create ("a", "b", "c", "d", "e"));
+        checkSerEq (AHashSet.create (1, 2, 3, 4, 5));
+        checkSerEq (AHashSet.create ("a", "b", "c", "d", "e"));
     }
 
     static class MyEquality implements AEquality, Serializable {

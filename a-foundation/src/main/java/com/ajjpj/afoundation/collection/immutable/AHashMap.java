@@ -266,8 +266,10 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
                 }
                 if (next.getClass () == HashTrieMap.class) {
                     final HashTrieMap trie = (HashTrieMap) next;
-                    for (Object child: trie.elems) {
-                        stack.push (child);
+
+                    // push elements in reverse order to provide iteration in 'ascending hash order', simplifying testing
+                    for (int i=trie.elems.length-1; i>=0; i--) {
+                        stack.push (trie.elems [i]);
                     }
                 }
                 else if (next.getClass () == HashMapCollision1.class) {

@@ -1,7 +1,7 @@
 package com.ajjpj.afoundation.collection;
 
 import com.ajjpj.afoundation.collection.immutable.ACollection;
-import com.ajjpj.afoundation.collection.immutable.AHashSet1;
+import com.ajjpj.afoundation.collection.immutable.AHashSet;
 import com.ajjpj.afoundation.collection.immutable.AList;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class AsCollectionViewTest extends AbstractCollectionTest<ACollection<Str
         assertEquals(false, copied.isEmpty());
 
         assertEquals(AList.create("a", "b"), copied.toList());
-        assertEquals(AHashSet1.create ("a", "b"), copied.toSet());
+        assertEquals(AHashSet.create ("a", "b"), copied.toSet());
 
         list.clear();
 
@@ -53,7 +53,7 @@ public class AsCollectionViewTest extends AbstractCollectionTest<ACollection<Str
         assertEquals(true, copied.isEmpty());
 
         assertEquals(AList.<String>nil(), copied.toList());
-        assertEquals(AHashSet1.<String>empty (), copied.toSet());
+        assertEquals(AHashSet.<String>empty (), copied.toSet());
 
         final ACollection<String> copiedEmpty = ACollectionHelper.asACollectionCopy(Arrays.<String>asList());
         assertEquals(0, copiedEmpty.size());
@@ -61,6 +61,6 @@ public class AsCollectionViewTest extends AbstractCollectionTest<ACollection<Str
         assertEquals(false, copiedEmpty.nonEmpty());
 
         assertEquals(AList.<String>nil(), copiedEmpty.toList());
-        assertEquals(AHashSet1.<String>empty (), copiedEmpty.toSet());
+        assertEquals(AHashSet.<String>empty (), copiedEmpty.toSet());
     }
 }

@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class BTreeBlackBoxTest {
     @Test
     public void testSplitLeft() {
-        ABTreeMap<String, String> tree = ABTreeMap.empty (new BTreeSpec (4, AbstractBTreeTest.naturalOrder));
+        ABTreeMap<String, String> tree = ABTreeMap.empty (new ABTreeSpec (4, AbstractBTreeTest.naturalOrder));
 
         tree = tree.updated ("2", "2");
         tree = tree.updated ("4", "4");
@@ -34,7 +34,7 @@ public class BTreeBlackBoxTest {
 
     @Test
     public void testSplitRight() {
-        ABTreeMap<String, String> tree = ABTreeMap.empty (new BTreeSpec (4, AbstractBTreeTest.naturalOrder));
+        ABTreeMap<String, String> tree = ABTreeMap.empty (new ABTreeSpec (4, AbstractBTreeTest.naturalOrder));
 
         tree = tree.updated ("2", "2");
         tree = tree.updated ("4", "4");
@@ -55,7 +55,7 @@ public class BTreeBlackBoxTest {
     public void testShotgun() {
         final Random random = new Random (12345);
 
-        ABTreeMap<Integer, Integer> tree = ABTreeMap.empty (new BTreeSpec (8, AbstractBTreeTest.naturalOrder));
+        ABTreeMap<Integer, Integer> tree = ABTreeMap.empty (new ABTreeSpec (8, AbstractBTreeTest.naturalOrder));
         final Map<Integer, Integer> reference = new HashMap<> ();
 
         for (int i=0; i<1_000_000; i++) {

@@ -15,7 +15,7 @@ public class JUnitTestSupport {
         return map.equality;
     }
 
-    public static AEquality equality (AHashSet1 set) {
+    public static AEquality equality (AHashSet set) {
         return set.equalityForEquals ();
     }
 }

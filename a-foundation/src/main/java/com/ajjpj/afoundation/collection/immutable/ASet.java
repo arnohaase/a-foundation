@@ -6,7 +6,12 @@ import com.ajjpj.afoundation.collection.AEquality;
 
 /**
  * This interface represents an immutable set. It inherits most methods from ACollection, but it
- *  prescribes uniqueness semantics.
+ *  prescribes uniqueness semantics.<p>
+ *
+ * Implementations of {@link ACollection#map(com.ajjpj.afoundation.function.AFunction1)} and
+ *  {@link ACollection#flatMap(com.ajjpj.afoundation.function.AFunction1)} do <em>not</em>
+ *  return instances of {@code ASet}, but rather generic collections without uniqueness guarantees. If {@code ASet} semantics are
+ *  required, call {@link ACollection#toSet()} on the results.
  *
  * @author arno
  */

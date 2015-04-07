@@ -12,15 +12,15 @@ import java.util.*;
  * @author arno
  */
 public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a key?
-    public final BTreeSpec spec;
+    public final ABTreeSpec spec;
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
     @SuppressWarnings ("unchecked")
-    public static <K, V> ABTreeMap<K, V> empty (BTreeSpec spec) {
+    public static <K, V> ABTreeMap<K, V> empty (ABTreeSpec spec) {
         return new LeafNode (spec, new Object[0], new Object[0]);
     }
 
-    ABTreeMap (BTreeSpec spec) {
+    ABTreeMap (ABTreeSpec spec) {
         this.spec = spec;
     }
 
@@ -79,6 +79,7 @@ public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a ke
         return new MapValueCollection<> (this);
     }
     @Override public ASet<K> keys () {
+        return ABTreeSet.create (this);
     }
 
     @Override public AMap<K, V> clear () {
@@ -89,34 +90,63 @@ public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a ke
     }
 
     @Override public Iterator<AMapEntry<K, V>> iterator () {
-        return new Iterator<AMapEntry<K, V>> () {
-            final Iterator<K> keyIter = keys ().iterator ();
+        return new BTreeIterator<> (this);
+    }
 
-            @Override public boolean hasNext () {
-                return keyIter.hasNext ();
-            }
-            @Override public AMapEntry<K, V> next () { //TODO optimize this
-                final K key = keyIter.next ();
-                return new AMapEntry<K, V> () {
-                    private boolean hasValue = false;
-                    private V value;
+    private static class BTreeIterator<K,V> implements Iterator<AMapEntry<K,V>>, AMapEntry<K,V> {
+        private final Deque<Object> stack = new ArrayDeque<> ();
 
-                    @Override public K getKey () {
-                        return key;
-                    }
-                    @Override public V getValue () {
-                        if (!hasValue) {
-                            hasValue = true;
-                            value = getRequired (key); //TODO optimize this
-                        }
-                        return value;
-                    }
-                };
+        private K curKey;
+        private V curValue;
+
+        public BTreeIterator (ABTreeMap root) {
+            if (! root.isEmpty ()) {
+                stack.push (root);
             }
-            @Override public void remove () {
-                throw new UnsupportedOperationException ();
+        }
+
+        @Override public K getKey () {
+            return curKey;
+        }
+        @Override public V getValue () {
+            return curValue;
+        }
+
+        @Override public boolean hasNext () {
+            return !stack.isEmpty ();
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public AMapEntry<K, V> next () {
+            Object next;
+
+            while (true) {
+                next = stack.pop ();
+
+                if (next instanceof LeafNode) {
+                    final LeafNode leafNode = (LeafNode) next;
+                    for (int i=0; i<leafNode.size (); i++) {
+                        stack.push (leafNode.values[i]); // push key and value separately to avoid creating temporary object
+                        stack.push (leafNode.keys[i]);
+                    }
+                }
+                else if (next instanceof IndexNode) {
+                    final IndexNode indexNode = (IndexNode) next;
+                    for (ABTreeMap child: indexNode.children) {
+                        stack.push (child);
+                    }
+                }
+                else {
+                    curKey = (K) next;
+                    curValue = (V) stack.pop ();
+                    return this;
+                }
             }
-        };
+        }
+
+        @Override public void remove () {
+            throw new UnsupportedOperationException ();
+        }
     }
 
     @Override public Map<K, V> asJavaUtilMap () {

@@ -1,11 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.tuples.ATuple2;
-
-import java.util.AbstractSet;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Set;
 
 
 /**
@@ -17,7 +12,7 @@ class IndexNode extends ABTreeMap {
     final Object[] separators;
     final ABTreeMap[] children;
 
-    IndexNode (BTreeSpec spec, Object[] separators, ABTreeMap[] children) {
+    IndexNode (ABTreeSpec spec, Object[] separators, ABTreeMap[] children) {
         super (spec);
         this.separators = separators;
         this.children = children;
@@ -114,7 +109,7 @@ class IndexNode extends ABTreeMap {
     @Override RemoveResult _removed (Object key, Object leftSeparator) {
         final int childIdx = lookupKey (key);
 
-        final RemoveResult childResult = children[childIdx]._removed (key, childIdx == 0 ? leftSeparator : separators[childIdx-1]);
+        final RemoveResult childResult = children[childIdx]._removed (key, childIdx == 0 ? leftSeparator : separators[childIdx - 1]);
 
         if (childResult.newNode == children[childIdx]) {
             return new RemoveResult (this, false, leftSeparator);
@@ -284,39 +279,5 @@ class IndexNode extends ABTreeMap {
 
     @Override public boolean isEmpty () {
         return false;
-    }
-
-    @Override public Set keys () {
-        return new AbstractSet () {
-            @Override public boolean contains (Object o) {
-                return IndexNode.this.containsKey (o);
-            }
-            @Override public Iterator iterator () {
-                return new Iterator () {
-                    final Iterator<ABTreeMap> childIter = Arrays.asList (children).iterator ();
-                    Iterator<ATuple2> curIter = childIter.next ().iterator ();
-
-                    @Override public boolean hasNext () {
-                        if (curIter.hasNext ()) {
-                            return true;
-                        }
-                        if (childIter.hasNext ()) {
-                            curIter = childIter.next ().iterator ();
-                            return true;
-                        }
-                        return false;
-                    }
-                    @Override public Object next () {
-                        return curIter.next ()._1;
-                    }
-                    @Override public void remove () {
-                        throw new UnsupportedOperationException ();
-                    }
-                };
-            }
-            @Override public int size () {
-                return IndexNode.this.size ();
-            }
-        };
     }
 }

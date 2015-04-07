@@ -26,6 +26,12 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
     public abstract CI createInts(Integer... elements);
     public abstract CC createIter(Collection<? extends Iterable<String>> elements);
 
+    /**
+     * This method compares two collections for equality. Override for ASet, where map() and flatMap() return generic ACollections rather than ASet instances
+     */
+    protected <T> void assertEqualColl (ACollection<T> expected, ACollection<T> coll) {
+        assertEquals (expected, coll);
+    }
 
     @Test
     public void testEquals() {
@@ -135,9 +141,9 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        assertEquals(createInts(), create().map(len));
-        assertEquals(createInts(1), create("a").map(len));
-        assertEquals(createInts(2, 1, 3), create("ab", "c", "def").map(len));
+        assertEqualColl (createInts (), create ().map (len));
+        assertEqualColl (createInts (1), create ("a").map (len));
+        assertEqualColl (createInts (2, 1, 3), create ("ab", "c", "def").map (len));
     }
 
     @Test
@@ -148,10 +154,10 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        assertEquals(create(), create().flatMap(tokens));
-        assertEquals(create("a"), create("a").flatMap(tokens));
-        assertEquals(create("a", "bc", "def"), create("a bc def").flatMap(tokens));
-        assertEquals(create("a", "bc", "def", "x", "yz"), create("a bc def", "x yz").flatMap(tokens));
+        assertEqualColl (create (), create ().flatMap (tokens));
+        assertEqualColl (create ("a"), create ("a").flatMap (tokens));
+        assertEqualColl (create ("a", "bc", "def"), create ("a bc def").flatMap (tokens));
+        assertEqualColl (create ("a", "bc", "def", "x", "yz"), create ("a bc def", "x yz").flatMap (tokens));
     }
 
     @Test
@@ -164,17 +170,17 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        assertEquals(create(), create().flatMap(uppercaseFirst));
-        assertEquals(create(), create("asdf").flatMap(uppercaseFirst));
-        assertEquals(create("A"), create("Asdf").flatMap(uppercaseFirst));
-        assertEquals(create("A", "Q"), create("xyz", "Asdf", "Qzd", "rLS").flatMap(uppercaseFirst));
+        assertEqualColl (create (), create ().flatMap (uppercaseFirst));
+        assertEqualColl (create (), create ("asdf").flatMap (uppercaseFirst));
+        assertEqualColl (create ("A"), create ("Asdf").flatMap (uppercaseFirst));
+        assertEqualColl (create("A", "Q"), create("xyz", "Asdf", "Qzd", "rLS").flatMap(uppercaseFirst));
     }
 
     @Test
     public void testFlatten() {
         final ACollection<String> flattened = createIter(Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("b", "c", "d"))).flatten();
 
-        assertEquals(AHashSet1.create ("a", "b", "c", "d"), flattened.toSet());
+        assertEquals(AHashSet.create ("a", "b", "c", "d"), flattened.toSet());
         if(!removesDuplicates) {
             assertEquals(5, flattened.size());
             final List<String> flattenedList = new ArrayList<>(flattened.toList().asJavaUtilList());
@@ -218,7 +224,6 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             @Override public boolean equals(Object o1, Object o2) {
                 return ((Integer)o1)%2 == ((Integer)o2)%2;
             }
-
             @Override public int hashCode(Object o) {
                 return 0;
             }
@@ -244,9 +249,9 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     @Test
     public void testToSetEquals() {
-        assertEquals(AHashSet1.<String>empty (), create().toSet());
-        assertEquals(AHashSet1.create ("a", "b", "c"), create("a", "b", "c").toSet());
-        assertEquals(AHashSet1.create ("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
+        assertEquals(AHashSet.<String>empty (), create().toSet());
+        assertEquals(AHashSet.create ("a", "b", "c"), create("a", "b", "c").toSet());
+        assertEquals(AHashSet.create ("a", "b", "c"), create("a", "b", "c", "a", "b", "c").toSet());
     }
 
     @Test
@@ -261,7 +266,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
             }
         };
 
-        assertEquals(AHashSet1.create (1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
+        assertEquals(AHashSet.create (1, 2), createInts(1, 2, 3, 4, 5).toSet(equality));
     }
 
     @Test

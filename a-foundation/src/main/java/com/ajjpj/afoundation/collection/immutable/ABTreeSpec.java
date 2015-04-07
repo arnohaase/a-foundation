@@ -10,13 +10,13 @@ import java.util.Comparator;
  *
  * @author arno
  */
-public class BTreeSpec {
+public class ABTreeSpec {
     public final int maxNumEntries;
     public final int minNumEntries;
 
     public final Comparator comparator;
 
-    public BTreeSpec (int maxNumEntries, Comparator comparator) {
+    public ABTreeSpec (int maxNumEntries, Comparator comparator) {
         this.maxNumEntries = maxNumEntries;
         this.minNumEntries = maxNumEntries / 2;
         this.comparator = comparator;

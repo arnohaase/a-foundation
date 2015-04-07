@@ -59,6 +59,13 @@ public class AHashSet<T> extends MapAsSetWrapper<T, AHashSet<T>> {
 
     //TODO ASortedSet
 
+    private Object readResolve() {
+        if (isEmpty ()) {
+            if (equalityForEquals () == AEquality.EQUALS) return EMPTY_EQUALS;
+            if (equalityForEquals () == AEquality.IDENTITY) return EMPTY_IDENTITY;
+        }
+        return this;
+    }
 
     private AHashSet (AMap<T, ?> inner) {
         super (inner);

@@ -27,9 +27,9 @@ public class AMapTest {
                 new Object[] {AHashMap.empty ()},
                 new Object[] {ALongHashMap.empty ()},
                 new Object[] {AListMap.empty ()},
-                new Object[] {ABTreeMap.empty (new BTreeSpec (4, NATURAL_ORDER))},
-                new Object[] {ABTreeMap.empty (new BTreeSpec (8, NATURAL_ORDER))},
-                new Object[] {ABTreeMap.empty (new BTreeSpec (16, NATURAL_ORDER))},
+                new Object[] {ABTreeMap.empty (new ABTreeSpec (4, NATURAL_ORDER))},
+                new Object[] {ABTreeMap.empty (new ABTreeSpec (8, NATURAL_ORDER))},
+                new Object[] {ABTreeMap.empty (new ABTreeSpec (16, NATURAL_ORDER))},
                 new Object[] {ARedBlackTreeMap.empty (NATURAL_ORDER)},
                 new Object[] {ALongRedBlackTreeMap.empty ()}
         );
@@ -98,7 +98,7 @@ public class AMapTest {
                 .updated (33L, 3)
                 .updated (44L, 4);
 
-        final Set<Long> keys = map.keys();
+        final ASet<Long> keys = map.keys();
         assertEquals(4, keys.size());
         assertTrue (keys.contains (11L));
         assertTrue (keys.contains(22L));
@@ -107,7 +107,7 @@ public class AMapTest {
 
 //        ((ARedBlackTree) map).dump();
 
-        final Collection<Integer> values = map.values();
+        final ACollection<Integer> values = map.values();
         assertEquals (4, values.size());
         assertTrue (values.contains(1));
         assertTrue (values.contains(2));

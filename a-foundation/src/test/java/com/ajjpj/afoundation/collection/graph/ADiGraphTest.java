@@ -1,6 +1,6 @@
 package com.ajjpj.afoundation.collection.graph;
 
-import com.ajjpj.afoundation.collection.immutable.AHashSet1;
+import com.ajjpj.afoundation.collection.immutable.AHashSet;
 import com.ajjpj.afoundation.collection.immutable.AList;
 import org.junit.Test;
 
@@ -217,7 +217,7 @@ public class ADiGraphTest {
 
     private static AEdgePath<String, ASimpleEdge<String>> path (String first, String... others) {
         final List<ASimpleEdge<String>> edges = new ArrayList<> ();
-        AHashSet1<String> nodeSet = AHashSet1.create (first);
+        AHashSet<String> nodeSet = AHashSet.create (first);
 
         String from, to = first;
         for (String target: others) {

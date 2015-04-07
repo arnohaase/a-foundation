@@ -8,10 +8,7 @@ import com.ajjpj.afoundation.function.APredicate;
 import com.ajjpj.afoundation.function.AStatement1;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -112,6 +109,10 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return inner.asJavaUtilMap ().keySet ();
     }
 
+    @Override public String toString () {
+        return mkString ("[", ", ", "]");
+    }
+
     @Override public int hashCode() {
         return inner.hashCode();
     }
@@ -158,11 +159,17 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
 
     @SuppressWarnings ("unchecked")
     @Override public <X, E extends Exception> AMap<X, ? extends ACollection<K>> groupBy (AFunction1<? super K, ? extends X, E> f, AEquality keyEquality) throws E {
-        final Map<X, Collection<K>> raw = ACollectionHelper.groupBy (this, f);
+        AMap<X, ASet<K>> result = (AMap<X, ASet<K>>) (keyEquality.equals (inner.keyEquality ()) ? inner.clear () : AHashMap.empty (keyEquality));
 
-        AMap result = keyEquality.equals (inner.keyEquality ()) ? inner.clear () : AHashMap.empty (keyEquality);
-        for(Map.Entry<X, Collection<K>> entry: raw.entrySet()) {
-            result = result.updated (entry.getKey(), createInternal (entry.getValue ()));
+        final ASet<K> emptySet = createInternal (Collections.<K>emptyList ());
+
+        for(K o: this) {
+            final X key = f.apply(o);
+            final ASet<K> perKey = result
+                    .get(key)
+                    .getOrElse (emptySet)
+                    .added (o);
+            result = result.updated (key, perKey);
         }
         return result;
     }
@@ -173,11 +180,11 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         }
     }
 
-    @Override public <X, E extends Exception> ATraversable<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
+    @Override public <X, E extends Exception> ACollection<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
         return ACollectionHelper.asACollectionView (ACollectionHelper.map (this, f));
     }
 
-    @Override public <X, E extends Exception> ATraversable<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
+    @Override public <X, E extends Exception> ACollection<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
         return ACollectionHelper.asACollectionView (ACollectionHelper.flatMap (this, f));
     }
 

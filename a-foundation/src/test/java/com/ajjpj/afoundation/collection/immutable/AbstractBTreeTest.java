@@ -1,9 +1,5 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.immutable.BTreeSpec;
-import com.ajjpj.afoundation.collection.immutable.IndexNode;
-import com.ajjpj.afoundation.collection.immutable.LeafNode;
-
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -24,7 +20,7 @@ abstract class AbstractBTreeTest {
             separators[i-1] = leaves[i].keys[0];
         }
 
-        return new IndexNode (new BTreeSpec (8, naturalOrder), separators, leaves);
+        return new IndexNode (new ABTreeSpec (8, naturalOrder), separators, leaves);
     }
 
     protected LeafNode leaf (Integer... numbers) {
@@ -33,6 +29,6 @@ abstract class AbstractBTreeTest {
             values[i] = values[i] * 100;
         }
 
-        return new LeafNode (new BTreeSpec (8, naturalOrder), numbers, values);
+        return new LeafNode (new ABTreeSpec (8, naturalOrder), numbers, values);
     }
 }

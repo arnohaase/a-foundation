@@ -39,11 +39,11 @@ class MapValueCollection<K,V> extends AbstractACollection<V, AList<V>> { //TODO 
     @Override public <X> ACollection<X> flatten () {
         return AList.create ((Iterable<X>) ACollectionHelper.flatten ((Iterable<? extends Iterable<Object>>) this));
     }
-    @Override public <X, E extends Exception> ATraversable<X> map (AFunction1<? super V, ? extends X, E> f) throws E {
+    @Override public <X, E extends Exception> ACollection<X> map (AFunction1<? super V, ? extends X, E> f) throws E {
         return AList.create (ACollectionHelper.map (this, f));
     }
     @SuppressWarnings ("unchecked")
-    @Override public <X, E extends Exception> ATraversable<X> flatMap (AFunction1<? super V, ? extends Iterable<X>, E> f) throws E {
+    @Override public <X, E extends Exception> ACollection<X> flatMap (AFunction1<? super V, ? extends Iterable<X>, E> f) throws E {
         return AList.create (ACollectionHelper.flatMap (this, f));
     }
     @Override public Iterator<V> iterator () {

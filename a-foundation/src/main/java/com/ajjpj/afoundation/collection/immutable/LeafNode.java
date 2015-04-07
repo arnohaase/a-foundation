@@ -1,10 +1,7 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import java.lang.reflect.Array;
-import java.util.AbstractSet;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Set;
 
 
 /**
@@ -14,7 +11,7 @@ class LeafNode extends ABTreeMap {
     final Object[] keys;
     final Object[] values;
 
-    LeafNode (BTreeSpec spec, Object[] keys, Object[] values) {
+    LeafNode (ABTreeSpec spec, Object[] keys, Object[] values) {
         super (spec);
         this.keys = keys;
         this.values = values;
@@ -229,19 +226,5 @@ class LeafNode extends ABTreeMap {
     }
     @Override public boolean isEmpty () {
         return size () == 0;
-    }
-
-    @Override public Set keys () {
-        return new AbstractSet () {
-            @Override public boolean contains (Object o) {
-                return LeafNode.this.containsKey (o);
-            }
-            @Override public Iterator iterator () {
-                return Arrays.asList (keys).iterator ();
-            }
-            @Override public int size () {
-                return LeafNode.this.size ();
-            }
-        };
     }
 }

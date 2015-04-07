@@ -83,7 +83,7 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         return isDefined() ? get() : el;
     }
 
-    @Override public <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+    @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
 

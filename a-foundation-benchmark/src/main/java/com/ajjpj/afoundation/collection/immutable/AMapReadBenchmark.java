@@ -45,9 +45,9 @@ public class AMapReadBenchmark {
             case "ALongHashMap64": map = ALongHashMap.empty (); break;
             case "ARedBlackTree": map = ARedBlackTreeMap.empty (NATURAL_ORDER); break;
             case "ALongRedBlackTree": map = ALongRedBlackTreeMap.empty (); break;
-            case "ABTree4":  map = ABTreeMap.empty (new BTreeSpec (4, NATURAL_ORDER)); break;
-            case "ABTree8":  map = ABTreeMap.empty (new BTreeSpec (8, NATURAL_ORDER)); break;
-            case "ABTree16": map = ABTreeMap.empty (new BTreeSpec (16, NATURAL_ORDER)); break;
+            case "ABTree4":  map = ABTreeMap.empty (new ABTreeSpec (4, NATURAL_ORDER)); break;
+            case "ABTree8":  map = ABTreeMap.empty (new ABTreeSpec (8, NATURAL_ORDER)); break;
+            case "ABTree16": map = ABTreeMap.empty (new ABTreeSpec (16, NATURAL_ORDER)); break;
             default: throw new IllegalArgumentException (mapType);
         }
 

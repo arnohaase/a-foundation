@@ -1,12 +1,11 @@
 package com.ajjpj.afoundation.collection.immutable;
 
-import com.ajjpj.afoundation.collection.immutable.AListMap;
-import com.ajjpj.afoundation.collection.immutable.AMap;
-import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.function.AFunction1NoThrow;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -72,14 +71,14 @@ public class AListMapTest {
                 .updated("c", 3)
                 .updated("d", 4);
 
-        final Set<String> keys = map.keys();
+        final ASet<String> keys = map.keys();
         assertEquals(4, keys.size());
         assertTrue(keys.contains("a"));
         assertTrue(keys.contains("b"));
         assertTrue(keys.contains("c"));
         assertTrue(keys.contains("d"));
 
-        final Collection<Integer> values = map.values();
+        final ACollection<Integer> values = map.values();
         assertEquals(4, values.size());
         assertTrue(values.contains(1));
         assertTrue(values.contains(2));
