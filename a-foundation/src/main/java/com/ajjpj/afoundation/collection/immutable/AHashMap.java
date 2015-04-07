@@ -3,7 +3,6 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
-import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -19,7 +18,7 @@ import java.util.Map;
  *
  * @author arno
  */
-public class AHashMap<K, V> implements AMap<K,V>, Serializable {
+public class AHashMap<K, V> extends AbstractAMap<K,V> {
     private static final int LEVEL_INCREMENT = 5;
     private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
@@ -27,9 +26,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     private static final AHashMap<Object, Object> emptyIdentity = new AHashMap<>(AEquality.IDENTITY);
 
     final AEquality equality;
-
-    transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
-
 
     /**
      * Returns an empty AHashMap instance with default (i.e. equals-based) equalityForEquals. Calling this factory method instead
@@ -141,32 +137,9 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     @Override public int size() {
         return 0;
     }
-    @Override public boolean isEmpty() {
-        return size() == 0;
-    }
-    @Override public boolean nonEmpty() {
-        return size() > 0;
-    }
-
-    @Override public boolean containsKey(K key) {
-        return get(key).isDefined();
-    }
-
-    @Override public boolean containsValue(V value) {
-        for(V cur: values()) {
-            if(equality.equals(value, cur)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     @Override public AOption<V> get(K key) {
-        return doGet(key, computeHash(key, equality), 0);
-    }
-
-    @Override public V getRequired(K key) {
-        return get(key).get();
+        return doGet (key, computeHash (key, equality), 0);
     }
 
     @Override public AHashMap<K,V> updated(K key, V value) {
@@ -175,55 +148,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
 
     @Override public AHashMap<K,V> removed(K key) {
         return doRemoved(key, computeHash(key, equality), 0);
-    }
-
-    @Override public AMap<K, V> withDefaultValue(V defaultValue) {
-        return new AMapWithDefaultValue<>(this, defaultValue);
-    }
-
-    @Override public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<>(this, function);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override public boolean equals(Object o) {
-        if(o == this) {
-            return true;
-        }
-        if(! (o instanceof AMap)) {
-            return false;
-        }
-        final AMap other = (AMap) o;
-
-        if(size() != other.size()) {
-            return false;
-        }
-
-        for(AMapEntry<K,V> el: this) {
-            final AOption<V> otherValue = other.get(el.getKey ());
-            if(otherValue.isEmpty()) {
-                return false;
-            }
-
-            if(! equality.equals(el.getValue (), otherValue.get())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override public int hashCode() {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for (AMapEntry<K,V> el: this) {
-                result = result ^ (31*equality.hashCode (el.getKey ()) + equality.hashCode (el.getValue ()));
-            }
-
-            cachedHashcode = result;
-        }
-
-        return cachedHashcode;
     }
 
     @Override public Iterator<AMapEntry<K, V>> iterator() {
@@ -287,15 +211,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
         return AHashSet.create (this);
     }
 
-    @Override public ACollection<V> values() {
-        return new MapValueCollection<> (this);
-    }
-
-    @Override
-    public Map<K, V> asJavaUtilMap() {
-        return new JavaUtilMapWrapper<>(this);
-    }
-
     /**
      * @param level number of least significant bits of the hash to discard for local hash lookup. This mechanism
      *              is used to create a 32-way hash trie - level increases by 5 at each level
@@ -323,26 +238,6 @@ public class AHashMap<K, V> implements AMap<K,V>, Serializable {
     @SuppressWarnings("unchecked")
     private static <K,V> AHashMap<K,V>[] createArray(int size) {
         return new AHashMap[size];
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder result = new StringBuilder("{");
-        boolean first = true;
-
-        for(AMapEntry<K,V> e: this) {
-            if(first) {
-                first = false;
-            }
-            else {
-                result.append(", ");
-            }
-
-            result.append(e.getKey ()).append("->").append(e.getValue ());
-        }
-
-        result.append("}");
-        return result.toString();
     }
 
     /**

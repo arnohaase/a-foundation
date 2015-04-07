@@ -1,12 +1,9 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.AEquality;
-import com.ajjpj.afoundation.function.AFunction1;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 
 /**
@@ -14,10 +11,8 @@ import java.util.Objects;
  *
  * @author arno
  */
-public class ALongRedBlackTreeMap<V> implements AMap<Long,V> {
+public class ALongRedBlackTreeMap<V> extends AbstractAMap<Long,V> {
     final Tree<V> root;
-
-    transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
     @SuppressWarnings ("unchecked")
     private static final ALongRedBlackTreeMap EMPTY = new ALongRedBlackTreeMap (null);
@@ -35,23 +30,11 @@ public class ALongRedBlackTreeMap<V> implements AMap<Long,V> {
         return root == null ? 0 : root.count;
     }
 
-    @Override public boolean isEmpty () {
-        return root == null;
-    }
-
-    @Override public boolean nonEmpty () {
-        return root != null;
-    }
-
     @Override public boolean containsKey (Long key) {
         return containsKey (key.longValue ());
     }
     public boolean containsKey (long key) {
         return lookup (root, key) != null;
-    }
-
-    @Override public boolean containsValue (V value) {
-        return values ().contains (value);
     }
 
     @Override public AOption<V> get (Long key) {
@@ -65,9 +48,6 @@ public class ALongRedBlackTreeMap<V> implements AMap<Long,V> {
         return AOption.some (raw.value);
     }
 
-    @Override public V getRequired (Long key) {
-        return getRequired (key.longValue ());
-    }
     public V getRequired (long key) {
         return get (key).get ();
     }
@@ -82,11 +62,6 @@ public class ALongRedBlackTreeMap<V> implements AMap<Long,V> {
 
     @Override public AMap<Long, V> clear () {
         return empty ();
-    }
-
-
-    @Override public ACollection<V> values () {
-        return new MapValueCollection<> (this);
     }
 
     @Override public AMap<Long, V> updated (Long key, V value) {
@@ -111,84 +86,7 @@ public class ALongRedBlackTreeMap<V> implements AMap<Long,V> {
         };
     }
 
-    @Override public Map<Long, V> asJavaUtilMap () {
-        return new JavaUtilMapWrapper<> (this);
-    }
-
-    @Override public AMap<Long, V> withDefaultValue (V defaultValue) {
-        return new AMapWithDefaultValue<> (this, defaultValue);
-    }
-
-    @Override public AMap<Long, V> withDefault (AFunction1<? super Long, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<> (this, function);
-    }
-
-    @Override public boolean equals (Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (! (obj instanceof ALongRedBlackTreeMap)) {
-            return false;
-        }
-
-        final ALongRedBlackTreeMap other = (ALongRedBlackTreeMap) obj;
-        if (size () != other.size ()) {
-            return false;
-        }
-
-        final Iterator iter1 = iterator ();
-        final Iterator iter2 = other.iterator ();
-
-        while (iter1.hasNext ()) {
-            if (! iter2.hasNext ()) {
-                return false;
-            }
-            if (! Objects.equals (iter1.next (), iter2.next ())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Override public int hashCode () {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for(AMapEntry<Long, V> el: this) {
-                result = result ^ (31*Objects.hashCode(el.getKey ()) + Objects.hashCode(el.getValue ()));
-            }
-
-            cachedHashcode = result;
-        }
-
-        return cachedHashcode;
-    }
-
-    public void dump() {
-        dump (root, 0);
-    }
-
-    static void indent (int level) {
-        System.out.print ("                                                                                                                                                                            ".substring (0, 4*level));
-    }
-
-    static void dump (Tree tree, int indent) {
-        if (tree == null) {
-            indent (indent);
-            System.out.println ("<>");
-        }
-        else {
-            dump (tree.left, indent+1);
-
-            indent (indent);
-            System.out.print (tree instanceof BlackTree ? "+ " : "* ");
-            System.out.println (tree.key);
-
-            dump (tree.right, indent+1);
-        }
-    }
-
+    @SuppressWarnings ("unused")
     static void validate(Tree tree) {
         if (tree == null) {
             return;

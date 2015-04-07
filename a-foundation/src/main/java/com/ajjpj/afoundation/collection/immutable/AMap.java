@@ -3,6 +3,7 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 
@@ -24,7 +25,7 @@ import java.util.Iterator;
  *
  * @author arno
  */
-public interface AMap<K,V> extends Iterable<AMapEntry<K,V>> {
+public interface AMap<K,V> extends Iterable<AMapEntry<K,V>>, Serializable {
     /**
      * @return an {@link AEquality} that returns {@code true} if and only if two elements are
      *         'equal' in the sense that one would replace the other as a key.

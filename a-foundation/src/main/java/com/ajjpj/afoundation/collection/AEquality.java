@@ -95,7 +95,7 @@ public interface AEquality {
             return ((Comparable) o1).compareTo (o2) == 0;
         }
         @Override public int hashCode (Object o) {
-            throw new UnsupportedOperationException ();
+            return Objects.hashCode (o);
         }
 
         @Override public boolean equals (Object obj) {
@@ -115,7 +115,7 @@ public interface AEquality {
             return comparator.compare (o1, o2) == 0;
         }
         @Override public int hashCode (Object o) {
-            throw new UnsupportedOperationException ();
+            return Objects.hashCode (o);
         }
 
         @Override public boolean equals (Object obj) {

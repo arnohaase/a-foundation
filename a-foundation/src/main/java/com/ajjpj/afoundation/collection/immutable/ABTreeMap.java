@@ -11,7 +11,7 @@ import java.util.*;
  *
  * @author arno
  */
-public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a key?
+public abstract class ABTreeMap<K, V> extends AbstractAMap<K,V> {
     public final ABTreeSpec spec;
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
@@ -58,26 +58,6 @@ public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a ke
     abstract RemoveResult _removed (Object key, Object leftSeparator);
     abstract UpdateResult merge (ABTreeMap rightNeighbour, Object separator);
 
-    @Override public boolean nonEmpty () {
-        return ! isEmpty ();
-    }
-    @Override public boolean containsKey (K key) {
-        return get (key).isDefined ();
-    }
-    @Override public boolean containsValue (V value) {
-        for (V candidate: values ()) {
-            if (Objects.equals (candidate, value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    @Override public V getRequired (K key) {
-        return get (key).get ();
-    }
-    @Override public ACollection<V> values () {
-        return new MapValueCollection<> (this);
-    }
     @Override public ASet<K> keys () {
         return ABTreeSet.create (this);
     }
@@ -147,65 +127,5 @@ public abstract class ABTreeMap<K, V> implements AMap<K,V> { //TODO null as a ke
         @Override public void remove () {
             throw new UnsupportedOperationException ();
         }
-    }
-
-    @Override public Map<K, V> asJavaUtilMap () {
-        return new JavaUtilMapWrapper<> (this);
-    }
-
-    @Override public AMap<K, V> withDefaultValue (V defaultValue) {
-        return new AMapWithDefaultValue<> (this, defaultValue);
-    }
-
-    @Override public AMap<K, V> withDefault (AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<> (this, function);
-    }
-
-    @SuppressWarnings ("unchecked")
-    @Override public boolean equals (Object obj) {
-        if (! (obj instanceof ABTreeMap)) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-
-        final ABTreeMap<K,V> other = (ABTreeMap<K, V>) obj;
-
-        final Iterator<K> keyIter = keys ().iterator ();
-        final Iterator<K> keyIter2 = other.keys ().iterator ();
-
-        while (keyIter.hasNext ()) {
-            if (!keyIter2.hasNext ()) {
-                return false;
-            }
-
-            final K key = keyIter.next ();
-            final K key2 = keyIter2.next ();
-
-            if (spec.comparator.compare (key, key2) != 0) {
-                return false;
-            }
-
-            if (! Objects.equals (getRequired (key), other.getRequired (key2))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for(AMapEntry<K,V> el: this) {
-                result = result ^ (31*el.getKey ().hashCode () + el.getValue ().hashCode ());
-            }
-
-            cachedHashcode = result;
-        }
-
-        return cachedHashcode;
     }
 }

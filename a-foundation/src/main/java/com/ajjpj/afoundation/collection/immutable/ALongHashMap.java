@@ -13,7 +13,7 @@ import java.util.*;
  *
  * @author arno
  */
-public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
+public class ALongHashMap<V> extends AbstractAMap<Long,V> {
     private static final int LEVEL_INCREMENT = 10;
 
     transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
@@ -93,27 +93,9 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
     @Override public int size() {
         return 0;
     }
-    @Override public boolean isEmpty() {
-        return size() == 0;
-    }
-    @Override public boolean nonEmpty() {
-        return size() > 0;
-    }
 
-    @Override public boolean containsKey(Long key) {
-        return containsKey (key.longValue ());
-    }
     public boolean containsKey(long key) {
         return get(key).isDefined();
-    }
-
-    @Override public boolean containsValue(V value) {
-        for (V cur: values()) {
-            if (Objects.equals (value, cur)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override public AOption<V> get (Long key) {
@@ -144,57 +126,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
         return doRemoved(key, computeHash(key), 0);
     }
 
-    @Override public AMap<Long, V> withDefaultValue(V defaultValue) {
-        return new AMapWithDefaultValue<>(this, defaultValue);
-    }
-
-    @Override public AMap<Long, V> withDefault(AFunction1<? super Long, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<>(this, function);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object o) {
-        if(o == this) {
-            return true;
-        }
-        if(! (o instanceof AMap)) {
-            return false;
-        }
-        final AMap other = (AMap) o;
-
-        if(size() != other.size()) {
-            return false;
-        }
-
-        for(AMapEntry<Long,V> el: this) {
-            final AOption<V> otherValue = other.get(el.getKey ());
-            if(otherValue.isEmpty()) {
-                return false;
-            }
-
-            if(! Objects.equals(el.getValue (), otherValue.get())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for(AMapEntry<Long,V> el: this) {
-                result = result ^ (31*el.getKey ().hashCode () + Objects.hashCode(el.getValue()));
-            }
-
-            cachedHashcode = result;
-        }
-
-        return cachedHashcode;
-    }
-
     @Override
     public Iterator<AMapEntry<Long, V>> iterator() {
         return new Iterator<AMapEntry<Long, V>> () {
@@ -221,14 +152,6 @@ public class ALongHashMap<V> implements AMap<Long,V>, Serializable {
 
     @Override public ASet<Long> keys() {
         return new ALongHashSet (this);
-    }
-
-    @Override public ACollection<V> values() {
-        return new MapValueCollection<> (this);
-    }
-
-    @Override public Map<Long, V> asJavaUtilMap() {
-        return new JavaUtilMapWrapper<>(this);
     }
 
     /**

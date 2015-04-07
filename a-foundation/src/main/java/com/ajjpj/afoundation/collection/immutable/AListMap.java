@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 
 /**
@@ -19,7 +20,7 @@ import java.util.NoSuchElementException;
  *
  * @author arno
  */
-public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
+public class AListMap <K,V> extends AbstractAMap<K,V> implements AMapEntry<K,V> {
     private static final AEquality DEFAULT_EQUALITY = AEquality.EQUALS;
 
     private static final AListMap<Object, Object> emptyEquals = new AListMap<>(AEquality.EQUALS);
@@ -106,19 +107,9 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
     @Override public int size() {
         return 0;
     }
-    @Override public boolean isEmpty() {
-        return true;
-    }
-    @Override public boolean nonEmpty() {
-        return false;
-    }
 
     @Override public AOption<V> get(K key) {
         return AOption.none();
-    }
-
-    @Override public V getRequired(K key) {
-        return get(key).get();
     }
 
     @Override public K getKey() {
@@ -127,14 +118,6 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
 
     @Override public V getValue() {
         throw new NoSuchElementException("empty map");
-    }
-
-    @Override public boolean containsKey(K key) {
-        return get(key).isDefined();
-    }
-
-    @Override public boolean containsValue(V value) {
-        return false;
     }
 
     @Override public AListMap<K,V> updated(K key, V value) {
@@ -146,11 +129,7 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
     }
 
     public AListMap<K,V> tail() {
-        throw new NoSuchElementException("empty map");
-    }
-
-    @Override public Map<K, V> asJavaUtilMap() {
-        return new JavaUtilMapWrapper<>(this);
+        return null;
     }
 
     @Override public Iterator<AMapEntry<K,V>> iterator() {
@@ -159,75 +138,6 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
 
     @Override public ASet<K> keys() {
         return new AListSet<> (this);
-    }
-
-    @Override public ACollection<V> values() {
-        return new MapValueCollection<> (this);
-    }
-
-    @Override
-    public AMap<K, V> withDefaultValue(V defaultValue) {
-        return new AMapWithDefaultValue<>(this, defaultValue);
-    }
-
-    @Override
-    public AMap<K, V> withDefault(AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<>(this, function);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder result = new StringBuilder("{");
-
-        boolean first = true;
-        for(AMapEntry<K,V> el: this) {
-            if(first) {
-                first = false;
-            }
-            else {
-                result.append(", ");
-            }
-            result.append(el.getKey ()).append(" -> ").append(el.getValue ());
-        }
-
-        result.append("}");
-        return result.toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object o) {
-        if(o == this) {
-            return true;
-        }
-        if(! (o instanceof AMap)) {
-            return false;
-        }
-        final AMap other = (AMap) o;
-
-        if(size() != other.size()) {
-            return false;
-        }
-
-        for(AMapEntry<K,V> el: this) {
-            if(! equality.equals(other.get(el.getKey ()), AOption.some(el.getValue ()))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for(AMapEntry<K,V> el: this) {
-                result = result ^ (31*equality.hashCode(el.getKey ()) + equality.hashCode(el.getValue ()));
-            }
-            cachedHashcode = result;
-        }
-        return cachedHashcode;
     }
 
     static class Node<K,V> extends AListMap<K,V> {
@@ -241,13 +151,6 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
             this.key = key;
             this.value = value;
             this.tail = tail;
-        }
-
-        @Override public boolean isEmpty() {
-            return false;
-        }
-        @Override public boolean nonEmpty() {
-            return true;
         }
 
         @Override public K getKey() {
@@ -264,7 +167,7 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
             int result = 0;
 
             AListMap<K,V> m = this;
-            while(m.nonEmpty()) {
+            while(m.tail() != null) {
                 m = m.tail();
                 result += 1;
             }
@@ -281,10 +184,6 @@ public class AListMap <K,V> implements AMap<K,V>, AMapEntry<K,V>, Serializable {
                 m = m.tail();
             }
             return AOption.none();
-        }
-
-        @Override public boolean containsValue(V value) {
-            return equality.equals(this.value, value) || tail().containsValue(value);
         }
 
         @Override public AListMap<K,V> updated(K key, V value) {

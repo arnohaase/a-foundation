@@ -1,23 +1,20 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.AEquality;
-import com.ajjpj.afoundation.function.AFunction1;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 
 //TODO extract 'ASortedMap' / 'ASortedSet'
-//TODO generify ASet creation based on AMap
-//TODO map performance comparison benchmarks
 
 /**
  * @author arno
  */
-public class ARedBlackTreeMap<K,V> implements AMap<K,V> {
+public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> {
     final Tree<K,V> root;
     private final Comparator<K> comparator;
-
-    transient private Integer cachedHashcode = null; // intentionally not volatile: This class is immutable, so recalculating per thread works
 
     public static <K,V> ARedBlackTreeMap<K,V> empty (Comparator<K> comparator) {
         return new ARedBlackTreeMap<> (null, comparator);
@@ -39,20 +36,8 @@ public class ARedBlackTreeMap<K,V> implements AMap<K,V> {
         return root == null ? 0 : root.count;
     }
 
-    @Override public boolean isEmpty () {
-        return root == null;
-    }
-
-    @Override public boolean nonEmpty () {
-        return root != null;
-    }
-
     @Override public boolean containsKey (K key) {
         return lookup (root, key, comparator) != null;
-    }
-
-    @Override public boolean containsValue (V value) {
-        return values ().contains (value);
     }
 
     @Override public AOption<V> get (K key) {
@@ -63,16 +48,8 @@ public class ARedBlackTreeMap<K,V> implements AMap<K,V> {
         return AOption.some (raw.value);
     }
 
-    @Override public V getRequired (K key) {
-        return get (key).get ();
-    }
-
     @Override public ASet<K> keys () {
         return ARedBlackTreeSet.create (this);
-    }
-
-    @Override public ACollection<V> values () {
-        return new MapValueCollection<> (this);
     }
 
     @Override public AMap<K, V> updated (K key, V value) {
@@ -89,60 +66,6 @@ public class ARedBlackTreeMap<K,V> implements AMap<K,V> {
                 return tree;
             }
         };
-    }
-
-    @Override public Map<K, V> asJavaUtilMap () {
-        return new JavaUtilMapWrapper<> (this);
-    }
-
-    @Override public AMap<K, V> withDefaultValue (V defaultValue) {
-        return new AMapWithDefaultValue<> (this, defaultValue);
-    }
-
-    @Override public AMap<K, V> withDefault (AFunction1<? super K, ? extends V, ? extends RuntimeException> function) {
-        return new AMapWithDefault<> (this, function);
-    }
-
-    @Override public boolean equals (Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (! (obj instanceof ARedBlackTreeMap)) {
-            return false;
-        }
-
-        final ARedBlackTreeMap other = (ARedBlackTreeMap) obj;
-        if (size () != other.size ()) {
-            return false;
-        }
-
-        final Iterator iter1 = iterator ();
-        final Iterator iter2 = other.iterator ();
-
-        while (iter1.hasNext ()) {
-            if (! iter2.hasNext ()) {
-                return false;
-            }
-            if (! Objects.equals (iter1.next (), iter2.next ())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Override public int hashCode () {
-        if(cachedHashcode == null) {
-            int result = 0;
-
-            for(AMapEntry<K,V> el: this) {
-                result = result ^ (31*Objects.hashCode(el.getKey ()) + Objects.hashCode(el.getValue ()));
-            }
-
-            cachedHashcode = result;
-        }
-
-        return cachedHashcode;
     }
 
     public void dump() {
