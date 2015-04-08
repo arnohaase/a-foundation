@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 /**
  * @author arno
  */
-public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> {
+public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedMap<K,V> {
     final Tree<K,V> root;
     private final Comparator<K> comparator;
 
@@ -50,11 +50,11 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> {
         return ARedBlackTreeSet.create (this);
     }
 
-    @Override public AMap<K, V> updated (K key, V value) {
+    @Override public ARedBlackTreeMap<K, V> updated (K key, V value) {
         return new ARedBlackTreeMap<> (blacken (upd (root, key, value, comparator)), comparator);
     }
 
-    @Override public AMap<K, V> removed (K key) {
+    @Override public ARedBlackTreeMap<K, V> removed (K key) {
         return new ARedBlackTreeMap<> (blacken (del (root, key, comparator)), comparator);
     }
 
@@ -65,6 +65,148 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> {
             }
         };
     }
+
+
+
+
+    @Override public AOption<AMapEntry<K, V>> first () {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        while (cur.left != null) cur = cur.left;
+
+        return AOption.<AMapEntry<K,V>>some (cur);
+    }
+
+    @Override public AOption<AMapEntry<K, V>> last () {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        while (cur.right != null) cur = cur.right;
+
+        return AOption.<AMapEntry<K,V>>some (cur);
+    }
+
+    @Override public AOption<AMapEntry<K, V>> firstGreaterThan (K key) {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        Tree<K,V> candidate = null;
+        while (true) {
+            final int cmp = comparator.compare (cur.key, key);
+            if (cmp <= 0) {
+                // this node is smaller than the key --> go right
+                if (cur.right == null) return AOption.<AMapEntry<K,V>>fromNullable (candidate);
+                cur = cur.right;
+            }
+            else {
+                // this node is greater than the key --> go left
+                if (cur.left == null) return AOption.<AMapEntry<K,V>>some (cur);
+                candidate = cur;
+                cur = cur.left;
+            }
+        }
+    }
+
+    @Override public AOption<AMapEntry<K, V>> firstGreaterOrEquals (K key) {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        Tree<K,V> candidate = null;
+        while (true) {
+            final int cmp = comparator.compare (cur.key, key);
+            if (cmp == 0) return AOption.<AMapEntry<K,V>>some (cur);
+            if (cmp < 0) {
+                // this node is smaller than the key --> go right
+                if (cur.right == null) return AOption.<AMapEntry<K,V>>some (candidate);
+                cur = cur.right;
+            }
+            else {
+                // this node is greater than the key --> go left
+                if (cur.left == null) return AOption.<AMapEntry<K,V>>some (cur);
+                candidate = cur;
+                cur = cur.left;
+            }
+        }
+    }
+
+    @Override public AOption<AMapEntry<K, V>> lastSmallerThan (K key) {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        Tree<K,V> candidate = null;
+        while (true) {
+            final int cmp = comparator.compare (cur.key, key);
+            if (cmp >= 0) {
+                // this node is greater than the key --> go left
+                if (cur.left == null) return AOption.<AMapEntry<K,V>>fromNullable (candidate);
+                cur = cur.left;
+            }
+            else {
+                // this node is smaller than the key --> go right
+                if (cur.right == null) return AOption.<AMapEntry<K,V>>some (cur);
+                candidate = cur;
+                cur = cur.right;
+            }
+        }
+    }
+
+    @Override public AOption<AMapEntry<K, V>> lastSmallerOrEquals (K key) {
+        if (root == null) return AOption.none ();
+
+        Tree<K,V> cur = root;
+        Tree<K,V> candidate = null;
+        while (true) {
+            final int cmp = comparator.compare (cur.key, key);
+            if (cmp == 0) return AOption.<AMapEntry<K,V>>some (cur);
+            if (cmp > 0) {
+                // this node is greater than the key --> go left
+                if (cur.left == null) return AOption.<AMapEntry<K,V>>some (candidate);
+                cur = cur.left;
+            }
+            else {
+                // this node is smaller than the key --> go right
+                if (cur.right == null) return AOption.<AMapEntry<K,V>>some (cur);
+                candidate = cur;
+                cur = cur.right;
+            }
+        }
+    } //TODO ASortedMapTest
+
+    @Override public Iterable<AMapEntry<K, V>> rangeII (K fromKey, K toKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> rangeIE (K fromKey, K toKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> rangeEI (K fromKey, K toKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> rangeEE (K fromKey, K toKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> fromI (K fromKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> fromE (K fromKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> toI (K fromKey) {
+        return null;
+    }
+
+    @Override public Iterable<AMapEntry<K, V>> toE (K fromKey) {
+        return null;
+    }
+
+
+
 
     public void dump() {
         dump (root, 0);
