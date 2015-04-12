@@ -232,16 +232,170 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
         };
     }
 
-    @Override public Iterable<AMapEntry<K, V>> rangeIE (K fromKey, K toKey) {
-        return null;
+    @Override public Iterable<AMapEntry<K, V>> rangeIE (final K fromKey, final K toKey) {
+        return new Iterable<AMapEntry<K, V>> () {
+            @Override public Iterator<AMapEntry<K, V>> iterator () {
+                // this stack contains all nodes for which the left side was visited, while they themselves were not, and neither was their right side
+                final ArrayDeque<Tree<K,V>> pathStack = new ArrayDeque<> ();
+
+                Tree<K,V> first = null;
+
+                if (root != null) {
+                    Tree<K, V> cur = root;
+                    while (true) {
+                        final int cmp = comparator.compare (cur.key, fromKey);
+                        if (cmp == 0) {
+                            pathStack.push (cur);
+                            break;
+                        }
+                        if (cmp < 0) {
+                            // this node is smaller than the key --> go right
+                            if (cur.right == null) {
+                                break;
+                            }
+                            // this node is not in range --> do not push
+                            cur = cur.right;
+                        }
+                        else {
+                            pathStack.push (cur);
+
+                            // this node is greater than the key --> go left
+                            if (cur.left == null) {
+                                break;
+                            }
+
+                            cur = cur.left;
+                        }
+                    }
+
+                    if (! pathStack.isEmpty ()) {
+                        first = pathStack.pop ();
+                        if (comparator.compare (first.key, toKey) >= 0) {
+                            first = null;
+                        }
+                    }
+                }
+
+
+                return new TreeIterator<AMapEntry<K, V>> (pathStack, first) {
+                    @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
+                        return tree;
+                    }
+
+                    @Override protected boolean isAfterIntendedEnd (Tree<K, V> tree) {
+                        return comparator.compare (tree.key, toKey) >= 0;
+                    }
+                };
+            }
+        };
     }
 
-    @Override public Iterable<AMapEntry<K, V>> rangeEI (K fromKey, K toKey) {
-        return null;
+    @Override public Iterable<AMapEntry<K, V>> rangeEI (final K fromKey, final K toKey) {
+        return new Iterable<AMapEntry<K, V>> () {
+            @Override public Iterator<AMapEntry<K, V>> iterator () {
+                // this stack contains all nodes for which the left side was visited, while they themselves were not, and neither was their right side
+                final ArrayDeque<Tree<K,V>> pathStack = new ArrayDeque<> ();
+
+                Tree<K,V> first = null;
+
+                if (root != null) {
+                    Tree<K, V> cur = root;
+                    while (true) {
+                        final int cmp = comparator.compare (cur.key, fromKey);
+                        if (cmp <= 0) {
+                            // this node is smaller than the key --> go right
+                            if (cur.right == null) {
+                                break;
+                            }
+                            // this node is not in range --> do not push
+                            cur = cur.right;
+                        }
+                        else {
+                            pathStack.push (cur);
+
+                            // this node is greater than the key --> go left
+                            if (cur.left == null) {
+                                break;
+                            }
+
+                            cur = cur.left;
+                        }
+                    }
+
+                    if (! pathStack.isEmpty ()) {
+                        first = pathStack.pop ();
+                        if (comparator.compare (first.key, toKey) > 0) {
+                            first = null;
+                        }
+                    }
+                }
+
+
+                return new TreeIterator<AMapEntry<K, V>> (pathStack, first) {
+                    @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
+                        return tree;
+                    }
+
+                    @Override protected boolean isAfterIntendedEnd (Tree<K, V> tree) {
+                        return comparator.compare (tree.key, toKey) > 0;
+                    }
+                };
+            }
+        };
     }
 
-    @Override public Iterable<AMapEntry<K, V>> rangeEE (K fromKey, K toKey) {
-        return null;
+    @Override public Iterable<AMapEntry<K, V>> rangeEE (final K fromKey, final K toKey) {
+        return new Iterable<AMapEntry<K, V>> () {
+            @Override public Iterator<AMapEntry<K, V>> iterator () {
+                // this stack contains all nodes for which the left side was visited, while they themselves were not, and neither was their right side
+                final ArrayDeque<Tree<K,V>> pathStack = new ArrayDeque<> ();
+
+                Tree<K,V> first = null;
+
+                if (root != null) {
+                    Tree<K, V> cur = root;
+                    while (true) {
+                        final int cmp = comparator.compare (cur.key, fromKey);
+                        if (cmp <= 0) {
+                            // this node is smaller than the key --> go right
+                            if (cur.right == null) {
+                                break;
+                            }
+                            // this node is not in range --> do not push
+                            cur = cur.right;
+                        }
+                        else {
+                            pathStack.push (cur);
+
+                            // this node is greater than the key --> go left
+                            if (cur.left == null) {
+                                break;
+                            }
+
+                            cur = cur.left;
+                        }
+                    }
+
+                    if (! pathStack.isEmpty ()) {
+                        first = pathStack.pop ();
+                        if (comparator.compare (first.key, toKey) >= 0) {
+                            first = null;
+                        }
+                    }
+                }
+
+
+                return new TreeIterator<AMapEntry<K, V>> (pathStack, first) {
+                    @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
+                        return tree;
+                    }
+
+                    @Override protected boolean isAfterIntendedEnd (Tree<K, V> tree) {
+                        return comparator.compare (tree.key, toKey) >= 0;
+                    }
+                };
+            }
+        };
     }
 
     @Override public Iterable<AMapEntry<K, V>> fromI (K fromKey) {
