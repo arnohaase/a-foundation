@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.AEquality;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -171,10 +172,64 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
                 cur = cur.right;
             }
         }
-    } //TODO ASortedMapTest
+    }
 
-    @Override public Iterable<AMapEntry<K, V>> rangeII (K fromKey, K toKey) {
-        return null;
+    @Override public Iterable<AMapEntry<K, V>> rangeII (final K fromKey, final K toKey) {
+        return new Iterable<AMapEntry<K, V>> () {
+            @Override public Iterator<AMapEntry<K, V>> iterator () {
+                // this stack contains all nodes for which the left side was visited, while they themselves were not, and neither was their right side
+                final ArrayDeque<Tree<K,V>> pathStack = new ArrayDeque<> ();
+
+                Tree<K,V> first = null;
+
+                if (root != null) {
+                    Tree<K, V> cur = root;
+                    while (true) {
+                        final int cmp = comparator.compare (cur.key, fromKey);
+                        if (cmp == 0) {
+                            pathStack.push (cur);
+                            break;
+                        }
+                        if (cmp < 0) {
+                            // this node is smaller than the key --> go right
+                            if (cur.right == null) {
+                                break;
+                            }
+                            // this node is not in range --> do not push
+                            cur = cur.right;
+                        }
+                        else {
+                            pathStack.push (cur);
+
+                            // this node is greater than the key --> go left
+                            if (cur.left == null) {
+                                break;
+                            }
+
+                            cur = cur.left;
+                        }
+                    }
+
+                    if (! pathStack.isEmpty ()) {
+                        first = pathStack.pop ();
+                        if (comparator.compare (first.key, toKey) > 0) {
+                            first = null;
+                        }
+                    }
+                }
+
+
+                return new TreeIterator<AMapEntry<K, V>> (pathStack, first) {
+                    @Override AMapEntry<K, V> nextResult (Tree<K, V> tree) {
+                        return tree;
+                    }
+
+                    @Override protected boolean isAfterIntendedEnd (Tree<K, V> tree) {
+                        return comparator.compare (tree.key, toKey) > 0;
+                    }
+                };
+            }
+        };
     }
 
     @Override public Iterable<AMapEntry<K, V>> rangeIE (K fromKey, K toKey) {
@@ -271,17 +326,8 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
 
 
     private abstract class TreeIterator<R> implements Iterator<R> {
-        /*
-         * According to "Ralf Hinze. Constructing redden-blacken trees" [http://www.cs.ox.ac.uk/ralf.hinze/publications/#P5]
-         * the maximum height of a redden-blacken tree is 2*log_2(n + 2) - 2.
-         *
-         * According to {@see Integer#numberOfLeadingZeros} ceil(log_2(n)) = (32 - Integer.numberOfLeadingZeros(n - 1))
-         *
-         * We also don't store the deepest nodes in the pathStack so the maximum pathStack length is further reduced by one.
-         */
         @SuppressWarnings ("unchecked")
-        private final Tree<K,V>[] pathStack;
-        private int stackIndex = 0;
+        private final ArrayDeque<Tree<K,V>> pathStack;
         private Tree<K,V> next;
 
         abstract R nextResult (Tree<K,V> tree); //TODO rename this
@@ -294,13 +340,18 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
                 next = null;
             }
             else {
-                pathStack = new Tree [2 * (32 - Integer.numberOfLeadingZeros(root.count + 2 - 1)) - 2 - 1];
+                pathStack = new ArrayDeque<> ();
                 next = root;
                 while (next.left != null) {
-                    pushPath (next);
+                    pathStack.push (next);
                     next = next.left;
                 }
             }
+        }
+
+        private TreeIterator (ArrayDeque<Tree<K,V>> pathStack, Tree<K,V> first) {
+            this.pathStack = pathStack;
+            this.next = first;
         }
 
         @Override public boolean hasNext() {
@@ -313,12 +364,18 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
             }
 
             final Tree<K,V> cur = next;
-            next = findNext (next.right);
+            next = filteredFindNext (next.right);
             return nextResult (cur);
         }
 
         @Override public void remove () {
             throw new UnsupportedOperationException ();
+        }
+
+        private Tree<K,V> filteredFindNext (Tree<K,V> tree) {
+            final Tree<K,V> result = findNext (tree);
+            if (result == null || isAfterIntendedEnd (result)) return null;
+            return result;
         }
 
         private Tree<K,V> findNext (Tree<K,V> tree) {
@@ -329,27 +386,26 @@ public class ARedBlackTreeMap<K,V> extends AbstractAMap<K,V> implements ASortedM
                 if (tree.left == null) {
                     return tree;
                 }
-                pushPath (tree);
+                pathStack.push (tree);
                 tree = tree.left;
             }
         }
 
-        private void pushPath (Tree<K,V> tree) {
-            pathStack[stackIndex] = tree;
-            stackIndex += 1;
+        /**
+         * override if an iterator should finish before the entire map is traversed
+         */
+        protected boolean isAfterIntendedEnd (Tree<K,V> tree) {
+            return false;
         }
 
         private Tree<K,V> popPath() {
-            if (stackIndex == 0) {
+            if (pathStack.isEmpty ()) {
                 // convenience for handling the end of iteration
                 return null;
             }
-            stackIndex -= 1;
-            return pathStack[stackIndex];
+            return pathStack.pop ();
         }
     }
-
-
 
 
 

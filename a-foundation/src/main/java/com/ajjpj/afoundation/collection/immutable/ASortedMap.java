@@ -15,6 +15,7 @@ package com.ajjpj.afoundation.collection.immutable;
 public interface ASortedMap<K,V> extends AMap<K,V> { //TODO ASortedSet
     @Override ASortedMap<K, V> updated (K key, V value);
     @Override ASortedMap<K, V> removed (K key);
+
     /**
      * @return the first entry of the map, i.e. the entry with the 'smallest' key relative
      *          to the underlying sort order - or {@link AOption#none()} if the map is empty.
