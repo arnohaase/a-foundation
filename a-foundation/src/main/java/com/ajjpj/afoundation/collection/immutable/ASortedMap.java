@@ -89,10 +89,10 @@ public interface ASortedMap<K,V> extends AMap<K,V> { //TODO ASortedSet
     /**
      * @return all entries with keys smaller than or equal to a given value.
      */
-    Iterable <AMapEntry <K,V>> toI (K fromKey);
+    Iterable <AMapEntry <K,V>> toI (K toKey);
 
     /**
      * @return all entries with keys strictly smaller than or equal to a given value.
      */
-    Iterable <AMapEntry <K,V>> toE (K fromKey);
+    Iterable <AMapEntry <K,V>> toE (K toKey);
 }

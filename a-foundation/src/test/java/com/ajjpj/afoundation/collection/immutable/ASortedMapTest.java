@@ -3,9 +3,10 @@ package com.ajjpj.afoundation.collection.immutable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static org.junit.Assert.*;
 
 import java.util.*;
+
+import static org.junit.Assert.*;
 
 
 /**
@@ -42,15 +43,13 @@ public class ASortedMapTest {
         assertTrue (EMPTY.first ().isEmpty ());
         assertTrue (EMPTY.last ().isEmpty ());
 
-        for (int start=0; start<100; start++) {
-            for (int end=start; end < 110; end++) {
+        for (int start=0; start<100; start+=2) {
+            for (int end=start; end < 110; end+=2) {
                 for (int asc=0; asc<3; asc++) {
                     final ASortedMap<Long, Integer> map = fill (start, end, asc);
 
                     assertEquals (Long.valueOf (start), map.first ().get ().getKey ());
-                    assertEquals (Long.valueOf (end), map.last ().get ().getKey ());
-                    assertEquals (Integer.valueOf (start), map.first ().get ().getValue ());
-                    assertEquals (Integer.valueOf (end), map.last ().get ().getValue ());
+                    assertEquals (Long.valueOf (end),   map.last  ().get ().getKey ());
                 }
             }
         }
@@ -92,23 +91,61 @@ public class ASortedMapTest {
         assertTrue (EMPTY.lastSmallerThan (1L).isEmpty ());
         assertTrue (EMPTY.lastSmallerOrEquals (1L).isEmpty ());
 
-        for (int start=0; start<100; start+=2) {
-            for (int end=start; end < 110; end+=2) {
+        for (long start=0; start<100; start+=2) {
+            for (long end=start; end < 110; end+=2) {
                 for (int asc=0; asc<3; asc++) {
                     final ASortedMap<Long, Integer> map = fill (start, end, asc);
 
-                    for (long i = start; i <= end; i++) {
-                        assertEquals (i, map.firstGreaterOrEquals (i).get ().getKey ().longValue ());
-                        assertEquals (i, map.lastSmallerOrEquals (i).get ().getKey ().longValue ());
+                    assertFalse (map.firstGreaterOrEquals (end+1).isDefined ());
+                    assertFalse (map.firstGreaterOrEquals (end+2).isDefined ());
 
-                        if (i < end) assertEquals (i + 1, map.firstGreaterThan (i).get ().getKey ().longValue ());
-                        else assertTrue (map.firstGreaterThan (i).isEmpty ());
-                        if (i > start) assertEquals (i - 1, map.lastSmallerThan (i).get ().getKey ().longValue ());
-                        else assertTrue (map.lastSmallerThan (i).isEmpty ());
+                    assertFalse (map.firstGreaterThan (end).isDefined ());
+                    assertFalse (map.firstGreaterThan (end + 1).isDefined ());
+                    assertFalse (map.firstGreaterThan (end + 2).isDefined ());
+
+                    assertFalse (map.lastSmallerOrEquals (start-1).isDefined ());
+                    assertFalse (map.lastSmallerOrEquals (start-2).isDefined ());
+
+                    assertFalse (map.lastSmallerThan (start).isDefined ());
+                    assertFalse (map.lastSmallerThan (start - 1).isDefined ());
+                    assertFalse (map.lastSmallerThan (start - 2).isDefined ());
+
+//                    dump (map);
+                    for (long i = start-2; i <= end+2; i++) {
+//                        System.out.println ("  " + i + " -> " + map.lastSmallerOrEquals (i));
+
+                        checkEqOption (inRange (upperEven (i),   start, end, false), map.firstGreaterOrEquals (i));
+                        checkEqOption (inRange (upperEven (i+1), start, end, false), map.firstGreaterThan (i));
+
+                        checkEqOption (inRange (lowerEven (i),   start, end, true), map.lastSmallerOrEquals (i));
+                        checkEqOption (inRange (lowerEven (i-1), start, end, true), map.lastSmallerThan (i));
                     }
                 }
             }
         }
+    }
+
+    long lowerEven (long l) {
+        return l%2 == 0 ? l : l-1;
+    }
+
+    long upperEven (long l) {
+        return l%2 == 0 ? l : l+1;
+    }
+
+    private void checkEqOption (Long l, AOption<AMapEntry<Long, Integer>> e) {
+        if (l == null) {
+            assertFalse (e.isDefined ());
+        }
+        else {
+            assertEquals (l, e.get ().getKey ());
+        }
+    }
+
+    private Long inRange (long value, long min, long max, boolean undefinedBelow) {
+        if (value < min) return  undefinedBelow ? null : min;
+        if (value > max) return !undefinedBelow ? null : max;
+        return value;
     }
 
     private void checkEq (long min, long max, Iterable<AMapEntry<Long,Integer>> data) {
@@ -133,9 +170,9 @@ public class ASortedMapTest {
 
     @Test
     public void testRange() {
-//        assertFalse (EMPTY.rangeEE (0L, 1L).iterator ().hasNext ());
-//        assertFalse (EMPTY.rangeEI (0L, 1L).iterator ().hasNext ());
-//        assertFalse (EMPTY.rangeIE (0L, 1L).iterator ().hasNext ());
+        assertFalse (EMPTY.rangeEE (0L, 1L).iterator ().hasNext ());
+        assertFalse (EMPTY.rangeEI (0L, 1L).iterator ().hasNext ());
+        assertFalse (EMPTY.rangeIE (0L, 1L).iterator ().hasNext ());
         assertFalse (EMPTY.rangeII (0L, 1L).iterator ().hasNext ());
 
         //TODO toString implementation for ranges
@@ -165,6 +202,24 @@ public class ASortedMapTest {
 
     @Test
     public void testFromTo() {
-        fail ("todo");
+        assertFalse (EMPTY.fromI (1L).iterator ().hasNext ());
+        assertFalse (EMPTY.fromE (1L).iterator ().hasNext ());
+        assertFalse (EMPTY.toI (1L).iterator ().hasNext ());
+        assertFalse (EMPTY.toE (1L).iterator ().hasNext ());
+
+        for (long start=0; start<100; start+=2) {
+            for (long end=start; end < 110; end+=2) {
+                for (int asc=0; asc<3; asc++) {
+                    final ASortedMap<Long, Integer> map = fill (start, end, asc);
+
+                    for (long rangeStart=start-1; rangeStart<=end+1; rangeStart++) {
+                        checkEq (Math.max (start, rangeStart),   end, map.fromI (rangeStart));
+                        checkEq (Math.max (start, rangeStart+1), end, map.fromE (rangeStart));
+                        checkEq (start, Math.min (end, rangeStart),   map.toI   (rangeStart));
+                        checkEq (start, Math.min (end, rangeStart-1), map.toE   (rangeStart));
+                    }
+                }
+            }
+        }
     }
 }
