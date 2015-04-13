@@ -208,7 +208,7 @@ public class AHashMap<K, V> extends AbstractAMap<K,V> {
     }
 
     @Override public ASet<K> keys() {
-        return AHashSet.create (this);
+        return AHashSet.fromMap (this);
     }
 
     /**

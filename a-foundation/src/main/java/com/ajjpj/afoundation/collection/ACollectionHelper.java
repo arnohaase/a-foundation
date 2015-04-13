@@ -18,6 +18,38 @@ import java.util.*;
  */
 public class ACollectionHelper {
     /**
+     * Create a {@link java.util.Set} from an {@link Iterator}.
+     */
+    public static <T> Set<T> createSet (Iterator<T> elements) {
+        final Set<T> result = new HashSet<> ();
+        while (elements.hasNext ()) result.add (elements.next ());
+        return result;
+    }
+
+    /**
+     * Create a {@link java.util.Set} from an {@link java.lang.Iterable}.
+     */
+    public static <T> Set<T> createSet (Iterable<T> elements) {
+        return createSet (elements.iterator ());
+    }
+
+    /**
+     * Create a {@link java.util.Set} from an {@link Iterator}, transforming each element.
+     */
+    public static <T,U,E extends Exception> Set<U> createSet (Iterator<T> elements, AFunction1<T,U,E> f) throws E {
+        final Set<U> result = new HashSet<> ();
+        while (elements.hasNext ()) result.add (f.apply (elements.next ()));
+        return result;
+    }
+
+    /**
+     * Create a {@link java.util.Set} from an {@link Iterable}, transforming each element.
+     */
+    public static <T,U,E extends Exception> Set<U> createSet (Iterable<T> elements, AFunction1<T,U,E> f) throws E {
+        return createSet (elements.iterator (), f);
+    }
+
+    /**
      * Returns a string representation of a collection, separating elements with a comma.
      */
     public static String mkString(Iterable<?> iterable) {

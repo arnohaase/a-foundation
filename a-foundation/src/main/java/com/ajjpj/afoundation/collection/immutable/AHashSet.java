@@ -53,7 +53,7 @@ public class AHashSet<T> extends MapAsSetWrapper<T, AHashSet<T>> {
         return result;
     }
 
-    public static <T> AHashSet<T> create (AHashMap<T,?> inner) {
+    public static <T> AHashSet<T> fromMap (AHashMap<T, ?> inner) {
         return new AHashSet<> (inner);
     }
 
