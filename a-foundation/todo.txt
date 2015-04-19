@@ -1,5 +1,8 @@
 todo
 ----
+* JMH benchmarks
+  * AThreadPool vs. Completablefuture
+
 * Why is iterator() 30% *slower* for ALongRedBlackTree than for ARedBlackTree?!
 * LongSet? --> generic 'Set' wrapper for maps
 
@@ -21,3 +24,4 @@ todo
 * TODO comments
 * warnings
   * "unused"
+

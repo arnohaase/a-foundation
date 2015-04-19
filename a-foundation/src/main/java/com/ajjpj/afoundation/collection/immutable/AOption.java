@@ -2,10 +2,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.AEquality;
-import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.AFunction2;
-import com.ajjpj.afoundation.function.APredicate;
-import com.ajjpj.afoundation.function.AStatement1;
+import com.ajjpj.afoundation.function.*;
 
 import java.io.Serializable;
 import java.util.*;
@@ -79,9 +76,19 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
     /**
      * @return the element held in this AOption if there is one, and the default element passed in as  parameter otherwise
      */
-    public T getOrElse(T el) {
-        return isDefined() ? get() : el;
-    }
+    public abstract T getOrElse (T defaultValue);
+
+    /**
+     * @return the element held in this AOption if there is one, and the result of evaluating the function passed in otherwise. The function is
+     *  guaranteed to be evaluated only if this AOption is empty.
+     */
+    public abstract <E extends Exception> T getOrElseEval (AFunction0<T,E> producer) throws E;
+
+    /**
+     * This method returns the element contained in this AOption if it is defined. Otherwise, it evaluates the function passed in and throws the exception
+     *  returned by that function. The function is guaranteed to be evaluated only if this AOption is empty.
+     */
+    public abstract <E extends Exception> T getOrElseThrow (AFunction0NoThrow<E> producer) throws E;
 
     @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         throw new UnsupportedOperationException("AOption can not be flattened");
@@ -126,6 +133,18 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         }
 
         @Override public T get() {
+            return el;
+        }
+
+        @Override public T getOrElse (T defaultValue) {
+            return el;
+        }
+
+        @Override public <E extends Exception> T getOrElseEval (AFunction0<T, E> producer) throws E {
+            return el;
+        }
+
+        @Override public <E extends Exception> T getOrElseThrow (AFunction0NoThrow<E> producer) throws E {
             return el;
         }
 
@@ -287,6 +306,18 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
 
         @Override public Object get() {
             throw new NoSuchElementException("no value for ANone");
+        }
+
+        @Override public Object getOrElse (Object defaultValue) {
+            return defaultValue;
+
+        }
+        @Override public <E extends Exception> Object getOrElseEval (AFunction0<Object, E> producer) throws E {
+            return producer.apply ();
+        }
+
+        @Override public <E extends Exception> Object getOrElseThrow (AFunction0NoThrow<E> producer) throws E {
+            throw producer.apply ();
         }
 
         @Override public boolean isDefined() {
