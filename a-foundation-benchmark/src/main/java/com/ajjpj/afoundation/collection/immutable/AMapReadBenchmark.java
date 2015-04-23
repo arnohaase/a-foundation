@@ -69,7 +69,7 @@ public class AMapReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void testIterate() {
         for (int i=0; i<1_000_000/size; i++) {
             for (AMapEntry el : map) {

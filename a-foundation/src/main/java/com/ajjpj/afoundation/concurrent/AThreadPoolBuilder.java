@@ -100,6 +100,10 @@ public class AThreadPoolBuilder {
         return new ASyncThreadPool ();
     }
 
+    public AThreadPool buildForkJoin (int size) {
+        return new AThreadPoolFjImpl (size, interruptOnTimeout);
+    }
+
     /**
      * Creates a fixed size thread pool of the given size.
      */
