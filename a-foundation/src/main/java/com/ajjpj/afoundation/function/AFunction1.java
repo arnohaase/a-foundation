@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.function;
 
 import java.io.Serializable;
+import java.sql.SQLException;
 
 
 /**

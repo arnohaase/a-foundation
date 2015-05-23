@@ -2,7 +2,7 @@ package com.ajjpj.afoundation.concurrent;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
-import com.ajjpj.afoundation.function.AStatement2;
+import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AStatement2NoThrow;
 
 import java.util.concurrent.*;
@@ -17,19 +17,27 @@ public class AFuture2<T> {
     private final CountDownLatch latch = new CountDownLatch (1);
     private final AtomicReference<AList<AStatement2NoThrow<T, Throwable>>> listeners = new AtomicReference<> (AList.<AStatement2NoThrow<T, Throwable>>nil ());
 
+    private final AThreadPool2 pool;
+
     private final Future<?> innerFuture;
 
-    public AFuture2 (ExecutorService es, final Callable<T> callable) {
-        innerFuture = es.submit (new Runnable () {
-            @Override public void run () {
-                try {
-                    set (callable.call (), null);
+    public AFuture2 (AThreadPool2 pool, final Callable<T> callable) {
+        this.pool = pool;
+        if (callable != null) {
+            innerFuture = pool.getExecutorService().submit (new Runnable () {
+                @Override public void run () {
+                    try {
+                        set (callable.call (), null);
+                    }
+                    catch (Throwable th) {
+                        set (null, th);
+                    }
                 }
-                catch (Throwable th) {
-                    set (null, th);
-                }
-            }
-        }, null);
+            }, null);
+        }
+        else {
+            innerFuture = null;
+        }
     }
 
     public T get() throws InterruptedException, ExecutionException {
@@ -44,7 +52,11 @@ public class AFuture2<T> {
 
     public void cancel (boolean interruptIfRunning) {
         if (set (null, new CancellationException ())) {
-            innerFuture.cancel (interruptIfRunning);
+            if (innerFuture!=null) {
+                innerFuture.cancel (interruptIfRunning);
+            } else{
+                // TODO mapsync?
+            }
         }
     }
 
@@ -62,21 +74,11 @@ public class AFuture2<T> {
     }
 
     private void fireListeners(T value, Throwable th) {
-        do {
-            AStatement2NoThrow<T, Throwable> l;
-            AList<AStatement2NoThrow<T, Throwable>> before, after;
-            do {
-                before = listeners.get ();
-                if (before.isEmpty ()) {
-                    return;
-                }
-                after = before.tail ();
-                l = before.head ();
-            }
-            while (!listeners.compareAndSet (before, after));
+        final AList<AStatement2NoThrow<T,Throwable>> all = listeners.getAndSet (AList.<AStatement2NoThrow<T,Throwable>>nil ());
+
+        for (AStatement2NoThrow<T,Throwable> l: all) {
             l.apply (value, th);
         }
-        while (true);
     }
 
     public void onFinished(AStatement2NoThrow<T, Throwable> listener){
@@ -91,5 +93,49 @@ public class AFuture2<T> {
             final ATuple2<T,Throwable> r = result.get ();
             fireListeners (r._1, r._2);
         }
+    }
+
+    public <U, E extends Exception> AFuture2<U> mapSync (final AFunction1<T, U, E> f) {
+        final AFuture2<U> result = new AFuture2<> (null, null);
+        onFinished (new AStatement2NoThrow<T, Throwable> () {
+            @Override public void apply (T param1, Throwable param2) {
+                if (param2 != null) {
+                    result.set (null, param2);
+                }
+                else {
+                    try {
+                        result.set (f.apply (param1), null);
+                    }
+                    catch (Throwable th) {
+                        result.set (null, th);
+                    }
+                }
+            }
+        });
+        return result;
+    }
+
+    public <U, E extends Exception> AFuture2<U> mapAsync (final AFunction1<T, U, E> f, final long timeout, final TimeUnit timeUnit) {
+        final AFuture2<U> result = new AFuture2<> (null, null);
+        onFinished (new AStatement2NoThrow<T, Throwable> () {
+            @Override public void apply (T param1, Throwable param2) {
+                if (param2 != null) {
+                    result.set (null, param2);
+                }
+                else {
+                    pool.submit (new Callable<U> () {
+                        @Override public U call () throws Exception {
+                            return f.apply (get ());
+                        }
+                    }, timeout, timeUnit)
+                            .onFinished (new AStatement2NoThrow<U, Throwable> () {
+                                @Override public void apply (U param1, Throwable param2) {
+                                    result.set (param1, param2);
+                                }
+                            });
+                }
+            }
+        });
+        return result;
     }
 }

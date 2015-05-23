@@ -11,14 +11,17 @@ import java.util.concurrent.*;
 public class AThreadPool2 {
 
     private final ExecutorService executor;
-    private final ScheduledExecutorService timer = Executors.newScheduledThreadPool (1);
+    private final ScheduledThreadPoolExecutor timer;
 
     public AThreadPool2 (ExecutorService executor) {
         this.executor = executor;
+        timer = new ScheduledThreadPoolExecutor (1, AThreadFactory.createWithRunningPoolNumber ("AThreadPool2_timeoutChecker", true));
+        timer.setRemoveOnCancelPolicy (true);
     }
 
     public <V> AFuture2<V> submit(final Callable<V> callable, long timeout, TimeUnit timeUnit) {
-        final AFuture2<V> result = new AFuture2<> (executor, callable);
+        if (timer.isShutdown ()) throw new IllegalStateException (); // TODO comment unify
+        final AFuture2<V> result = new AFuture2<> (this, callable);
         final Future<Void> timerFuture = timer.schedule (new Callable<Void> () {
             @Override public Void call () throws Exception {
                 result.set (null, new TimeoutException ());
@@ -33,4 +36,10 @@ public class AThreadPool2 {
         return result;
     }
 
+    ExecutorService getExecutorService () {
+        return executor;
+    }
+    public void shutdown () {
+        timer.shutdown ();
+    }
 }

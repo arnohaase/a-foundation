@@ -39,8 +39,8 @@ public class AThreadPoolTest {
 
     @Test
     public void testSimple() throws InterruptedException, TimeoutException, ExecutionException {
-        threadPool = new AThreadPoolBuilder ().buildForkJoin (10);
-//        threadPool = new AThreadPoolBuilder ().buildFixedSize (10);
+//        threadPool = new AThreadPoolBuilder ().buildForkJoin (10);
+        threadPool = new AThreadPoolBuilder ().buildFixedSize (10);
 
         final CountDownLatch latch = new CountDownLatch (1);
         final CountDownLatch latch2 = new CountDownLatch (10);

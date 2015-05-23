@@ -17,51 +17,24 @@ import java.util.concurrent.*;
 @State (Scope.Benchmark)
 public class AThreadPoolBenchmark {
     private final AThreadPool threadPool = new AThreadPoolBuilder().buildFixedSize (Runtime.getRuntime ().availableProcessors ());
-
-    public static void main (String[] args) throws InterruptedException {
-        ForkJoinPool.commonPool ().execute (new MyTask (5));
-        Thread.sleep (1000);
-    }
-
-    static class MyTask extends ForkJoinTask {
-        private final int i;
-
-        public MyTask (int i) {
-            this.i = i;
-        }
-
-        @Override public Object getRawResult () {
-            return null;
-        }
-        @Override protected void setRawResult (Object value) {
-        }
-        @Override protected boolean exec () {
-            if (i > 0) {
-                super.getPool ().execute (new MyTask (i-1));
-            }
-
-            System.out.println ("finsished " + i + " in " + Thread.currentThread ().getName () + ": " + isDone ());
-
-            return true;
-        }
-    }
-
-
+    private final AThreadPool2 threadPool2 = new AThreadPool2 (ForkJoinPool.commonPool ());
 
     @TearDown
     public void shutdown() {
         threadPool.shutdown ();
+        threadPool2.shutdown ();
     }
 
-    @Benchmark
+//    @Benchmark
     public void testAFuture() throws ExecutionException, InterruptedException {
         final List<AFuture<Integer>> futures = new ArrayList<> ();
         for (int i=0; i<1000; i++) {
             final int n = i;
             futures.add ((AFuture) threadPool.submit (() -> n, 1, TimeUnit.SECONDS)
-                    .mapSync (this::inc)
-                    .mapSync (this::timesTwo)
-                    .mapSync (this::inc));
+            );
+//                    .mapSync (this::inc)
+//                    .mapSync (this::timesTwo)
+//                    .mapSync (this::inc));
 //                    .mapAsync (this::inc, 1, TimeUnit.SECONDS)
 //                    .mapAsync (this::timesTwo, 1, TimeUnit.SECONDS)
 //                    .mapAsync (this::inc, 1, TimeUnit.SECONDS));
@@ -72,7 +45,27 @@ public class AThreadPoolBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
+    public void testAFuture2() throws ExecutionException, InterruptedException {
+        final List<AFuture2<Integer>> futures = new ArrayList<> ();
+        for (int i=0; i<1000; i++) {
+            final int n = i;
+            futures.add ((AFuture2) threadPool2.submit (() -> n, 1, TimeUnit.SECONDS))
+                    ;
+//                    .mapSync (this::inc)
+//                    .mapSync (this::timesTwo)
+//                    .mapSync (this::inc));
+//                    .mapAsync (this::inc, 1, TimeUnit.SECONDS)
+//                    .mapAsync (this::timesTwo, 1, TimeUnit.SECONDS)
+//                    .mapAsync (this::inc, 1, TimeUnit.SECONDS));
+        }
+
+        for (AFuture2 f: futures) {
+            f.get ();
+        }
+    }
+
+//    @Benchmark
     public void testCompletableFutureApplySync() throws ExecutionException, InterruptedException, TimeoutException {
         final List<CompletableFuture<Integer>> futures = new ArrayList<> ();
         for (int i=0; i<1000; i++) {
@@ -88,7 +81,7 @@ public class AThreadPoolBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void testCompletableFutureApplyAsync() throws ExecutionException, InterruptedException, TimeoutException {
         final List<CompletableFuture<Integer>> futures = new ArrayList<> ();
         for (int i=0; i<1000; i++) {
