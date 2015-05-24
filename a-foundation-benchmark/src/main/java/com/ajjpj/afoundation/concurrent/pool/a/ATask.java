@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.concurrent.pool.AFuture;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -13,7 +14,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author arno
  */
-public class ATask<T> implements Future<T> {
+public class ATask<T> implements AFuture<T> {
     //TODO make original Callable extractable --> resubmit
     private final AtomicReference<AList<Thread>> waiters = new AtomicReference<> (AList.nil());
     private final AtomicReference<Result> result = new AtomicReference<> ();
@@ -37,17 +38,11 @@ public class ATask<T> implements Future<T> {
         doFinish (new Result (null, th));
     }
 
-    @Override public boolean cancel (boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException (); //TODO
-    }
-    @Override public boolean isCancelled () {
-        throw new UnsupportedOperationException (); //TODO
-    }
     @Override public boolean isDone () {
         return result.get () != null;
     }
 
-    @Override public T get () throws InterruptedException, ExecutionException {
+    @Override public T get () throws ExecutionException, InterruptedException {
         await (false, 0);
         return doGet();
     }
@@ -61,13 +56,13 @@ public class ATask<T> implements Future<T> {
         return (T) res.value;
     }
 
-    @Override public T get (long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        await (true, unit.toNanos (timeout));
-        if (!isDone ()) {
-            throw new TimeoutException ();
-        }
-        return doGet();
-    }
+//    @Override public T get (long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+//        await (true, unit.toNanos (timeout));
+//        if (!isDone ()) {
+//            throw new TimeoutException ();
+//        }
+//        return doGet();
+//    }
 
     void await (boolean timed, long nanos) throws InterruptedException {
         final long deadline = timed ? System.nanoTime() + nanos : 0L;

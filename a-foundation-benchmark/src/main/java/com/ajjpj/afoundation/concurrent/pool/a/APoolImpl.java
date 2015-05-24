@@ -1,16 +1,16 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
-import com.ajjpj.afoundation.concurrent.pool.Pool;
+import com.ajjpj.afoundation.concurrent.pool.AFuture;
+import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
 
 
 /**
  * @author arno
  */
-public class APoolImpl implements Pool {
+public class APoolImpl implements APool {
     private final ASchedulingStrategy schedulingStrategy;
 
     final AThread[] threads;
@@ -43,7 +43,7 @@ public class APoolImpl implements Pool {
         return this;
     }
 
-    @Override public <T> Future<T> submit (Callable<T> code) {
+    @Override public <T> AFuture<T> submit (Callable<T> code) {
         final Thread curThread = Thread.currentThread ();
         if (curThread instanceof AThread && ((AThread) curThread).pool == this) {
             final ATask<T> result = new ATask<> ();

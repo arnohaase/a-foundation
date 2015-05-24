@@ -11,7 +11,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author arno
  */
-public class NaivePool implements Pool {
+public class NaivePool implements APool {
     private final Runnable SHUTDOWN = () -> {};
 
     private final AtomicBoolean shutdown = new AtomicBoolean (false);
@@ -44,7 +44,7 @@ public class NaivePool implements Pool {
         }
     }
 
-    @Override public <T> Future<T> submit (final Callable<T> code) {
+    @Override public <T> AFuture<T> submit (final Callable<T> code) {
         if (shutdown.get ()) {
             throw new RejectedExecutionException ();
         }
@@ -63,7 +63,7 @@ public class NaivePool implements Pool {
             throw new RejectedExecutionException ();
         }
 
-        return result;
+        return new WrappingAFuture<> (result);
     }
 
     @Override public void shutdown () throws InterruptedException {

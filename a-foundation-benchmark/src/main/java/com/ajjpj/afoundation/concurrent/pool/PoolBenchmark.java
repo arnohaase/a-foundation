@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 @Measurement (iterations = 3, time = 3)
 @State (Scope.Benchmark)
 public class PoolBenchmark {
-    Pool pool;
+    APool pool;
 
     @Param ({
             "naive",
@@ -108,18 +108,39 @@ public class PoolBenchmark {
     long fibo (long n) throws ExecutionException, InterruptedException {
         if (n <= 1) return 1;
 
-        final Future<Long> f = pool.submit (() -> fibo(n-1));
+        final AFuture<Long> f = pool.submit (() -> fibo(n-1));
         return f.get() + pool.submit (() -> fibo(n-2)).get ();
     }
 
-//    @Benchmark
-    public void testPingPong() throws InterruptedException {
+    @Benchmark
+    public void testPingPong1() throws InterruptedException {
+        testPingPong (1);
+    }
+
+    @Benchmark
+    public void testPingPong2() throws InterruptedException {
+        testPingPong (2);
+    }
+
+    @Benchmark
+    public void testPingPong7() throws InterruptedException {
+        testPingPong (7);
+    }
+
+    @Benchmark
+    public void testPingPong32() throws InterruptedException {
+        testPingPong (32);
+    }
+
+    private void testPingPong(int numThreads) throws InterruptedException {
         final PingPongActor a1 = new PingPongActor ();
         final PingPongActor a2 = new PingPongActor ();
 
-        final CountDownLatch latch = new CountDownLatch (1);
+        final CountDownLatch latch = new CountDownLatch (numThreads);
 
-        a1.receive (a2, 10_000, latch::countDown);
+        for (int i=0; i<numThreads; i++) {
+            a1.receive (a2, 10_000, latch::countDown);
+        }
 
         latch.await ();
     }
