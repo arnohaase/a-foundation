@@ -20,12 +20,12 @@ class AThread extends Thread {
             try {
                 final Runnable task = schedulingStrategy.takeNextTask (queue, pool.localQueues, pool.globalQueue);
                 if (task == ALocalSubmissionQueue.SHUTDOWN) {
-                    System.out.println ("shutdown");
+//                    System.out.println ("shutdown");
                     break;
                 }
                 task.run ();
             }
-            catch (InterruptedException exc) {
+            catch (InterruptedException exc) { //TODO check 'shutdown' flag here?
                 // ignore
             }
             catch (Throwable e) {

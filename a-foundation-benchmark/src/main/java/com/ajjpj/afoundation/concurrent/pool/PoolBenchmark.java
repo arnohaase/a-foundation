@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.concurrent.pool;
 
 import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
+import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.*;
@@ -10,6 +11,7 @@ import java.util.concurrent.*;
 /**
  * @author arno
  */
+//@Fork (0)
 @Fork (1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
@@ -19,10 +21,11 @@ public class PoolBenchmark {
     APool pool;
 
     @Param ({
-            "naive",
-            "a-global-queue",
+//            "naive",
+//            "a-global-queue",
+            "work-stealing",
             "a-strict-own",
-            "Fixed",
+//            "Fixed",
             "ForkJoin"
     })
     public String strategy;
@@ -33,6 +36,7 @@ public class PoolBenchmark {
             case "naive":          pool = new NaivePool (8); break;
             case "a-global-queue": pool = new APoolImpl (8, ASchedulingStrategy.SingleQueue ()).start (); break;
             case "a-strict-own":   pool = new APoolImpl (8, ASchedulingStrategy.OWN_FIRST_NO_STEALING).start (); break;
+            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
             case "Fixed":          pool = new DelegatingPool (Executors.newFixedThreadPool (8)); break;
             case "ForkJoin":       pool = new DelegatingPool (ForkJoinPool.commonPool ()); break;
             default: throw new IllegalStateException ();
@@ -44,7 +48,7 @@ public class PoolBenchmark {
         pool.shutdown ();
     }
 
-//    @Benchmark
+    @Benchmark
     public void testSimpleScheduling() throws InterruptedException {
         final int num = 10_000;
         final CountDownLatch latch = new CountDownLatch (num);
@@ -112,7 +116,7 @@ public class PoolBenchmark {
         return f.get() + pool.submit (() -> fibo(n-2)).get ();
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong1() throws InterruptedException {
         testPingPong (1);
     }
@@ -122,12 +126,12 @@ public class PoolBenchmark {
         testPingPong (2);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong7() throws InterruptedException {
         testPingPong (7);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong32() throws InterruptedException {
         testPingPong (32);
     }
