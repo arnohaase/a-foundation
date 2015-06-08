@@ -11,8 +11,8 @@ import java.util.concurrent.*;
 /**
  * @author arno
  */
-//@Fork (0)
-@Fork (1)
+@Fork (0)
+//@Fork (1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
 @Measurement (iterations = 3, time = 3)
@@ -36,7 +36,8 @@ public class PoolBenchmark {
             case "naive":          pool = new NaivePool (8); break;
             case "a-global-queue": pool = new APoolImpl (8, ASchedulingStrategy.SingleQueue ()).start (); break;
             case "a-strict-own":   pool = new APoolImpl (8, ASchedulingStrategy.OWN_FIRST_NO_STEALING).start (); break;
-            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
+            case "work-stealing":  pool = new WorkStealingPoolImpl (1).start (); break;
+//            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
             case "Fixed":          pool = new DelegatingPool (Executors.newFixedThreadPool (8)); break;
             case "ForkJoin":       pool = new DelegatingPool (ForkJoinPool.commonPool ()); break;
             default: throw new IllegalStateException ();

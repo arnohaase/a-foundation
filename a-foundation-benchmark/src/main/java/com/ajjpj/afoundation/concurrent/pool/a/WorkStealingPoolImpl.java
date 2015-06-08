@@ -54,35 +54,51 @@ public class WorkStealingPoolImpl implements APool {
         final Thread curThread = Thread.currentThread ();
         if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
             ((WorkStealingThread) curThread).queue.submit (submittable);
+            notifyOfPendingWork (true);
         }
         else {
             globalQueue.externalPush (submittable);
+            notifyOfPendingWork (true);
         }
 
-        notifyOfPendingWork ();
+//        notifyOfPendingWork (); TODO
         return result;
     }
 
-    private void notifyOfPendingWork() {
+    final Thread dummy_thread = new Thread() {{ //TODO remove me
+        start();
+    }};
+
+    private void notifyOfPendingWork(boolean unpark) { //TODO remove parameter
 //        System.out.println ("\nnotifying one of " + waitingWorkers.get ());
         WorkStealingThread worker;
         AList<WorkStealingThread> before;
 
-        do {
-            before = waitingWorkers.get ();
-            if (before.isEmpty ()) {
-//                System.out.println ("  --> no thread to notify");
-                return;
+        if (unpark) {
+            do {
+                before = waitingWorkers.get ();
+                if (before.isEmpty ()) {
+                    return;
+                }
+                worker = before.head ();
+
             }
-            worker = before.head ();
+            while (!waitingWorkers.compareAndSet (before, before.tail ()));
+            LockSupport.unpark (worker);
         }
-        while (!waitingWorkers.compareAndSet (before, before.tail ()));
+        else {
+//            do {
+//                before = waitingWorkers.get ();
+//                if (before.isEmpty ()) {
+//                    return;
+//                }
+//                worker = before.head ();
+//
+//            }
+//            while (!waitingWorkers.compareAndSet (before, before.tail ().cons (worker)));
 
-//        System.out.println ("  --> notifying " + worker.getName () + ": idling workers are now " + before.tail ());
-
-//        System.out.println ("unparking");
-        LockSupport.unpark (worker);
-//        System.out.println ("  --> finished notifying");
+            LockSupport.unpark (dummy_thread);
+        }
     }
 
     void onThreadFinished (AThread thread) {

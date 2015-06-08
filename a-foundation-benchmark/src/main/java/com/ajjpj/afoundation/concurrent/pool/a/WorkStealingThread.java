@@ -15,7 +15,7 @@ class WorkStealingThread extends Thread {
 
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
     // method 'run' starts in 'working' mode for simplicity's sake, so 'isWorking==true' is set accordingly
-    final AtomicBoolean isWorking = new AtomicBoolean (true);
+//    final AtomicBoolean isWorking = new AtomicBoolean (true);
 
     public WorkStealingThread (WorkStealingPoolImpl pool) {
         this.pool = pool;
@@ -23,13 +23,8 @@ class WorkStealingThread extends Thread {
 
     @Override public void run () {
         try {
-            int i = 0;
             while (true) { //TODO shutdown
                 WorkStealingPoolImpl.ASubmittable task;
-
-                i += 1;
-
-    //            System.out.println ("* " + Thread.currentThread () + ": looking for work");
 
                 if ((task = queue.nextLocalTask ()) != null) {
 //                    if (i%100_000_000 == 0)
@@ -47,15 +42,15 @@ class WorkStealingThread extends Thread {
                 else {
     //                System.out.println ("  " + Thread.currentThread () + ": parking");
                     preparePark ();
-                    do {
+//                    do {
                         try {
                             LockSupport.park (); //TODO exception handling
                         }
                         catch (Exception e) {
                             e.printStackTrace ();
                         }
-                    }
-                    while (! isWorking.compareAndSet (false, true)); // CAS avoids races
+//                    }
+//                    while (! isWorking.compareAndSet (false, true)); // CAS avoids races
                 }
             }
         }
@@ -65,7 +60,7 @@ class WorkStealingThread extends Thread {
     }
 
     private void preparePark() {
-        isWorking.compareAndSet (true, false); //TODO handle 'false' result --> internal error
+//        isWorking.compareAndSet (true, false); //TODO handle 'false' result --> internal error
 
         // removal from the stack of 'waiting workers' happens in the pool
         AList<WorkStealingThread> before;
