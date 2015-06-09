@@ -6,12 +6,18 @@ import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.LockSupport;
 
 
 /**
+ *
+ *
+ * optional 'no work stealing' policy
+ *
+ * intermittent fetching of work from global queue even if there is work in local queues --> avoid starvation
+ *
+ * availableWorkers: 'stack' semantics is intentional - reuse most recently parked thread first
+ *
  * @author arno
  */
 public class WorkStealingPoolImpl implements APool {
@@ -48,7 +54,6 @@ public class WorkStealingPoolImpl implements APool {
 
 
 //    @Override public <T> AFuture<T> submit (Callable<T> code) {
-//        //TODO deal with submissions before the pool is started - reject them with an exception? --> do this in a thread-safe, non-racy way!
 //
 //        final ATask<T> result = new ATask<> ();
 //        final ASubmittable submittable = new ASubmittable (result, code);
@@ -71,8 +76,6 @@ public class WorkStealingPoolImpl implements APool {
 //    }
 
     @Override public <T> AFuture<T> submit (Callable<T> code) {
-        //TODO deal with submissions before the pool is started - reject them with an exception? --> do this in a thread-safe, non-racy way!
-
         final ATask<T> result = new ATask<> ();
         final ASubmittable submittable = new ASubmittable (result, code);
 
@@ -105,7 +108,7 @@ public class WorkStealingPoolImpl implements APool {
             worker = before.head ();
 
         }
-        while (!waitingWorkers.compareAndSet (before, before.tail ()));
+        while (!waitingWorkers.compareAndSet (before, before.tail ())); //TODO use Unsafe?
 
         return worker;
     }

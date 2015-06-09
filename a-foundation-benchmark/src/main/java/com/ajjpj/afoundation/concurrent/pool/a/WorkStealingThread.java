@@ -19,8 +19,6 @@ class WorkStealingThread extends Thread {
     private volatile ASubmittable wakeUpTask; // is written with Unsafe.putOrderedObject
 
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
-    // method 'run' starts in 'working' mode for simplicity's sake, so 'isWorking==true' is set accordingly
-//    final AtomicBoolean isWorking = new AtomicBoolean (true);
 
     public WorkStealingThread (WorkStealingPoolImpl pool) {
         this.pool = pool;
@@ -62,9 +60,7 @@ class WorkStealingThread extends Thread {
     }
 
     void wakeUpWith (ASubmittable task) {
-//        wakeUpTask = task;
-
-        //TODO does 'putOrderedObject' work on a volatile field?!
+        //TODO is 'putOrderedObject' guaranteed to work on a volatile field?
         U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
         LockSupport.unpark (this);
     }

@@ -5,7 +5,6 @@ import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RejectedExecutionException;
 
 
@@ -54,8 +53,7 @@ class WorkStealingLocalQueue {
     }
 
     /**
-     * Pushes a task. Call only by owner in unshared queues.  (The
-     * shared-queue version is embedded in method externalPush.)
+     * Pushes a task. Call only by owner. (The shared-queue version is embedded in method externalPush.)
      *
      * @param task the task. Caller must ensure non-null.
      * @throws java.util.concurrent.RejectedExecutionException if array cannot be resized
@@ -69,7 +67,7 @@ class WorkStealingLocalQueue {
             top = s+1;
             final int n = top - base;
             if (n <= 2) {
-//                (p = pool).signalWork (p.workQueues, this);
+//                (p = pool).signalWork (p.workQueues, this); TODO
             }
             else if (n >= m) {
                 growArray ();
@@ -83,7 +81,7 @@ class WorkStealingLocalQueue {
      * by owner or with lock held -- it is OK for base, but not
      * top, to move while resizings are in progress.
      */
-    final ASubmittable[] growArray() {
+    private ASubmittable[] growArray() {
         final ASubmittable[] oldA = array;
         final int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
         if (size > MAXIMUM_QUEUE_CAPACITY)
@@ -118,9 +116,6 @@ class WorkStealingLocalQueue {
      */
     final ASubmittable pop() {
         final ASubmittable[] a = array;
-//        if (a == null) {
-//            return null;
-//        }
 
         final int m = a.length-1;
         if (m >= 0) {
