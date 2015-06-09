@@ -47,6 +47,29 @@ public class WorkStealingPoolImpl implements APool {
     }
 
 
+//    @Override public <T> AFuture<T> submit (Callable<T> code) {
+//        //TODO deal with submissions before the pool is started - reject them with an exception? --> do this in a thread-safe, non-racy way!
+//
+//        final ATask<T> result = new ATask<> ();
+//        final ASubmittable submittable = new ASubmittable (result, code);
+//
+//        final Thread curThread = Thread.currentThread ();
+//        if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
+//            ((WorkStealingThread) curThread).queue.submit (submittable);
+//        }
+//        else {
+//            final WorkStealingThread availableWorker = availableWorker ();
+//            if (availableWorker != null) {
+//                availableWorker.wakeUpWith (submittable);
+//            }
+//            else {
+//                globalQueue.externalPush (submittable);
+//            }
+//        }
+//
+//        return result;
+//    }
+
     @Override public <T> AFuture<T> submit (Callable<T> code) {
         //TODO deal with submissions before the pool is started - reject them with an exception? --> do this in a thread-safe, non-racy way!
 

@@ -48,10 +48,9 @@ class WorkStealingThread extends Thread {
                     do {
                         LockSupport.park (); //TODO exception handling
                         newTask = wakeUpTask;
-//                    U.putOrderedObject (this, WAKE_UP_TASK, null); //TODO replace with U.compareAndSwap? --> does that have volatile read semantics?
                     }
                     while (newTask == null);
-                    wakeUpTask = null;
+                    U.putOrderedObject (this, WAKE_UP_TASK, null); //TODO replace with U.compareAndSwap? --> does that have volatile read semantics? Is that even faster
 
                     newTask.run ();
                 }
@@ -63,10 +62,10 @@ class WorkStealingThread extends Thread {
     }
 
     void wakeUpWith (ASubmittable task) {
-        wakeUpTask = task;
+//        wakeUpTask = task;
 
         //TODO does 'putOrderedObject' work on a volatile field?!
-//        U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
+        U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
         LockSupport.unpark (this);
     }
 
