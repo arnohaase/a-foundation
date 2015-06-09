@@ -185,13 +185,13 @@ class WorkStealingLocalQueue {
             U = (Unsafe) f.get (null);
 
             Class<?> k = WorkStealingLocalQueue.class;
-            Class<?> ak = ForkJoinTask[].class;
-            QBASE = U.objectFieldOffset
-                    (k.getDeclaredField("base"));
-            ABASE = U.arrayBaseOffset(ak);
-            int scale = U.arrayIndexScale(ak);
-            if ((scale & (scale - 1)) != 0)
-                throw new Error("data type scale not a power of two");
+            Class<?> ak = ASubmittable[].class;
+            QBASE = U.objectFieldOffset (k.getDeclaredField("base"));
+            ABASE = U.arrayBaseOffset (ak);
+            int scale = U.arrayIndexScale (ak);
+            if ((scale & (scale - 1)) != 0) {
+                throw new Error ("data type scale not a power of two");
+            }
             ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
         } catch (Exception e) {
             throw new Error(e);

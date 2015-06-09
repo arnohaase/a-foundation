@@ -36,8 +36,8 @@ public class PoolBenchmark {
             case "naive":          pool = new NaivePool (8); break;
             case "a-global-queue": pool = new APoolImpl (8, ASchedulingStrategy.SingleQueue ()).start (); break;
             case "a-strict-own":   pool = new APoolImpl (8, ASchedulingStrategy.OWN_FIRST_NO_STEALING).start (); break;
-            case "work-stealing":  pool = new WorkStealingPoolImpl (1).start (); break;
-//            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
+//            case "work-stealing":  pool = new WorkStealingPoolImpl (1).start (); break;
+            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
             case "Fixed":          pool = new DelegatingPool (Executors.newFixedThreadPool (8)); break;
             case "ForkJoin":       pool = new DelegatingPool (ForkJoinPool.commonPool ()); break;
             default: throw new IllegalStateException ();

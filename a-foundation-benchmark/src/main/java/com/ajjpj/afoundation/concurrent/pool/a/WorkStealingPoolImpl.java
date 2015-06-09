@@ -6,6 +6,7 @@ import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -45,60 +46,45 @@ public class WorkStealingPoolImpl implements APool {
         return this;
     }
 
+
     @Override public <T> AFuture<T> submit (Callable<T> code) {
         //TODO deal with submissions before the pool is started - reject them with an exception? --> do this in a thread-safe, non-racy way!
 
         final ATask<T> result = new ATask<> ();
         final ASubmittable submittable = new ASubmittable (result, code);
 
-        final Thread curThread = Thread.currentThread ();
-        if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
-            ((WorkStealingThread) curThread).queue.submit (submittable);
-            notifyOfPendingWork (true);
+        final WorkStealingThread availableWorker = availableWorker ();
+        if (availableWorker != null) {
+            availableWorker.wakeUpWith (submittable);
         }
         else {
-            globalQueue.externalPush (submittable);
-            notifyOfPendingWork (true);
+            final Thread curThread = Thread.currentThread ();
+            if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
+                ((WorkStealingThread) curThread).queue.submit (submittable);
+            }
+            else {
+                globalQueue.externalPush (submittable);
+            }
         }
 
-//        notifyOfPendingWork (); TODO
         return result;
     }
 
-    final Thread dummy_thread = new Thread() {{ //TODO remove me
-        start();
-    }};
-
-    private void notifyOfPendingWork(boolean unpark) { //TODO remove parameter
-//        System.out.println ("\nnotifying one of " + waitingWorkers.get ());
+    private WorkStealingThread availableWorker () {
         WorkStealingThread worker;
         AList<WorkStealingThread> before;
 
-        if (unpark) {
-            do {
-                before = waitingWorkers.get ();
-                if (before.isEmpty ()) {
-                    return;
-                }
-                worker = before.head ();
-
+        do {
+            before = waitingWorkers.get ();
+            if (before.isEmpty ()) {
+                return null;
             }
-            while (!waitingWorkers.compareAndSet (before, before.tail ()));
-            LockSupport.unpark (worker);
-        }
-        else {
-//            do {
-//                before = waitingWorkers.get ();
-//                if (before.isEmpty ()) {
-//                    return;
-//                }
-//                worker = before.head ();
-//
-//            }
-//            while (!waitingWorkers.compareAndSet (before, before.tail ().cons (worker)));
+            worker = before.head ();
 
-            LockSupport.unpark (dummy_thread);
         }
+        while (!waitingWorkers.compareAndSet (before, before.tail ()));
+
+        return worker;
     }
 
     void onThreadFinished (AThread thread) {
