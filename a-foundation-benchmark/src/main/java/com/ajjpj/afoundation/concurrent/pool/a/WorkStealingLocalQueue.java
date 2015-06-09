@@ -40,16 +40,45 @@ class WorkStealingLocalQueue {
      */
     static final int MAXIMUM_QUEUE_CAPACITY = 1 << 26; // 64M
 
+    /**
+     * Mask for the flag to signify shutdown of the entire pool. This flag
+     *  is placed in the 'base' field because that field is read with 'volatile'
+     *  semantics on every access, so checking for shutdown incurs minimal
+     *  overhead.
+     */
+    static final int FLAG_SHUTDOWN = 1 << 31;
+
     final boolean lifo; // mode;          // 0: lifo, > 0: fifo, < 0: shared
     volatile int base;         // index of next slot for poll
     int top;                   // index of next slot for push
-    ASubmittable[] array;          // the elements (initially unallocated)
+    ASubmittable[] array;          // the elements
 
     WorkStealingLocalQueue (boolean lifo) {
         this.lifo = lifo;
-        // Place indices in the center of array (that is not yet allocated)
+        // Place indices in the center of array
         base = top = INITIAL_QUEUE_CAPACITY >>> 1;
         array = new ASubmittable[INITIAL_QUEUE_CAPACITY];
+    }
+
+    private int getBase() {
+        final int raw = base;
+        if ((raw & FLAG_SHUTDOWN) != 0) {
+            throw new WorkStealingShutdownException ();
+        }
+        return raw & (FLAG_SHUTDOWN - 1);
+    }
+
+    void checkShutdown () {
+        getBase ();
+    }
+
+    void shutdown() {
+        int before;
+
+        do {
+            before = base;
+        }
+        while (! U.compareAndSwapInt (this, QBASE, before, before | FLAG_SHUTDOWN));
     }
 
     /**
@@ -61,17 +90,19 @@ class WorkStealingLocalQueue {
     final void push(ASubmittable task) {
         final int s = top;
         final ASubmittable[] a = array;
-        if (a != null) {    // ignore if queue removed
-            int m = a.length - 1;
-            U.putOrderedObject(a, ((m & s) << ASHIFT) + ABASE, task);
-            top = s+1;
-            final int n = top - base;
-            if (n <= 2) {
+        int m = a.length - 1;
+
+        // get the value of 'base' early to detect shutdown
+        final int base = getBase ();
+
+        U.putOrderedObject(a, ((m & s) << ASHIFT) + ABASE, task);
+        top = s+1;
+        final int n = top - base;
+        if (n <= 2) {
 //                (p = pool).signalWork (p.workQueues, this); TODO
-            }
-            else if (n >= m) {
-                growArray ();
-            }
+        }
+        else if (n >= m) {
+            growArray ();
         }
     }
 
@@ -89,23 +120,21 @@ class WorkStealingLocalQueue {
         array = new ASubmittable[size];
         final ASubmittable[] a = array;
 
-        if (oldA != null) {
-            final int oldMask = oldA.length - 1;
-            final int t = top;
-            int b = base;
-            if (oldMask >= 0 && t-b > 0) {
-                final int mask = size - 1;
-                do {
-                    int oldj = ((b & oldMask) << ASHIFT) + ABASE;
-                    int j = ((b & mask) << ASHIFT) + ABASE;
-                    final ASubmittable x = (ASubmittable) U.getObjectVolatile (oldA, oldj);
-                    if (x != null && U.compareAndSwapObject (oldA, oldj, x, null)) {
-                        U.putObjectVolatile (a, j, x);
-                    }
-                    b += 1;
+        final int oldMask = oldA.length - 1;
+        final int t = top;
+        int b = getBase ();
+        if (oldMask >= 0 && t-b > 0) {
+            final int mask = size - 1;
+            do {
+                int oldj = ((b & oldMask) << ASHIFT) + ABASE;
+                int j = ((b & mask) << ASHIFT) + ABASE;
+                final ASubmittable x = (ASubmittable) U.getObjectVolatile (oldA, oldj);
+                if (x != null && U.compareAndSwapObject (oldA, oldj, x, null)) {
+                    U.putObjectVolatile (a, j, x);
                 }
-                while (b != t);
+                b += 1;
             }
+            while (b != t);
         }
         return a;
     }
@@ -120,7 +149,7 @@ class WorkStealingLocalQueue {
         final int m = a.length-1;
         if (m >= 0) {
             int s;
-            while ((s = top - 1) - base >= 0) { //TODO how to simplify this?
+            while ((s = top - 1) - getBase () >= 0) { //TODO how to simplify this?
                 long j = ((m & s) << ASHIFT) + ABASE;
                 final ASubmittable t = (ASubmittable) U.getObject(a, j);
                 if (t == null) {
@@ -142,7 +171,7 @@ class WorkStealingLocalQueue {
         ASubmittable[] a;
         int b;
 
-        while ((b = base) - top < 0 && (a = array) != null) {
+        while ((b = getBase ()) - top < 0 && (a = array) != null) {
             final int j = (((a.length - 1) & b) << ASHIFT) + ABASE;
             final ASubmittable t = (ASubmittable) U.getObjectVolatile(a, j);
             if (t != null) {
@@ -151,7 +180,7 @@ class WorkStealingLocalQueue {
                     return t;
                 }
             }
-            else if (base == b) {
+            else if (getBase () == b) {
                 if (b + 1 == top)
                     break;
                 Thread.yield(); // wait for lagging update (very rare)
@@ -192,5 +221,4 @@ class WorkStealingLocalQueue {
             throw new Error(e);
         }
     }
-
 }

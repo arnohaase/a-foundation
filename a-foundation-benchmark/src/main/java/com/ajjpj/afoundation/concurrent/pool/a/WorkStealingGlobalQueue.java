@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable;
+import com.sun.org.apache.bcel.internal.generic.GETFIELD;
 import sun.misc.Contended;
 import sun.misc.Unsafe;
 
@@ -46,6 +47,23 @@ class WorkStealingGlobalQueue {
         array = new ASubmittable[INITIAL_QUEUE_CAPACITY];
     }
 
+    private int getBase() {
+        final int raw = base;
+        if ((raw & WorkStealingLocalQueue.FLAG_SHUTDOWN) != 0) {
+            throw new WorkStealingShutdownException ();
+        }
+        return raw & (WorkStealingLocalQueue.FLAG_SHUTDOWN - 1);
+    }
+
+    void shutdown() {
+        int before;
+
+        do {
+            before = base;
+        }
+        while (! U.compareAndSwapInt (this, QBASE, before, before | WorkStealingLocalQueue.FLAG_SHUTDOWN));
+    }
+
     /**
      * Unless shutting down, adds the given task to a submission queue
      * at submitter's current queue index (modulo submission
@@ -59,7 +77,7 @@ class WorkStealingGlobalQueue {
             final ASubmittable[] a = array;
             final int am = a.length - 1;
             final int s = top;
-            final int n = s - base;
+            final int n = s - getBase (); //TODO unlock in finally block!
             if (am > n) {
                 int j = ((am & s) << ASHIFT) + ABASE;
                 U.putOrderedObject(a, j, task);
@@ -99,14 +117,15 @@ class WorkStealingGlobalQueue {
                 int s = top;
                 boolean submitted = false;
                 try {                      // locked version of push
-                    if ((a.length > s + 1 - base) ||
+                    if ((a.length > s + 1 - getBase ()) ||
                             (a = growArray()) != null) {   // must presize
                         int j = (((a.length - 1) & s) << ASHIFT) + ABASE;
                         U.putOrderedObject(a, j, task);
                         top = s + 1;
                         submitted = true;
                     }
-                } finally {
+                }
+                finally {
                     qlock = 0;  // unlock
                 }
                 if (submitted) {
@@ -123,7 +142,7 @@ class WorkStealingGlobalQueue {
      * Initializes or doubles the capacity of array. Call only with lock held -- it is OK for base, but not
      * top, to move while resizings are in progress.
      */
-    final ASubmittable[] growArray() {
+    final ASubmittable[] growArray() { //TODO is the new value of 'array' even safely published? --> code is from FJP, but still...
         final ASubmittable[] oldA = array;
         final int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
         if (size > MAXIMUM_QUEUE_CAPACITY)
@@ -134,7 +153,7 @@ class WorkStealingGlobalQueue {
         if (oldA != null) {
             final int oldMask = oldA.length - 1;
             final int t = top;
-            int b = base;
+            int b = getBase ();
             if (oldMask >= 0 && t-b > 0) {
                 final int mask = size - 1;
                 do {
@@ -160,7 +179,7 @@ class WorkStealingGlobalQueue {
         ASubmittable[] a;
         int b;
 
-        while ((b = base) - top < 0 && (a = array) != null) {
+        while ((b = getBase ()) - top < 0 && (a = array) != null) {
             final int j = (((a.length - 1) & b) << ASHIFT) + ABASE;
             final ASubmittable t = (ASubmittable) U.getObjectVolatile(a, j);
             if (t != null) {
@@ -169,7 +188,7 @@ class WorkStealingGlobalQueue {
                     return t;
                 }
             }
-            else if (base == b) {
+            else if (getBase () == b) {
                 if (b + 1 == top)
                     break;
                 Thread.yield(); // wait for lagging update (very rare)

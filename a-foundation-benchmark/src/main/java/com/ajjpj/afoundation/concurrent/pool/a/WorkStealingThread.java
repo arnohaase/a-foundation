@@ -5,7 +5,6 @@ import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.locks.LockSupport;
 
 
@@ -44,8 +43,14 @@ class WorkStealingThread extends Thread {
                     preparePark ();
 
                     do {
+                        queue.checkShutdown ();
                         LockSupport.park (); //TODO exception handling
                         newTask = wakeUpTask;
+
+                        if (newTask == null) {
+                            // for other cases, shutdown is checked after the task is run anyway
+                            queue.checkShutdown ();
+                        }
                     }
                     while (newTask == null);
                     U.putOrderedObject (this, WAKE_UP_TASK, null); //TODO replace with U.compareAndSwap? --> does that have volatile read semantics? Is that even faster
@@ -53,8 +58,21 @@ class WorkStealingThread extends Thread {
                     newTask.run ();
                 }
             }
-            catch (Exception e) {
-                e.printStackTrace ();
+            catch (WorkStealingShutdownException exc) {
+                //noinspection finally
+                try {
+                    pool.onThreadFinished (this);
+                }
+                catch (Throwable exc2) {
+                    exc2.printStackTrace ();
+                }
+                finally {
+                    //noinspection ReturnInsideFinallyBlock
+                    return;
+                }
+            }
+            catch (Exception exc) {
+                exc.printStackTrace (); //TODO exception handling
             }
         }
     }

@@ -6,6 +6,7 @@ import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -76,24 +77,29 @@ public class WorkStealingPoolImpl implements APool {
 //    }
 
     @Override public <T> AFuture<T> submit (Callable<T> code) {
-        final ATask<T> result = new ATask<> ();
-        final ASubmittable submittable = new ASubmittable (result, code);
+        try {
+            final ATask<T> result = new ATask<> ();
+            final ASubmittable submittable = new ASubmittable (result, code);
 
-        final WorkStealingThread availableWorker = availableWorker ();
-        if (availableWorker != null) {
-            availableWorker.wakeUpWith (submittable);
-        }
-        else {
-            final Thread curThread = Thread.currentThread ();
-            if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
-                ((WorkStealingThread) curThread).queue.submit (submittable);
+            final WorkStealingThread availableWorker = availableWorker ();
+            if (availableWorker != null) {
+                availableWorker.wakeUpWith (submittable);
             }
             else {
-                globalQueue.externalPush (submittable);
+                final Thread curThread = Thread.currentThread ();
+                if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
+                    ((WorkStealingThread) curThread).queue.submit (submittable);
+                }
+                else {
+                    globalQueue.externalPush (submittable);
+                }
             }
-        }
 
-        return result;
+            return result;
+        }
+        catch (WorkStealingShutdownException e) {
+            throw new RejectedExecutionException ("pool is shut down");
+        }
     }
 
     private WorkStealingThread availableWorker () {
@@ -113,17 +119,21 @@ public class WorkStealingPoolImpl implements APool {
         return worker;
     }
 
-    void onThreadFinished (AThread thread) {
+    void onThreadFinished (WorkStealingThread thread) {
         shutdownLatch.countDown ();
     }
 
     @Override public void shutdown () throws InterruptedException {
-        //TODO clear global queue, prevent reentrance, ...
+        globalQueue.shutdown ();
+        for (WorkStealingLocalQueue q: localQueues) {
+            q.shutdown ();
+        }
 
-        System.out.println ("shutdown");
+        WorkStealingThread worker;
+        while ((worker = availableWorker ()) != null) {
+            worker.wakeUpWith (null);
+        }
 
-        //TODO implement this
-        System.exit (1);
         shutdownLatch.await ();
     }
 
