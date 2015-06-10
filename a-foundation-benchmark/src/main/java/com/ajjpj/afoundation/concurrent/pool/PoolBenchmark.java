@@ -52,7 +52,7 @@ public class PoolBenchmark {
 
         if (pool instanceof WorkStealingPoolImpl) {
             final WorkStealingPoolImpl ws = (WorkStealingPoolImpl) pool;
-            System.out.println ("wakeup / global / local: " + ws.getNumWakeups () + " / " + ws.getNumGlobalPushs () + " / " + ws.getNumLocalPushs ());
+//            System.out.println ("wakeup / global / local: " + ws.getNumWakeups () + " / " + ws.getNumGlobalPushs () + " / " + ws.getNumLocalPushs ());
         }
     }
 

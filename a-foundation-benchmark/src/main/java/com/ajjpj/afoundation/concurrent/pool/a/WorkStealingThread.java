@@ -40,7 +40,7 @@ class WorkStealingThread extends Thread {
 
                 // polling the global queue first once in a while avoids starvation of work from the global queue. This is
                 //  important in systems where locally produced work can saturate the pool, e.g. in actor-based systems.
-                if (pollGlobalQueueFirst && (newTask = queue.nextLocalTask ()) != null) {
+                if (pollGlobalQueueFirst && (newTask = pool.globalQueue.poll ()) != null) {
                     newTask.run ();
                     continue;
                 }
@@ -51,7 +51,7 @@ class WorkStealingThread extends Thread {
                 }
 
                 // this is the 'normal case' search in the global queue: *after* looking in this thread's local queue
-                if (! pollGlobalQueueFirst && (newTask = queue.nextLocalTask ()) != null) {
+                if (! pollGlobalQueueFirst && (newTask = pool.globalQueue.poll ()) != null) {
                     newTask.run ();
                     continue;
                 }
