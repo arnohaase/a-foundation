@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
 import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable;
+import com.ajjpj.afoundation.function.APredicateNoThrow;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -52,12 +53,12 @@ class WorkStealingThread extends Thread {
                     // This is the exceptional case: Polling the global queue first once in a while avoids starvation of
                     //  work from the global queue. This is important in systems where locally produced work can saturate
                     //  the pool, e.g. in actor-based systems.
-                    if (exec (tryGlobalFetch()) || exec (tryLocalFetch())) continue;
+                    if (exec (tryGlobalFetch()) || exec (tryLocalFetch ())) continue;
                 }
                 else {
                     // This is the normal case: check for local work first, and only if there is no local work look in
                     //  the global queue
-                    if (exec (tryLocalFetch()) || exec (tryGlobalFetch())) continue;
+                    if (exec (tryLocalFetch()) || exec (tryGlobalFetch ())) continue;
                 }
 
                 if (exec (tryActiveWorkStealing ())) continue;
@@ -134,13 +135,50 @@ class WorkStealingThread extends Thread {
         for (int i=0; i<numPollsBeforePark; i++) {
             // wait a little while and look again before really going to sleep
             LockSupport.parkNanos (pollNanosBeforePark);
-            if (exec (tryGlobalFetch()) || exec (tryActiveWorkStealing())) return;
+            if (exec (tryGlobalFetch ()) || exec (tryActiveWorkStealing ())) return;
         }
 
         preparePark ();
 
-        // re-check for available work in queues to avoid a race condition
-        //TODO how to do that best?! Spin Locking?
+        // re-check for available work in queues to avoid a race condition.
+
+        //TODO this or some other strategy (e.g. intermittently waking up from 'park')?
+        newTask = tryGlobalFetch ();
+//        if (newTask == null) newTask = tryActiveWorkStealing ();   //TODO include this or not? Benchmarks indicate it slows things down, but why exactly?
+        if (newTask != null) {
+            // This is a pretty rare code path, therefore the implementation burdens it with checks and overhead wherever possible, so
+            //  other, more frequent paths - such as pool.submit() - can be fast.
+            AList<WorkStealingThread> before, after;
+
+            do {
+                before = pool.waitingWorkers.get ();
+                after = before.filter (new APredicateNoThrow<WorkStealingThread> () {
+                    @Override public boolean apply (WorkStealingThread o) {
+                        return o != WorkStealingThread.this;
+                    }
+                });
+            }
+            while (! pool.waitingWorkers.compareAndSet (before, after));
+
+            if (after.size () == before.size ()) {
+                // The pool is "waking up" this thread concurrently. We actively spin until the 'wake-up task' is set. That is a
+                //  conscious trade-off to keep pool.submit() fast - this race condition is pretty rare, so the trade-off pays in
+                //  practice.
+
+
+                ASubmittable wakeUp;
+                //noinspection StatementWithEmptyBody
+                while ((wakeUp = wakeUpTask) == null) {
+                    // wait actively
+                }
+
+                // re-inject the wake-up task into the pool
+                pool.doSubmit (wakeUp);
+            }
+
+            newTask.run();
+            return;
+        }
 
         do {
             queue.checkShutdown ();
@@ -149,7 +187,7 @@ class WorkStealingThread extends Thread {
 
             // 'stealing' locally submitted work this way is effectively delayed by the 'parkNanos' call above
 
-            if (newTask == null) {
+            if (newTask == null || newTask == WorkStealingPoolImpl.SHUTDOWN) {
                 // for other cases, shutdown is checked after the task is run anyway
                 queue.checkShutdown ();
             }

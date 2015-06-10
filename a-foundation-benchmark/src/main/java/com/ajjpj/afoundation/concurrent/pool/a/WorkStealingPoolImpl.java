@@ -31,6 +31,8 @@ public class WorkStealingPoolImpl implements APool {
 
     private final CountDownLatch shutdownLatch;
 
+    static final ASubmittable SHUTDOWN = new ASubmittable (null, null);
+
     public WorkStealingPoolImpl (int numThreads) {
         this.globalQueue = new WorkStealingGlobalQueue ();
         this.shutdownLatch = new CountDownLatch (numThreads);
@@ -78,17 +80,22 @@ public class WorkStealingPoolImpl implements APool {
 //    }
 
     @Override public <T> AFuture<T> submit (Callable<T> code) {
-        try {
-            final ATask<T> result = new ATask<> ();
-            final ASubmittable submittable = new ASubmittable (result, code);
+        final ATask<T> result = new ATask<> ();
+        final ASubmittable submittable = new ASubmittable (result, code);
 
+        doSubmit (submittable);
+
+        return result;
+    }
+
+    void doSubmit (ASubmittable submittable) {
+        try {
             final WorkStealingThread availableWorker = availableWorker ();
             if (availableWorker != null) {
                 if (shouldCollectStatistics) numWakeups.incrementAndGet ();
                 availableWorker.wakeUpWith (submittable);
             }
             else {
-//                System.out.println ("NOT");
                 final Thread curThread = Thread.currentThread ();
                 if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
                     if (shouldCollectStatistics) numLocalPush.incrementAndGet ();
@@ -99,13 +106,13 @@ public class WorkStealingPoolImpl implements APool {
                     globalQueue.externalPush (submittable);
                 }
             }
-
-            return result;
         }
         catch (WorkStealingShutdownException e) {
             throw new RejectedExecutionException ("pool is shut down");
         }
     }
+
+
 
     private WorkStealingThread availableWorker () {
         WorkStealingThread worker;
@@ -136,7 +143,7 @@ public class WorkStealingPoolImpl implements APool {
 
         WorkStealingThread worker;
         while ((worker = availableWorker ()) != null) {
-            worker.wakeUpWith (null);
+            worker.wakeUpWith (SHUTDOWN);
         }
 
         shutdownLatch.await ();
