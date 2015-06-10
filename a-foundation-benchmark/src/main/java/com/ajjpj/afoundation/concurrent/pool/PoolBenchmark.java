@@ -57,7 +57,7 @@ public class PoolBenchmark {
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void testSimpleScheduling() throws InterruptedException {
         final int num = 10_000;
         final CountDownLatch latch = new CountDownLatch (num);
@@ -163,7 +163,7 @@ public class PoolBenchmark {
         testPingPong (1);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong2() throws InterruptedException {
         testPingPong (2);
     }

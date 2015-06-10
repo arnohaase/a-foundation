@@ -17,8 +17,11 @@ class WorkStealingThread extends Thread {
 
     private final int ownThreadIndex;
 
+    private final int numPollsBeforePark = 1; //TODO make configurable
     private final int skipLocalQueueFrequency = 100; //TODO make configurable
     private final int pollNanosBeforePark = 100; //TODO make configurable
+
+    //TODO configuration parameter for 'no work stealing'
 
     @SuppressWarnings ("unused") // is written with Unsafe.putOrderedObject
     private volatile ASubmittable wakeUpTask;
@@ -29,6 +32,10 @@ class WorkStealingThread extends Thread {
         this.pool = pool;
         this.ownThreadIndex = ownThreadIndex;
     }
+
+
+    //TODO scheduling with code affinity (rather than data affinity)
+
 
     @Override public void run () {
         int msgCount = 0;
@@ -45,15 +52,15 @@ class WorkStealingThread extends Thread {
                     // This is the exceptional case: Polling the global queue first once in a while avoids starvation of
                     //  work from the global queue. This is important in systems where locally produced work can saturate
                     //  the pool, e.g. in actor-based systems.
-                    if (tryGlobalFetch () || tryLocalFatch ()) continue;
+                    if (exec (tryGlobalFetch()) || exec (tryLocalFetch())) continue;
                 }
                 else {
                     // This is the normal case: check for local work first, and only if there is no local work look in
                     //  the global queue
-                    if (tryLocalFatch () || tryGlobalFetch ()) continue;
+                    if (exec (tryLocalFetch()) || exec (tryGlobalFetch())) continue;
                 }
 
-                if (tryActiveWorkStealing()) continue;
+                if (exec (tryActiveWorkStealing ())) continue;
 
                 waitForWork ();
             }
@@ -73,44 +80,43 @@ class WorkStealingThread extends Thread {
                 }
             }
             catch (Exception exc) {
-                exc.printStackTrace (); //TODO exception handling
+                exc.printStackTrace (); //TODO exception handling, InterruptedException in particular
             }
         }
     }
 
-    private boolean tryGlobalFetch() {
-        final ASubmittable newTask = pool.globalQueue.poll ();
-        if (newTask != null) {
-            newTask.run ();
+    private ASubmittable tryGlobalFetch () {
+        return pool.globalQueue.poll ();
+    }
+
+    private ASubmittable tryLocalFetch () {
+        return queue.nextLocalTask ();
+    }
+
+    private boolean exec (ASubmittable optTask) {
+        if (optTask != null) {
+            optTask.run ();
             return true;
         }
         return false;
     }
 
-    private boolean tryLocalFatch() {
-        final ASubmittable newTask = queue.nextLocalTask ();
-        if (newTask != null) {
-            newTask.run ();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryActiveWorkStealing () {
+    private ASubmittable tryActiveWorkStealing () {
         for (int i=1; i<pool.localQueues.length; i++) { //TODO store this length in an attribute of this class?
             final int victimThreadIndex = (ownThreadIndex + i) % pool.localQueues.length;
 
             final ASubmittable stolenTask = pool.localQueues[victimThreadIndex].poll ();
             if (stolenTask != null) {
-                stolenTask.run ();
-                return true;
+                return stolenTask;
             }
         }
-        return false;
+        return null;
     }
 
     private void waitForWork () {
-        ASubmittable newTask;// There is currently no work available for this thread. That means that there is currently not enough work for all
+        ASubmittable newTask;
+
+        // There is currently no work available for this thread. That means that there is currently not enough work for all
         //  worker threads, i.e. the pool is in a 'low load' situation.
         //
         // Now we want to park this thread until work becomes available. There are basically two ways of doing that, and they
@@ -125,18 +131,16 @@ class WorkStealingThread extends Thread {
         // The following code compromises, starting out by polling and then parking itself, waiting to be awakened by a
         //  'push' operation when work becomes available.
 
-        //TODO configurable iterations - including 'poll only'
-        // wait a little while and look again before really going to sleep
-        LockSupport.parkNanos (pollNanosBeforePark);
-        if ((newTask = pool.globalQueue.poll ()) != null) { //TODO try to steal here
-            newTask.run ();
-            return;
+        for (int i=0; i<numPollsBeforePark; i++) {
+            // wait a little while and look again before really going to sleep
+            LockSupport.parkNanos (pollNanosBeforePark);
+            if (exec (tryGlobalFetch()) || exec (tryActiveWorkStealing())) return;
         }
 
         preparePark ();
 
-        //TODO recheck global queue here to avoid races
-        //TODO try to steal here as well?
+        // re-check for available work in queues to avoid a race condition
+        //TODO how to do that best?! Spin Locking?
 
         do {
             queue.checkShutdown ();
