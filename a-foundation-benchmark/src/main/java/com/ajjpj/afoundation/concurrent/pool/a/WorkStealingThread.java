@@ -35,6 +35,7 @@ class WorkStealingThread extends Thread {
                     newTask.run ();
                 }
                 else if ((newTask = pool.globalQueue.poll ()) != null) {
+                    System.out.println ("********* from global queue");
                     newTask.run ();
                 }
                 else {
@@ -44,6 +45,7 @@ class WorkStealingThread extends Thread {
 
                     do {
                         queue.checkShutdown ();
+                        System.out.println ("parking");
                         LockSupport.park (); //TODO exception handling
                         newTask = wakeUpTask;
 

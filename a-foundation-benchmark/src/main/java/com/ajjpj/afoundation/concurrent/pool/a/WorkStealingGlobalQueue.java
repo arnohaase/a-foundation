@@ -86,6 +86,7 @@ class WorkStealingGlobalQueue {
 //                if (n <= 1) { //TODO ?!
 //                    signalWork (ws, q);
 //                }
+
                 return;
             }
             qlock = 0;
@@ -111,6 +112,7 @@ class WorkStealingGlobalQueue {
      * reinitialize if workQueues exists, while still advancing plock.
      */
     private void fullExternalPush (ASubmittable task) {
+        System.out.println ("2");
         for (;;) { //TODO refactor into CAS loop
             if (U.compareAndSwapInt(this, QLOCK, 0, 1)) {
                 ASubmittable[] a = array;

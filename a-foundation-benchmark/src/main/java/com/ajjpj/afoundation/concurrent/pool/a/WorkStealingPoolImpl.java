@@ -83,9 +83,11 @@ public class WorkStealingPoolImpl implements APool {
 
             final WorkStealingThread availableWorker = availableWorker ();
             if (availableWorker != null) {
+                System.out.println ("available");
                 availableWorker.wakeUpWith (submittable);
             }
             else {
+//                System.out.println ("NOT");
                 final Thread curThread = Thread.currentThread ();
                 if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
                     ((WorkStealingThread) curThread).queue.submit (submittable);

@@ -5,6 +5,7 @@ import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
 import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
 
+import java.util.Random;
 import java.util.concurrent.*;
 
 
@@ -55,9 +56,10 @@ public class PoolBenchmark {
         final CountDownLatch latch = new CountDownLatch (num);
 
         for (int i=0; i<num; i++) {
-            pool.submit (() -> {latch.countDown(); return null;});
+            pool.submit (() -> {latch.countDown();return null;});
         }
         latch.await ();
+        System.out.println ("------------------------");
     }
 
 //    @Benchmark
@@ -122,7 +124,7 @@ public class PoolBenchmark {
         testPingPong (1);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong2() throws InterruptedException {
         testPingPong (2);
     }
