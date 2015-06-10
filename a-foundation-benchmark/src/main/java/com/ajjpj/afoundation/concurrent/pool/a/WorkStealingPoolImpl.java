@@ -144,7 +144,7 @@ public class WorkStealingPoolImpl implements APool {
 
     //----------------------------------- statistics
 
-    static final boolean shouldCollectStatistics = false;
+    static final boolean shouldCollectStatistics = true;
 
     final AtomicLong numWakeups = new AtomicLong ();
     final AtomicLong numGlobalPush = new AtomicLong ();
