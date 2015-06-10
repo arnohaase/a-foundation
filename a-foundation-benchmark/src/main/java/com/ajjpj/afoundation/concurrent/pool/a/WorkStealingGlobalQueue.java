@@ -1,7 +1,6 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable;
-import com.sun.org.apache.bcel.internal.generic.GETFIELD;
 import sun.misc.Contended;
 import sun.misc.Unsafe;
 
@@ -52,7 +51,7 @@ class WorkStealingGlobalQueue {
         if ((raw & WorkStealingLocalQueue.FLAG_SHUTDOWN) != 0) {
             throw new WorkStealingShutdownException ();
         }
-        return raw & (WorkStealingLocalQueue.FLAG_SHUTDOWN - 1);
+        return raw & (~ WorkStealingLocalQueue.FLAG_SHUTDOWN);
     }
 
     void shutdown() {
@@ -77,15 +76,12 @@ class WorkStealingGlobalQueue {
             final ASubmittable[] a = array;
             final int am = a.length - 1;
             final int s = top;
-            final int n = s - getBase (); //TODO unlock in finally block!
+            final int n = s - getBase (); //TODO unlock in finally block? --> shutdown exception?
             if (am > n) {
                 int j = ((am & s) << ASHIFT) + ABASE;
                 U.putOrderedObject(a, j, task);
                 top = s + 1;                     // push on to deque
                 qlock = 0;
-//                if (n <= 1) { //TODO ?!
-//                    signalWork (ws, q);
-//                }
 
                 return;
             }
@@ -112,12 +108,12 @@ class WorkStealingGlobalQueue {
      * reinitialize if workQueues exists, while still advancing plock.
      */
     private void fullExternalPush (ASubmittable task) {
-        for (;;) { //TODO refactor into CAS loop
+        for (;;) { //TODO refactor into CAS loop?
             if (U.compareAndSwapInt(this, QLOCK, 0, 1)) {
                 ASubmittable[] a = array;
                 int s = top;
                 boolean submitted = false;
-                try {                      // locked version of push
+                try {
                     if ((a.length > s + 1 - getBase ()) ||
                             (a = growArray()) != null) {   // must presize
                         int j = (((a.length - 1) & s) << ASHIFT) + ABASE;
@@ -130,7 +126,6 @@ class WorkStealingGlobalQueue {
                     qlock = 0;  // unlock
                 }
                 if (submitted) {
-//                    signalWork(ws, q);
                     return;
                 }
             }
