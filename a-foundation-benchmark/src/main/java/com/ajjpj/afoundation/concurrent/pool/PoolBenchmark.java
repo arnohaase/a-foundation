@@ -4,6 +4,7 @@ import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
 import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.Random;
 import java.util.concurrent.*;
@@ -56,7 +57,7 @@ public class PoolBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public void testSimpleScheduling() throws InterruptedException {
         final int num = 10_000;
         final CountDownLatch latch = new CountDownLatch (num);
@@ -124,6 +125,37 @@ public class PoolBenchmark {
 
         final AFuture<Long> f = pool.submit (() -> fibo(n-1));
         return f.get() + pool.submit (() -> fibo(n-2)).get ();
+    }
+
+    @Benchmark
+    public void testStealVeryCheap() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch (10_000);
+
+        pool.submit (() -> {
+           for (int i=0; i<10_000; i++) {
+               pool.submit (() -> {
+                   latch.countDown();
+                   return null;});
+           }
+            return null;
+        });
+        latch.await ();
+    }
+
+    @Benchmark
+    public void testStealExpensive() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch (10_000);
+
+        pool.submit (() -> {
+           for (int i=0; i<10_000; i++) {
+               pool.submit (() -> {
+                   Blackhole.consumeCPU (100);
+                   latch.countDown();
+                   return null;});
+           }
+            return null;
+        });
+        latch.await ();
     }
 
 //    @Benchmark
