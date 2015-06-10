@@ -33,14 +33,18 @@ public class WorkStealingPoolImpl implements APool {
 
     static final ASubmittable SHUTDOWN = new ASubmittable (null, null);
 
-    public WorkStealingPoolImpl (int numThreads) {
+    public WorkStealingPoolImpl (int numThreads) { //TODO move default values to Builder class
+        this (numThreads, 100, 1, 100);
+    }
+
+    public WorkStealingPoolImpl (int numThreads, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
         this.globalQueue = new WorkStealingGlobalQueue ();
         this.shutdownLatch = new CountDownLatch (numThreads);
 
         this.localQueues = new WorkStealingLocalQueue[numThreads];
         this.threads     = new WorkStealingThread [numThreads];
         for (int i=0; i<numThreads; i++) {
-            threads[i] = new WorkStealingThread (this, i);
+            threads[i] = new WorkStealingThread (this, i, globalBeforeLocalInterval, numPollsBeforePark, pollNanosBeforePark);
             localQueues[i] = threads[i].queue;
         }
     }
@@ -55,29 +59,6 @@ public class WorkStealingPoolImpl implements APool {
 
         return this;
     }
-
-
-//    @Override public <T> AFuture<T> submit (Callable<T> code) {
-//
-//        final ATask<T> result = new ATask<> ();
-//        final ASubmittable submittable = new ASubmittable (result, code);
-//
-//        final Thread curThread = Thread.currentThread ();
-//        if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
-//            ((WorkStealingThread) curThread).queue.submit (submittable);
-//        }
-//        else {
-//            final WorkStealingThread availableWorker = availableWorker ();
-//            if (availableWorker != null) {
-//                availableWorker.wakeUpWith (submittable);
-//            }
-//            else {
-//                globalQueue.externalPush (submittable);
-//            }
-//        }
-//
-//        return result;
-//    }
 
     @Override public <T> AFuture<T> submit (Callable<T> code) {
         final ATask<T> result = new ATask<> ();
@@ -111,8 +92,6 @@ public class WorkStealingPoolImpl implements APool {
             throw new RejectedExecutionException ("pool is shut down");
         }
     }
-
-
 
     private WorkStealingThread availableWorker () {
         WorkStealingThread worker;

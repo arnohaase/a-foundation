@@ -18,9 +18,9 @@ class WorkStealingThread extends Thread {
 
     private final int ownThreadIndex;
 
-    private final int numPollsBeforePark = 1; //TODO make configurable
-    private final int skipLocalQueueFrequency = 100; //TODO make configurable
-    private final int pollNanosBeforePark = 100; //TODO make configurable
+    private final int globalBeforeLocalInterval;
+    private final int numPollsBeforePark;
+    private final int pollNanosBeforePark;
 
     //TODO configuration parameter for 'no work stealing'
 
@@ -29,9 +29,13 @@ class WorkStealingThread extends Thread {
 
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
 
-    public WorkStealingThread (WorkStealingPoolImpl pool, int ownThreadIndex) {
+    public WorkStealingThread (WorkStealingPoolImpl pool, int ownThreadIndex, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
         this.pool = pool;
         this.ownThreadIndex = ownThreadIndex;
+
+        this.globalBeforeLocalInterval = globalBeforeLocalInterval;
+        this.numPollsBeforePark = numPollsBeforePark;
+        this.pollNanosBeforePark = pollNanosBeforePark;
     }
 
 
@@ -45,10 +49,7 @@ class WorkStealingThread extends Thread {
             msgCount += 1;
 
             try {
-                ASubmittable newTask;
-
-                final boolean pollGlobalQueueFirst = msgCount % skipLocalQueueFrequency == 0;
-
+                final boolean pollGlobalQueueFirst = msgCount % globalBeforeLocalInterval == 0;
                 if (pollGlobalQueueFirst) {
                     // This is the exceptional case: Polling the global queue first once in a while avoids starvation of
                     //  work from the global queue. This is important in systems where locally produced work can saturate
@@ -165,7 +166,6 @@ class WorkStealingThread extends Thread {
                 //  conscious trade-off to keep pool.submit() fast - this race condition is pretty rare, so the trade-off pays in
                 //  practice.
 
-
                 ASubmittable wakeUp;
                 //noinspection StatementWithEmptyBody
                 while ((wakeUp = wakeUpTask) == null) {
@@ -193,15 +193,13 @@ class WorkStealingThread extends Thread {
             }
         }
         while (newTask == null);
-        U.putOrderedObject (this, WAKE_UP_TASK, null); //TODO replace with U.compareAndSwap? --> does that have volatile read semantics? Is that even faster
+        U.putOrderedObject (this, WAKE_UP_TASK, null); //TODO replace with U.compareAndSwap? --> does that have volatile read semantics? Is that even faster?
 
         newTask.run ();
     }
 
     void wakeUpWith (ASubmittable task) {
-        //TODO is 'putOrderedObject' guaranteed to work on a volatile field?
         U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
-
         LockSupport.unpark (this);
     }
 

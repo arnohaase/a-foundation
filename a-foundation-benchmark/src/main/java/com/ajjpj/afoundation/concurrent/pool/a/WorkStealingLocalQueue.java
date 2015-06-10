@@ -65,7 +65,7 @@ class WorkStealingLocalQueue {
         if ((raw & FLAG_SHUTDOWN) != 0) {
             throw new WorkStealingShutdownException ();
         }
-        return raw & (FLAG_SHUTDOWN - 1);
+        return raw & (~ FLAG_SHUTDOWN);
     }
 
     void checkShutdown () {
@@ -87,7 +87,7 @@ class WorkStealingLocalQueue {
      * @param task the task. Caller must ensure non-null.
      * @throws java.util.concurrent.RejectedExecutionException if array cannot be resized
      */
-    final void push(ASubmittable task) {
+    final void push (ASubmittable task) {
         final int s = top;
         final ASubmittable[] a = array;
         int m = a.length - 1;
@@ -98,10 +98,7 @@ class WorkStealingLocalQueue {
         U.putOrderedObject(a, ((m & s) << ASHIFT) + ABASE, task);
         top = s+1;
         final int n = top - base;
-        if (n <= 2) {
-//                (p = pool).signalWork (p.workQueues, this); TODO
-        }
-        else if (n >= m) {
+        if (n >= m) {
             growArray ();
         }
     }
@@ -148,6 +145,23 @@ class WorkStealingLocalQueue {
 
         final int m = a.length-1;
         if (m >= 0) {
+//            while (true) {
+//                final int s = top-1;
+//                if (s - getBase () < 0) {
+//                    break;
+//                }
+//
+//                final long j = ((m & s) << ASHIFT) + ABASE;
+//                final ASubmittable t = (ASubmittable) U.getObject(a, j);
+//                if (t == null) {
+//                    break;
+//                }
+//                if (U.compareAndSwapObject(a, j, t, null)) {
+//                    top = s;
+//                    return t;
+//                }
+//            }
+
             int s;
             while ((s = top - 1) - getBase () >= 0) { //TODO how to simplify this?
                 long j = ((m & s) << ASHIFT) + ABASE;
