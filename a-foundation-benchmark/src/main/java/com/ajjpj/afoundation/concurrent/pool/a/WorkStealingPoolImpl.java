@@ -7,6 +7,7 @@ import com.ajjpj.afoundation.concurrent.pool.APool;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -83,16 +84,18 @@ public class WorkStealingPoolImpl implements APool {
 
             final WorkStealingThread availableWorker = availableWorker ();
             if (availableWorker != null) {
-                System.out.println ("available");
+                if (shouldCollectStatistics) numWakeups.incrementAndGet ();
                 availableWorker.wakeUpWith (submittable);
             }
             else {
 //                System.out.println ("NOT");
                 final Thread curThread = Thread.currentThread ();
                 if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
+                    if (shouldCollectStatistics) numLocalPush.incrementAndGet ();
                     ((WorkStealingThread) curThread).queue.submit (submittable);
                 }
                 else {
+                    if (shouldCollectStatistics) numGlobalPush.incrementAndGet ();
                     globalQueue.externalPush (submittable);
                 }
             }
@@ -138,6 +141,28 @@ public class WorkStealingPoolImpl implements APool {
 
         shutdownLatch.await ();
     }
+
+    //----------------------------------- statistics
+
+    static final boolean shouldCollectStatistics = false;
+
+    final AtomicLong numWakeups = new AtomicLong ();
+    final AtomicLong numGlobalPush = new AtomicLong ();
+    final AtomicLong numLocalPush = new AtomicLong ();
+
+    public long getNumWakeups() {
+        return numWakeups.get ();
+    }
+
+    public long getNumGlobalPushs() {
+        return numGlobalPush.get ();
+    }
+
+    public long getNumLocalPushs() {
+        return numLocalPush.get ();
+    }
+
+    //----------------------------------- internal data structure for submitted task
 
     static class ASubmittable implements Runnable {
         private final ATask result;

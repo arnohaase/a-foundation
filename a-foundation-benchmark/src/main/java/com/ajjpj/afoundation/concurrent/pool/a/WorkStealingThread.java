@@ -24,28 +24,46 @@ class WorkStealingThread extends Thread {
     }
 
     @Override public void run () {
-
-        while (true) { //TODO shutdown
+        while (true) {
             try {
                 ASubmittable newTask;
 
                 if ((newTask = queue.nextLocalTask ()) != null) {
-                    //TODO intermittently read from global queue if available --> avoid starvation
+                    //TODO read from global queue intermittently if available --> avoid starvation
 
                     newTask.run ();
                 }
                 else if ((newTask = pool.globalQueue.poll ()) != null) {
-                    System.out.println ("********* from global queue");
                     newTask.run ();
                 }
+                //TODO work stealing
                 else {
-                    //TODO work stealing
+                    // There is currently no work available for this thread. That means that there is currently not enough work for all
+                    //  worker threads, i.e. the pool is in a 'low load' situation.
+                    //
+                    // Now we want to park this thread until work becomes available. There are basically two ways of doing that, and they
+                    //  have different trade-offs: Pushing work from the producing thread (i.e. calling 'unpark' from the producing thread
+                    //  when work becomes available), or polling from this thread (i.e. waiting some time and checking for work, without
+                    //  involving any producing threads in this thread's scheduling).
+                    //
+                    // Unparking a thread incurs a significant overhead *for the caller of 'unpark'*. In the 'push' approach, a producer
+                    //  thread is burdened with this overhead, which can severely limit throughput for high-frequency producers. Polling
+                    //  on the other hand causes each idling thread to place an ongoing load on the system.
+                    //
+                    // The following code compromises, starting out by polling and then parking itself, waiting to be awakened by a
+                    //  'push' operation when work becomes available.
+
+                    //TODO configurable iterations - including 'poll only'
+                    LockSupport.parkNanos (100); // wait a little while and look again before really going to sleep
+                    if ((newTask = pool.globalQueue.poll ()) != null) {
+                        newTask.run ();
+                        continue;
+                    }
 
                     preparePark ();
 
                     do {
                         queue.checkShutdown ();
-                        System.out.println ("parking");
                         LockSupport.park (); //TODO exception handling
                         newTask = wakeUpTask;
 
@@ -61,6 +79,8 @@ class WorkStealingThread extends Thread {
                 }
             }
             catch (WorkStealingShutdownException exc) {
+                // this exception signals that the thread pool was shut down
+
                 //noinspection finally
                 try {
                     pool.onThreadFinished (this);
@@ -82,6 +102,7 @@ class WorkStealingThread extends Thread {
     void wakeUpWith (ASubmittable task) {
         //TODO is 'putOrderedObject' guaranteed to work on a volatile field?
         U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
+
         LockSupport.unpark (this);
     }
 

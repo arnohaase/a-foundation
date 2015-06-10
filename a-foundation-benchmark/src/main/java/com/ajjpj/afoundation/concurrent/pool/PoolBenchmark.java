@@ -7,6 +7,7 @@ import org.openjdk.jmh.annotations.*;
 
 import java.util.Random;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 
 
 /**
@@ -48,6 +49,11 @@ public class PoolBenchmark {
     @TearDown
     public void tearDown() throws InterruptedException {
         pool.shutdown ();
+
+        if (pool instanceof WorkStealingPoolImpl) {
+            final WorkStealingPoolImpl ws = (WorkStealingPoolImpl) pool;
+//            System.out.println ("wakeup / global / local: " + ws.getNumWakeups () + " / " + ws.getNumGlobalPushs () + " / " + ws.getNumLocalPushs ());
+        }
     }
 
     @Benchmark
@@ -56,10 +62,11 @@ public class PoolBenchmark {
         final CountDownLatch latch = new CountDownLatch (num);
 
         for (int i=0; i<num; i++) {
-            pool.submit (() -> {latch.countDown();return null;});
+            pool.submit (() -> {
+                latch.countDown ();
+                return null;});
         }
         latch.await ();
-        System.out.println ("------------------------");
     }
 
 //    @Benchmark
