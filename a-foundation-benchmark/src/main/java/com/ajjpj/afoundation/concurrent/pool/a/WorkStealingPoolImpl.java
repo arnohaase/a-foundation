@@ -38,7 +38,7 @@ public class WorkStealingPoolImpl implements APool {
         this.localQueues = new WorkStealingLocalQueue[numThreads];
         this.threads     = new WorkStealingThread [numThreads];
         for (int i=0; i<numThreads; i++) {
-            threads[i] = new WorkStealingThread (this);
+            threads[i] = new WorkStealingThread (this, i);
             localQueues[i] = threads[i].queue;
         }
     }

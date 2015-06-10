@@ -15,16 +15,19 @@ class WorkStealingThread extends Thread {
     final WorkStealingLocalQueue queue = new WorkStealingLocalQueue (true);
     final WorkStealingPoolImpl pool;
 
-    @SuppressWarnings ("unused") // is written with Unsafe.putOrderedObject
-    private volatile ASubmittable wakeUpTask;
+    private final int ownThreadIndex;
 
     private final int skipLocalQueueFrequency = 100; //TODO make configurable
     private final int pollNanosBeforePark = 100; //TODO make configurable
 
+    @SuppressWarnings ("unused") // is written with Unsafe.putOrderedObject
+    private volatile ASubmittable wakeUpTask;
+
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
 
-    public WorkStealingThread (WorkStealingPoolImpl pool) {
+    public WorkStealingThread (WorkStealingPoolImpl pool, int ownThreadIndex) {
         this.pool = pool;
+        this.ownThreadIndex = ownThreadIndex;
     }
 
     @Override public void run () {
@@ -56,7 +59,10 @@ class WorkStealingThread extends Thread {
                     continue;
                 }
 
-                //TODO work stealing
+                if (tryActiveWorkStealing()) {
+                    continue;
+                }
+
                 waitForWork ();
             }
             catch (WorkStealingShutdownException exc) {
@@ -80,6 +86,19 @@ class WorkStealingThread extends Thread {
         }
     }
 
+    private boolean tryActiveWorkStealing () {
+        for (int i=1; i<pool.localQueues.length; i++) { //TODO store this length in an attribute of this class?
+            final int victimThreadIndex = (ownThreadIndex + i) % pool.localQueues.length;
+
+            final ASubmittable stolenTask = pool.localQueues[victimThreadIndex].poll ();
+            if (stolenTask != null) {
+                stolenTask.run ();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void waitForWork () {
         ASubmittable newTask;// There is currently no work available for this thread. That means that there is currently not enough work for all
         //  worker threads, i.e. the pool is in a 'low load' situation.
@@ -99,19 +118,22 @@ class WorkStealingThread extends Thread {
         //TODO configurable iterations - including 'poll only'
         // wait a little while and look again before really going to sleep
         LockSupport.parkNanos (pollNanosBeforePark);
-        if ((newTask = pool.globalQueue.poll ()) != null) {
+        if ((newTask = pool.globalQueue.poll ()) != null) { //TODO try to steal here
             newTask.run ();
             return;
         }
 
         preparePark ();
 
+        //TODO recheck global queue here to avoid races
+        //TODO try to steal here as well?
+
         do {
             queue.checkShutdown ();
             LockSupport.park (); //TODO exception handling
             newTask = wakeUpTask;
 
-            //TODO delay 'stealing' of work produced by other threads
+            // 'stealing' locally submitted work this way is effectively delayed by the 'parkNanos' call above
 
             if (newTask == null) {
                 // for other cases, shutdown is checked after the task is run anyway
