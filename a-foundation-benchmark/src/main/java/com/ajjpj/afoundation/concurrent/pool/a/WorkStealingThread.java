@@ -41,27 +41,19 @@ class WorkStealingThread extends Thread {
 
                 final boolean pollGlobalQueueFirst = msgCount % skipLocalQueueFrequency == 0;
 
-                // polling the global queue first once in a while avoids starvation of work from the global queue. This is
-                //  important in systems where locally produced work can saturate the pool, e.g. in actor-based systems.
-                if (pollGlobalQueueFirst && (newTask = pool.globalQueue.poll ()) != null) {
-                    newTask.run ();
-                    continue;
+                if (pollGlobalQueueFirst) {
+                    // This is the exceptional case: Polling the global queue first once in a while avoids starvation of
+                    //  work from the global queue. This is important in systems where locally produced work can saturate
+                    //  the pool, e.g. in actor-based systems.
+                    if (tryGlobalFetch () || tryLocalFatch ()) continue;
+                }
+                else {
+                    // This is the normal case: check for local work first, and only if there is no local work look in
+                    //  the global queue
+                    if (tryLocalFatch () || tryGlobalFetch ()) continue;
                 }
 
-                if ((newTask = queue.nextLocalTask ()) != null) {
-                    newTask.run ();
-                    continue;
-                }
-
-                // this is the 'normal case' search in the global queue: *after* looking in this thread's local queue
-                if (! pollGlobalQueueFirst && (newTask = pool.globalQueue.poll ()) != null) {
-                    newTask.run ();
-                    continue;
-                }
-
-                if (tryActiveWorkStealing()) {
-                    continue;
-                }
+                if (tryActiveWorkStealing()) continue;
 
                 waitForWork ();
             }
@@ -84,6 +76,24 @@ class WorkStealingThread extends Thread {
                 exc.printStackTrace (); //TODO exception handling
             }
         }
+    }
+
+    private boolean tryGlobalFetch() {
+        final ASubmittable newTask = pool.globalQueue.poll ();
+        if (newTask != null) {
+            newTask.run ();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryLocalFatch() {
+        final ASubmittable newTask = queue.nextLocalTask ();
+        if (newTask != null) {
+            newTask.run ();
+            return true;
+        }
+        return false;
     }
 
     private boolean tryActiveWorkStealing () {
