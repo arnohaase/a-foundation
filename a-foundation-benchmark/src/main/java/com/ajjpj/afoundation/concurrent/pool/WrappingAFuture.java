@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
+import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
 import com.ajjpj.afoundation.collection.tuples.ATuple3;
 import com.ajjpj.afoundation.conc2.AFuture;
@@ -38,7 +39,9 @@ class WrappingAFuture<T> implements AFuture<T> {
     @Override public ATry<T> get () {
         return ATry.fromEval (inner::get);
     }
-
+    @Override public AOption<ATry<T>> value () {
+        return null;
+    }
     @Override public APromisingExecutor getImplicitThreadPool () {
         return null;
     }
@@ -52,9 +55,6 @@ class WrappingAFuture<T> implements AFuture<T> {
         return null;
     }
     @Override public <U> AFuture<ATuple2<T, U>> zip (AFuture<U> other) {
-        return null;
-    }
-    @Override public <U, V> AFuture<ATuple3<T, U, V>> zip (AFuture<U> other1, AFuture<V> other2) {
         return null;
     }
 }
