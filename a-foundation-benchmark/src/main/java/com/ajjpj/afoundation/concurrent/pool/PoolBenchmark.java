@@ -1,14 +1,13 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
+import com.ajjpj.afoundation.conc2.AFuture;
 import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
-import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl;
+import com.ajjpj.afoundation.conc2.WorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.util.Random;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.LockSupport;
 
 
 /**
@@ -40,10 +39,27 @@ public class PoolBenchmark {
             case "a-global-queue": pool = new APoolImpl (8, ASchedulingStrategy.SingleQueue ()).start (); break;
             case "a-strict-own":   pool = new APoolImpl (8, ASchedulingStrategy.OWN_FIRST_NO_STEALING).start (); break;
 //            case "work-stealing":  pool = new WorkStealingPoolImpl (1).start (); break;
-            case "work-stealing":  pool = new WorkStealingPoolImpl (8).start (); break;
+            case "work-stealing":  pool = new WorkStealingWrapper (8); break;
             case "Fixed":          pool = new DelegatingPool (Executors.newFixedThreadPool (8)); break;
             case "ForkJoin":       pool = new DelegatingPool (ForkJoinPool.commonPool ()); break;
             default: throw new IllegalStateException ();
+        }
+    }
+
+    static class WorkStealingWrapper implements APool {
+        private final WorkStealingPoolImpl impl;
+
+        public WorkStealingWrapper (int numThreads) {
+            impl = new WorkStealingPoolImpl (numThreads);
+            impl.start ();
+        }
+
+        @Override public <T> AFuture<T> submit (Callable<T> code) {
+            return impl.submit (code);
+        }
+
+        @Override public void shutdown () throws InterruptedException {
+            impl.shutdown ();
         }
     }
 

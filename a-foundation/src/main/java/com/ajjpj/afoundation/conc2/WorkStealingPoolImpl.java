@@ -1,14 +1,32 @@
-package com.ajjpj.afoundation.concurrent.pool.a;
+package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
-import com.ajjpj.afoundation.concurrent.pool.AFuture;
-import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+/*
+
+  TODO Promise / Future API
+  TODO 'statistics' API: wakeUps, global, local; numAvailableWorkers; backlog size
+  TODO with / without timeout (combinable)
+  TODO cancel
+  TODO interrupt
+  TODO exception handling
+  TODO fixed size queues
+  TODO Builder
+  TODO adapter --> as ExecutorService
+  TODO adapter --> as ExecutionContext
+  TODO shutdown: finsish processing submitted tasks
+  TODO shutdownNow (with / without interrupting)
+  TODO awaitTermination
+
+  TODO AScheduler
+
+ */
 
 
 /**
@@ -22,12 +40,12 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author arno
  */
-public class WorkStealingPoolImpl implements APool {
+public class WorkStealingPoolImpl {
     final WorkStealingThread[] threads;
     final WorkStealingLocalQueue[] localQueues;
     final WorkStealingGlobalQueue globalQueue;
 
-    final AtomicReference<AList<WorkStealingThread>> waitingWorkers = new AtomicReference<> (AList.nil()); // threads will add themselves in 'run' loop when they don't find work
+    final AtomicReference<AList<WorkStealingThread>> waitingWorkers = new AtomicReference<> (AList.<WorkStealingThread>nil()); // threads will add themselves in 'run' loop when they don't find work
 
     private final CountDownLatch shutdownLatch;
 
@@ -60,7 +78,8 @@ public class WorkStealingPoolImpl implements APool {
         return this;
     }
 
-    @Override public <T> AFuture<T> submit (Callable<T> code) {
+    //TODO @Override
+    public <T> AFuture<T> submit (Callable<T> code) {
         final ATask<T> result = new ATask<> ();
         final ASubmittable submittable = new ASubmittable (result, code);
 
@@ -114,7 +133,8 @@ public class WorkStealingPoolImpl implements APool {
         shutdownLatch.countDown ();
     }
 
-    @Override public void shutdown () throws InterruptedException {
+    //TODO @Override
+    public void shutdown () throws InterruptedException {
         globalQueue.shutdown ();
         for (WorkStealingLocalQueue q: localQueues) {
             q.shutdown ();

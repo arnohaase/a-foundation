@@ -55,11 +55,22 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
-	<dependency>
-	    <groupId>com.ajjpj.a-foundation</groupId>
-	    <artifactId>a-foundation</artifactId>
-	    <version>1.0-pre15-SNAPSHOT</version>
-	</dependency>
+        <dependency>
+            <groupId>com.ajjpj.a-foundation</groupId>
+            <artifactId>a-foundation</artifactId>
+            <version>1.0-pre15-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.11</artifactId>
+            <version>2.3.11</version>
+        </dependency>
     </dependencies>
 
     <properties>

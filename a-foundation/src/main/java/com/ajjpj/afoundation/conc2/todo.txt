@@ -1,0 +1,6 @@
+todo
+----
+
+* AFuture:
+  * callbacks
+  * monadic API

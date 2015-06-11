@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.conc2.AFuture;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;

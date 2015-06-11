@@ -1,5 +1,7 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
+import com.ajjpj.afoundation.conc2.AFuture;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 

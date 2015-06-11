@@ -1,6 +1,6 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
-import com.ajjpj.afoundation.concurrent.pool.AFuture;
+import com.ajjpj.afoundation.conc2.AFuture;
 import com.ajjpj.afoundation.concurrent.pool.APool;
 
 import java.util.concurrent.Callable;

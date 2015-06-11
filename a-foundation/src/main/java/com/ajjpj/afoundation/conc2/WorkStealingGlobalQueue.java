@@ -1,7 +1,5 @@
-package com.ajjpj.afoundation.concurrent.pool.a;
+package com.ajjpj.afoundation.conc2;
 
-import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable;
-import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -12,7 +10,7 @@ import java.util.concurrent.RejectedExecutionException;
 /**
  * @author arno
  */
-@Contended
+//TODO @Contended
 class WorkStealingGlobalQueue {
 
     /**
@@ -38,12 +36,12 @@ class WorkStealingGlobalQueue {
     volatile int qlock;        // 1: locked, -1: terminate; else 0
     volatile int base;         // index of next slot for poll
     int top;                   // index of next slot for push
-    ASubmittable[] array;          // the elements (initially unallocated)
+    WorkStealingPoolImpl.ASubmittable[] array;          // the elements (initially unallocated)
 
     WorkStealingGlobalQueue () {
         // Place indices in the center of array (that is not yet allocated)
         base = top = INITIAL_QUEUE_CAPACITY >>> 1;
-        array = new ASubmittable[INITIAL_QUEUE_CAPACITY];
+        array = new WorkStealingPoolImpl.ASubmittable[INITIAL_QUEUE_CAPACITY];
     }
 
     private int getBase() {
@@ -71,9 +69,9 @@ class WorkStealingGlobalQueue {
      *
      * @param task the task. Caller must ensure non-null.
      */
-    final void externalPush(ASubmittable task) {
+    final void externalPush(WorkStealingPoolImpl.ASubmittable task) {
         if (U.compareAndSwapInt (this, QLOCK, 0, 1)) { // lock
-            final ASubmittable[] a = array;
+            final WorkStealingPoolImpl.ASubmittable[] a = array;
             final int am = a.length - 1;
             final int s = top;
             final int n = s - getBase (); //TODO unlock in finally block? --> shutdown exception?
@@ -107,10 +105,10 @@ class WorkStealingGlobalQueue {
      * eventually wrap around zero, this method harmlessly fails to
      * reinitialize if workQueues exists, while still advancing plock.
      */
-    private void fullExternalPush (ASubmittable task) {
+    private void fullExternalPush (WorkStealingPoolImpl.ASubmittable task) {
         for (;;) { //TODO refactor into CAS loop?
             if (U.compareAndSwapInt(this, QLOCK, 0, 1)) {
-                ASubmittable[] a = array;
+                WorkStealingPoolImpl.ASubmittable[] a = array;
                 int s = top;
                 boolean submitted = false;
                 try {
@@ -138,13 +136,13 @@ class WorkStealingGlobalQueue {
      * Initializes or doubles the capacity of array. Call only with lock held -- it is OK for base, but not
      * top, to move while resizings are in progress.
      */
-    final ASubmittable[] growArray() { //TODO is the new value of 'array' even safely published? --> code is from FJP, but still...
-        final ASubmittable[] oldA = array;
+    final WorkStealingPoolImpl.ASubmittable[] growArray() { //TODO is the new value of 'array' even safely published? --> code is from FJP, but still...
+        final WorkStealingPoolImpl.ASubmittable[] oldA = array;
         final int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
         if (size > MAXIMUM_QUEUE_CAPACITY)
             throw new RejectedExecutionException ("Queue capacity exceeded");
-        array = new ASubmittable[size];
-        final ASubmittable[] a = array;
+        array = new WorkStealingPoolImpl.ASubmittable[size];
+        final WorkStealingPoolImpl.ASubmittable[] a = array;
 
         if (oldA != null) {
             final int oldMask = oldA.length - 1;
@@ -155,7 +153,7 @@ class WorkStealingGlobalQueue {
                 do {
                     int oldj = ((b & oldMask) << ASHIFT) + ABASE;
                     int j = ((b & mask) << ASHIFT) + ABASE;
-                    final ASubmittable x = (ASubmittable) U.getObjectVolatile (oldA, oldj);
+                    final WorkStealingPoolImpl.ASubmittable x = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile (oldA, oldj);
                     if (x != null && U.compareAndSwapObject (oldA, oldj, x, null)) {
                         U.putObjectVolatile (a, j, x);
                     }
@@ -171,13 +169,13 @@ class WorkStealingGlobalQueue {
     /**
      * Takes next task, if one exists, in FIFO order.
      */
-    final ASubmittable poll() {
-        ASubmittable[] a;
+    final WorkStealingPoolImpl.ASubmittable poll() {
+        WorkStealingPoolImpl.ASubmittable[] a;
         int b;
 
         while ((b = getBase ()) - top < 0 && (a = array) != null) {
             final int j = (((a.length - 1) & b) << ASHIFT) + ABASE;
-            final ASubmittable t = (ASubmittable) U.getObjectVolatile(a, j);
+            final WorkStealingPoolImpl.ASubmittable t = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile(a, j);
             if (t != null) {
                 if (U.compareAndSwapObject(a, j, t, null)) {
                     U.putOrderedInt(this, QBASE, b + 1);

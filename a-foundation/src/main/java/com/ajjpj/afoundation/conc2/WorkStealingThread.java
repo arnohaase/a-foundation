@@ -1,7 +1,7 @@
-package com.ajjpj.afoundation.concurrent.pool.a;
+package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
-import com.ajjpj.afoundation.concurrent.pool.a.WorkStealingPoolImpl.ASubmittable;
+import com.ajjpj.afoundation.conc2.WorkStealingPoolImpl.ASubmittable;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import sun.misc.Unsafe;
 
