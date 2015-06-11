@@ -1,8 +1,8 @@
 package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
-import com.ajjpj.afoundation.collection.tuples.ATuple3;
 import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
@@ -10,7 +10,6 @@ import com.ajjpj.afoundation.function.AStatement1NoThrow;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -29,6 +28,10 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
 
     public APromiseImpl (APromisingExecutor implicitThreadPool) {
         this.implicitThreadPool = implicitThreadPool;
+    }
+
+    private <X> APromiseImpl<X> newPromise() {
+        return new APromiseImpl<> (implicitThreadPool);
     }
 
     @Override public APromisingExecutor getImplicitThreadPool () {
@@ -99,6 +102,10 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
         return result;
     }
 
+    @Override public AOption<ATry<T>> value () {
+        return AOption.fromNullable (value.get ());
+    }
+
     @Override public void onSuccess (final AStatement1NoThrow<T> listener) {
         onFinished (new AStatement1NoThrow<ATry<T>> () {
             @Override public void apply (ATry<T> param) {
@@ -149,9 +156,16 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
 
     //--------------------------------------- AFuture comprehensions -----------------------------------------------
 
+    @Override public AFuture<T> withDefaultValue (final T defaultValue) {
+        final APromise<T> result = newPromise ();
 
-    @Override public AFuture<T> withDefaultValue (T defaultValue) {
-        return null;
+        onFinished (new AStatement1NoThrow<ATry<T>> () {
+            @Override public void apply (ATry<T> param) {
+                result.completeSuccessfully (param.getOrElse (defaultValue));
+            }
+        });
+
+        return result.asFuture ();
     }
 
     @Override public <U, E extends Exception> AFuture<U> mapAsync (AFunction1<T, U, E> f) {
@@ -161,11 +175,21 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
         return null;
     }
 
-    @Override public <U> AFuture<ATuple2<T, U>> zip (AFuture<U> other) {
-        return null;
-    }
+    @Override public <U> AFuture<ATuple2<T, U>> zip (final AFuture<U> other) {
+        final APromise<ATuple2<T,U>> result = newPromise ();
 
-    @Override public <U, V> AFuture<ATuple3<T, U, V>> zip (AFuture<U> other1, AFuture<V> other2) {
-        return null;
+        onFinished (new AStatement1NoThrow<ATry<T>> () {
+            @Override public void apply (final ATry<T> result1) {
+                if (result1.isFailure ()) result.completeExceptionally (result1.getFailure ().get ());
+                else other.onFinished (new AStatement1NoThrow<ATry<U>> () {
+                    @Override public void apply (ATry<U> result2) {
+                        if (result2.isSuccess ()) result.completeSuccessfully (new ATuple2<> (result1.get (), result2.get ()));
+                        else result.completeExceptionally (result2.getFailure ().get ());
+                    }
+                });
+            }
+        });
+
+        return result.asFuture ();
     }
 }

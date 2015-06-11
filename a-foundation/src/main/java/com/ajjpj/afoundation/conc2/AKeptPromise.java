@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.conc2;
 
+import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
 
@@ -16,6 +17,9 @@ class AKeptPromise<T> extends APromiseImpl<T> {
 
     @Override public ATry<T> get () {
         return value;
+    }
+    @Override public AOption<ATry<T>> value () {
+        return AOption.some (value);
     }
 
     @Override public boolean isDone () {

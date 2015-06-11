@@ -31,19 +31,18 @@ public abstract class ATry<T> { //TODO move to other package
         return new AFailure<> (th);
     }
 
-    abstract boolean isSuccess();
-    abstract boolean isFailure();
+    public abstract boolean isSuccess();
+    public abstract boolean isFailure();
 
-    abstract T get();
+    public abstract T get();
+    public abstract T getOrElse (T defaultValue);
 
-    abstract AOption<Throwable> getFailure();
+    public abstract AOption<Throwable> getFailure();
 
     public AOption<T> toOption() {
         if (isSuccess ()) return AOption.some (get ());
         return AOption.none ();
     }
-
-
 
     private static class ASuccess<T> extends ATry<T> {
         private final T value;
@@ -52,17 +51,21 @@ public abstract class ATry<T> { //TODO move to other package
             this.value = value;
         }
 
-        @Override boolean isSuccess () {
+        @Override public boolean isSuccess () {
             return true;
         }
-        @Override boolean isFailure () {
+        @Override public boolean isFailure () {
             return false;
         }
 
-        @Override T get () {
+        @Override public T get () {
             return value;
         }
-        @Override AOption<Throwable> getFailure () {
+        @Override public T getOrElse (T defaultValue) {
+            return value;
+        }
+
+        @Override public AOption<Throwable> getFailure () {
             return AOption.none ();
         }
     }
@@ -74,19 +77,22 @@ public abstract class ATry<T> { //TODO move to other package
             this.throwable = throwable;
         }
 
-        @Override boolean isSuccess () {
+        @Override public boolean isSuccess () {
             return false;
         }
-        @Override boolean isFailure () {
+        @Override public boolean isFailure () {
             return true;
         }
 
-        @Override T get () {
+        @Override public T get () {
             AUnchecker.throwUnchecked (throwable);
             return null; // for the compiler
         }
+        @Override public T getOrElse (T defaultValue) {
+            return defaultValue;
+        }
 
-        @Override AOption<Throwable> getFailure () {
+        @Override public AOption<Throwable> getFailure () {
             return AOption.some (throwable);
         }
     }

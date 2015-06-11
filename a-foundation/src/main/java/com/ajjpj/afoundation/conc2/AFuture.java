@@ -1,7 +1,7 @@
 package com.ajjpj.afoundation.conc2;
 
+import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
-import com.ajjpj.afoundation.collection.tuples.ATuple3;
 import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
@@ -14,8 +14,7 @@ public interface AFuture<T> {
 
     boolean isDone (); //TODO terminology - 'done', 'finished', 'completed', ... --> ?!?!
     ATry<T> get ();
-
-    // AOption value()
+    AOption<ATry<T>> value();
 
     void onFinished (AStatement1NoThrow<ATry<T>> listener);
     void onSuccess (AStatement1NoThrow<T> listener);
@@ -53,7 +52,7 @@ public interface AFuture<T> {
      *
      * If you want to combine more than three futures into a single future, use {@link com.ajjpj.afoundation.concurrent.AFutureHelper#lift(java.util.Collection)}.
      */
-    <U,V> AFuture<ATuple3<T,U,V>> zip (AFuture<U> other1, AFuture<V> other2);
+//    <U,V> AFuture<ATuple3<T,U,V>> zip (AFuture<U> other1, AFuture<V> other2);
 
     //TODO recover,
     //TODO collect,
