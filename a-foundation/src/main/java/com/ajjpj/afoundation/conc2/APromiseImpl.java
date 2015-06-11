@@ -15,6 +15,7 @@ import java.util.concurrent.locks.LockSupport;
  * @author arno
  */
 class APromiseImpl<T> implements APromise<T>, AFuture<T> {
+    //TODO merge all state behind a single AtomicReference to minimize volatile accesses in 'tryComplete'?
     private final Set<Thread> waiters = Collections.newSetFromMap (new ConcurrentHashMap<Thread, Boolean>());
     private final AtomicReference<AList<AStatement1NoThrow<ATry<T>>>> listeners = new AtomicReference<> (AList.<AStatement1NoThrow<ATry<T>>>nil());
 
@@ -41,7 +42,7 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
     }
 
     @Override public boolean tryComplete (ATry<T> result) {
-        if (value.compareAndSet (null, result)) {
+        if (value.compareAndSet (null, result)) { //TODO putObjectOrdered would suffice --> ?!
             for (Thread thread: waiters) {
                 LockSupport.unpark (thread);
             }
@@ -82,6 +83,26 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
         }
 
         return result;
+    }
+
+    @Override public void onSuccess (final AStatement1NoThrow<T> listener) {
+        onFinished (new AStatement1NoThrow<ATry<T>> () {
+            @Override public void apply (ATry<T> param) {
+                if (param.isSuccess ()) {
+                    listener.apply (param.get ());
+                }
+            }
+        });
+    }
+
+    @Override public void onFailure (final AStatement1NoThrow<Throwable> listener) {
+        onFinished (new AStatement1NoThrow<ATry<T>> () {
+            @Override public void apply (ATry<T> param) {
+                if (param.isFailure ()) {
+                    listener.apply (param.getFailure ().get ());
+                }
+            }
+        });
     }
 
     @Override public void onFinished (final AStatement1NoThrow<ATry<T>> listener) {

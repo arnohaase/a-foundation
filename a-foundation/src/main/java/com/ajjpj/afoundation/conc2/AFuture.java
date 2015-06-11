@@ -11,4 +11,6 @@ public interface AFuture<T> {
     ATry<T> get ();
 
     void onFinished (AStatement1NoThrow<ATry<T>> listener);
+    void onSuccess (AStatement1NoThrow<T> listener);
+    void onFailure (AStatement1NoThrow<Throwable> listener);
 }

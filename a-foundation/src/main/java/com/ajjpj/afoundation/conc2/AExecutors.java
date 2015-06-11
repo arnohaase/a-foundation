@@ -20,4 +20,8 @@ public class AExecutors {
 
         return result;
     }
+
+    public static <T> APromise<T> createUnfinishedPromise () {
+        return new APromiseImpl<> ();
+    }
 }

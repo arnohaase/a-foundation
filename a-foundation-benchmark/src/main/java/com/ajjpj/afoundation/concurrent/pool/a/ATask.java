@@ -44,7 +44,12 @@ public class ATask<T> implements AFuture<T> {
     @Override public void onFinished (AStatement1NoThrow<ATry<T>> listener) {
         throw new UnsupportedOperationException ();
     }
-
+    @Override public void onSuccess (AStatement1NoThrow<T> listener) {
+        throw new UnsupportedOperationException ();
+    }
+    @Override public void onFailure (AStatement1NoThrow<Throwable> listener) {
+        throw new UnsupportedOperationException ();
+    }
     @Override public ATry<T> get () {
         return ATry.fromEval (() -> {
             await (false, 0);
