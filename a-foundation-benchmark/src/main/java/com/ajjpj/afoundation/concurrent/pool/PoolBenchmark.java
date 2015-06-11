@@ -12,8 +12,8 @@ import java.util.concurrent.*;
 /**
  * @author arno
  */
-@Fork (0)
-//@Fork (1)
+//@Fork (0)
+@Fork (1)
 @Threads (1)
 @Warmup (iterations = 3, time = 1)
 @Measurement (iterations = 3, time = 3)
