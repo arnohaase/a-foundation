@@ -1,9 +1,8 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
-import com.ajjpj.afoundation.conc2.AFuture;
+import com.ajjpj.afoundation.conc2.*;
 import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
-import com.ajjpj.afoundation.conc2.AWorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -47,11 +46,10 @@ public class PoolBenchmark {
     }
 
     static class WorkStealingWrapper implements APool {
-        private final AWorkStealingPoolImpl impl;
+        private final APromisingExecutor impl;
 
         public WorkStealingWrapper (int numThreads) {
-            impl = new AWorkStealingPoolImpl (numThreads);
-            impl.start ();
+            impl = new AExecutorBuilder ().buildPromisingExecutor (numThreads);
         }
 
         @Override public <T> AFuture<T> submit (Callable<T> code) {

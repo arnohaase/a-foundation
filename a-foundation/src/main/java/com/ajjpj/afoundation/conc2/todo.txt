@@ -5,7 +5,6 @@ todo
 * javadoc!!!
 * ATry: documentation, monadic API
 * AFuture:
-  * callbacks
   * comprehensions
 
 * JUnit tests

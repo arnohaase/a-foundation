@@ -1,8 +1,12 @@
 package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.collection.tuples.ATuple2;
+import com.ajjpj.afoundation.collection.tuples.ATuple3;
 import com.ajjpj.afoundation.conc2.AFuture;
+import com.ajjpj.afoundation.conc2.APromisingExecutor;
 import com.ajjpj.afoundation.conc2.ATry;
+import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
 import java.util.concurrent.ExecutionException;
@@ -119,5 +123,24 @@ public class ATask<T> implements AFuture<T> {
             this.value = value;
             this.th = th;
         }
+    }
+
+    @Override public APromisingExecutor getImplicitThreadPool () {
+        return null;
+    }
+    @Override public AFuture<T> withDefaultValue (T defaultValue) {
+        return null;
+    }
+    @Override public <U, E extends Exception> AFuture<U> mapAsync (APromisingExecutor threadPool, AFunction1<T, U, E> f) {
+        return null;
+    }
+    @Override public <U, E extends Exception> AFuture<U> mapAsync (AFunction1<T, U, E> f) {
+        return null;
+    }
+    @Override public <U> AFuture<ATuple2<T, U>> zip (AFuture<U> other) {
+        return null;
+    }
+    @Override public <U, V> AFuture<ATuple3<T, U, V>> zip (AFuture<U> other1, AFuture<V> other2) {
+        return null;
     }
 }

@@ -53,10 +53,6 @@ public class AWorkStealingPoolImpl implements APromisingExecutor {
         }
     };
 
-    public AWorkStealingPoolImpl (int numThreads) { //TODO move default values to Builder class
-        this (numThreads, 100, 1, 100);
-    }
-
     public AWorkStealingPoolImpl (int numThreads, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
         this.globalQueue = new WorkStealingGlobalQueue ();
         this.shutdownLatch = new CountDownLatch (numThreads);

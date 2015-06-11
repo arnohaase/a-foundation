@@ -1,12 +1,16 @@
 package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.collection.tuples.ATuple2;
+import com.ajjpj.afoundation.collection.tuples.ATuple3;
+import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -15,11 +19,21 @@ import java.util.concurrent.locks.LockSupport;
  * @author arno
  */
 class APromiseImpl<T> implements APromise<T>, AFuture<T> {
+    private final APromisingExecutor implicitThreadPool;
+
     //TODO merge all state behind a single AtomicReference to minimize volatile accesses in 'tryComplete'?
     private final Set<Thread> waiters = Collections.newSetFromMap (new ConcurrentHashMap<Thread, Boolean>());
     private final AtomicReference<AList<AStatement1NoThrow<ATry<T>>>> listeners = new AtomicReference<> (AList.<AStatement1NoThrow<ATry<T>>>nil());
 
     private final AtomicReference<ATry<T>> value = new AtomicReference<> ();
+
+    public APromiseImpl (APromisingExecutor implicitThreadPool) {
+        this.implicitThreadPool = implicitThreadPool;
+    }
+
+    @Override public APromisingExecutor getImplicitThreadPool () {
+        return implicitThreadPool;
+    }
 
     @Override public AFuture<T> asFuture () {
         return this;
@@ -131,5 +145,27 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
 
             listener.apply (result);
         }
+    }
+
+    //--------------------------------------- AFuture comprehensions -----------------------------------------------
+
+
+    @Override public AFuture<T> withDefaultValue (T defaultValue) {
+        return null;
+    }
+
+    @Override public <U, E extends Exception> AFuture<U> mapAsync (AFunction1<T, U, E> f) {
+        return mapAsync (getImplicitThreadPool (), f);
+    }
+    @Override public <U, E extends Exception> AFuture<U> mapAsync (APromisingExecutor threadPool, AFunction1<T, U, E> f) {
+        return null;
+    }
+
+    @Override public <U> AFuture<ATuple2<T, U>> zip (AFuture<U> other) {
+        return null;
+    }
+
+    @Override public <U, V> AFuture<ATuple3<T, U, V>> zip (AFuture<U> other1, AFuture<V> other2) {
+        return null;
     }
 }
