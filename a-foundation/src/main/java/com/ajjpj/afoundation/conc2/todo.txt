@@ -1,6 +1,14 @@
 todo
 ----
+* APromisingExecutor
+  * with / without timeouts
 
+* AScheduler
+
+* javadoc!!!
+* ATry: documentation, monadic API
 * AFuture:
   * callbacks
   * monadic API
+
+* JUnit tests

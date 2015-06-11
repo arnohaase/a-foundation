@@ -1,10 +1,9 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
-import com.ajjpj.afoundation.conc2.AExecutors;
 import com.ajjpj.afoundation.conc2.AFuture;
 import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
-import com.ajjpj.afoundation.conc2.WorkStealingPoolImpl;
+import com.ajjpj.afoundation.conc2.AWorkStealingPoolImpl;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -48,15 +47,15 @@ public class PoolBenchmark {
     }
 
     static class WorkStealingWrapper implements APool {
-        private final WorkStealingPoolImpl impl;
+        private final AWorkStealingPoolImpl impl;
 
         public WorkStealingWrapper (int numThreads) {
-            impl = new WorkStealingPoolImpl (numThreads);
+            impl = new AWorkStealingPoolImpl (numThreads);
             impl.start ();
         }
 
         @Override public <T> AFuture<T> submit (Callable<T> code) {
-            return AExecutors.calcAsync (impl, code::call).asFuture ();
+            return impl.submit (code::call).asFuture ();
         }
 
         @Override public void shutdown () throws InterruptedException {
@@ -68,8 +67,8 @@ public class PoolBenchmark {
     public void tearDown() throws InterruptedException {
         pool.shutdown ();
 
-        if (pool instanceof WorkStealingPoolImpl) {
-            final WorkStealingPoolImpl ws = (WorkStealingPoolImpl) pool;
+        if (pool instanceof AWorkStealingPoolImpl) {
+            final AWorkStealingPoolImpl ws = (AWorkStealingPoolImpl) pool;
 //            System.out.println ("wakeup / global / local: " + ws.getNumWakeups () + " / " + ws.getNumGlobalPushs () + " / " + ws.getNumLocalPushs ());
         }
     }

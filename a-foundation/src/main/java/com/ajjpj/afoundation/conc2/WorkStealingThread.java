@@ -13,7 +13,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 class WorkStealingThread extends Thread {
     final WorkStealingLocalQueue queue = new WorkStealingLocalQueue (true);
-    final WorkStealingPoolImpl pool;
+    final AWorkStealingPoolImpl pool;
 
     private final int ownThreadIndex;
 
@@ -28,7 +28,7 @@ class WorkStealingThread extends Thread {
 
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
 
-    public WorkStealingThread (WorkStealingPoolImpl pool, int ownThreadIndex, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
+    public WorkStealingThread (AWorkStealingPoolImpl pool, int ownThreadIndex, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
         this.pool = pool;
         this.ownThreadIndex = ownThreadIndex;
 
@@ -186,7 +186,7 @@ class WorkStealingThread extends Thread {
 
             // 'stealing' locally submitted work this way is effectively delayed by the 'parkNanos' call above
 
-            if (newTask == null || newTask == WorkStealingPoolImpl.SHUTDOWN) {
+            if (newTask == null || newTask == AWorkStealingPoolImpl.SHUTDOWN) {
                 // for other cases, shutdown is checked after the task is run anyway
                 queue.checkShutdown ();
             }

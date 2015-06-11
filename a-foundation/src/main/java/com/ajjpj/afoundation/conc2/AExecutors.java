@@ -12,7 +12,9 @@ public class AExecutors {
 
         executor.submit (new Runnable () {
             @Override public void run () {
-                result.complete (ATry.fromEval (function));
+                // skip execution if the promise was completed in some other way --> 'cancellation'
+                if (result.isDone ()) return;
+                result.tryComplete (ATry.fromEval (function));
             }
         });
 

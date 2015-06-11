@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
+import com.ajjpj.afoundation.function.AFunction0;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
@@ -38,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author arno
  */
-public class WorkStealingPoolImpl implements AExecutor {
+public class AWorkStealingPoolImpl implements APromisingExecutor {
     final WorkStealingThread[] threads;
     final WorkStealingLocalQueue[] localQueues;
     final WorkStealingGlobalQueue globalQueue;
@@ -52,11 +53,11 @@ public class WorkStealingPoolImpl implements AExecutor {
         }
     };
 
-    public WorkStealingPoolImpl (int numThreads) { //TODO move default values to Builder class
+    public AWorkStealingPoolImpl (int numThreads) { //TODO move default values to Builder class
         this (numThreads, 100, 1, 100);
     }
 
-    public WorkStealingPoolImpl (int numThreads, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
+    public AWorkStealingPoolImpl (int numThreads, int globalBeforeLocalInterval, int numPollsBeforePark, int pollNanosBeforePark) {
         this.globalQueue = new WorkStealingGlobalQueue ();
         this.shutdownLatch = new CountDownLatch (numThreads);
 
@@ -71,12 +72,16 @@ public class WorkStealingPoolImpl implements AExecutor {
     /**
      * This method actually starts the threads. It is separate from the constructor to ensure safe publication of final state.
      */
-    public WorkStealingPoolImpl start () {
+    public AWorkStealingPoolImpl start () {
         for (Thread thread: threads) {
             thread.start ();
         }
 
         return this;
+    }
+
+    @Override public <T> APromise<T> submit (AFunction0<T, ? extends Exception> function) {
+        return AExecutors.calcAsync (this, function);
     }
 
     @Override public void submit (Runnable task) {
