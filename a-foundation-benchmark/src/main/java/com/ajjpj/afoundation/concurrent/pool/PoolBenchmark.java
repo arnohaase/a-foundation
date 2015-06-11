@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.concurrent.pool;
 
+import com.ajjpj.afoundation.conc2.AExecutors;
 import com.ajjpj.afoundation.conc2.AFuture;
 import com.ajjpj.afoundation.concurrent.pool.a.APoolImpl;
 import com.ajjpj.afoundation.concurrent.pool.a.ASchedulingStrategy;
@@ -55,11 +56,11 @@ public class PoolBenchmark {
         }
 
         @Override public <T> AFuture<T> submit (Callable<T> code) {
-            return impl.submit (code);
+            return AExecutors.calcAsync (impl, code::call).asFuture ();
         }
 
         @Override public void shutdown () throws InterruptedException {
-            impl.shutdown ();
+            impl.shutdown (true, false);
         }
     }
 
@@ -132,16 +133,16 @@ public class PoolBenchmark {
     }
 
 //    @Benchmark
-    public void testRecursiveFibo() throws ExecutionException, InterruptedException {
-        fibo (8);
-    }
-
-    long fibo (long n) throws ExecutionException, InterruptedException {
-        if (n <= 1) return 1;
-
-        final AFuture<Long> f = pool.submit (() -> fibo(n-1));
-        return f.get() + pool.submit (() -> fibo(n-2)).get ();
-    }
+//    public void testRecursiveFibo() throws ExecutionException, InterruptedException {
+//        fibo (8);
+//    }
+//
+//    long fibo (long n) throws ExecutionException, InterruptedException {
+//        if (n <= 1) return 1;
+//
+//        final AFuture<Long> f = pool.submit (() -> fibo(n-1));
+//        return f.get() + pool.submit (() -> fibo(n-2)).get ();
+//    }
 
     @Benchmark
     public void testStealVeryCheap() throws InterruptedException {

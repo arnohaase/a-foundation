@@ -12,7 +12,7 @@ import java.util.concurrent.RejectedExecutionException;
  */
 //@Contended
 class WorkStealingLocalQueue {
-    public void submit (WorkStealingPoolImpl.ASubmittable task) {
+    public void submit (Runnable task) {
         if (task == null) {
             throw new NullPointerException ();
         }
@@ -50,13 +50,13 @@ class WorkStealingLocalQueue {
     final boolean lifo; // mode;          // 0: lifo, > 0: fifo, < 0: shared
     volatile int base;         // index of next slot for poll
     int top;                   // index of next slot for push
-    WorkStealingPoolImpl.ASubmittable[] array;          // the elements
+    Runnable[] array;          // the elements
 
     WorkStealingLocalQueue (boolean lifo) {
         this.lifo = lifo;
         // Place indices in the center of array
         base = top = INITIAL_QUEUE_CAPACITY >>> 1;
-        array = new WorkStealingPoolImpl.ASubmittable[INITIAL_QUEUE_CAPACITY];
+        array = new Runnable[INITIAL_QUEUE_CAPACITY];
     }
 
     private int getBase() {
@@ -86,9 +86,9 @@ class WorkStealingLocalQueue {
      * @param task the task. Caller must ensure non-null.
      * @throws java.util.concurrent.RejectedExecutionException if array cannot be resized
      */
-    final void push (WorkStealingPoolImpl.ASubmittable task) {
+    final void push (Runnable task) {
         final int s = top;
-        final WorkStealingPoolImpl.ASubmittable[] a = array;
+        final Runnable[] a = array;
         int m = a.length - 1;
 
         // get the value of 'base' early to detect shutdown
@@ -108,13 +108,13 @@ class WorkStealingLocalQueue {
      * by owner or with lock held -- it is OK for base, but not
      * top, to move while resizings are in progress.
      */
-    private WorkStealingPoolImpl.ASubmittable[] growArray() {
-        final WorkStealingPoolImpl.ASubmittable[] oldA = array;
+    private Runnable[] growArray() {
+        final Runnable[] oldA = array;
         final int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
         if (size > MAXIMUM_QUEUE_CAPACITY)
             throw new RejectedExecutionException ("Queue capacity exceeded");
-        array = new WorkStealingPoolImpl.ASubmittable[size];
-        final WorkStealingPoolImpl.ASubmittable[] a = array;
+        array = new Runnable[size];
+        final Runnable[] a = array;
 
         final int oldMask = oldA.length - 1;
         final int t = top;
@@ -124,7 +124,7 @@ class WorkStealingLocalQueue {
             do {
                 int oldj = ((b & oldMask) << ASHIFT) + ABASE;
                 int j = ((b & mask) << ASHIFT) + ABASE;
-                final WorkStealingPoolImpl.ASubmittable x = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile (oldA, oldj);
+                final Runnable x = (Runnable) U.getObjectVolatile (oldA, oldj);
                 if (x != null && U.compareAndSwapObject (oldA, oldj, x, null)) {
                     U.putObjectVolatile (a, j, x);
                 }
@@ -139,8 +139,8 @@ class WorkStealingLocalQueue {
      * Takes next task, if one exists, in LIFO order.  Call only
      * by owner in unshared queues.
      */
-    final WorkStealingPoolImpl.ASubmittable pop() {
-        final WorkStealingPoolImpl.ASubmittable[] a = array;
+    final Runnable pop() {
+        final Runnable[] a = array;
 
         final int m = a.length-1;
         if (m >= 0) {
@@ -164,7 +164,7 @@ class WorkStealingLocalQueue {
             int s;
             while ((s = top - 1) - getBase () >= 0) { //TODO how to simplify this?
                 long j = ((m & s) << ASHIFT) + ABASE;
-                final WorkStealingPoolImpl.ASubmittable t = (WorkStealingPoolImpl.ASubmittable) U.getObject(a, j);
+                final Runnable t = (Runnable) U.getObject(a, j);
                 if (t == null) {
                     break;
                 }
@@ -180,13 +180,13 @@ class WorkStealingLocalQueue {
     /**
      * Takes next task, if one exists, in FIFO order.
      */
-    final WorkStealingPoolImpl.ASubmittable poll() {
-        WorkStealingPoolImpl.ASubmittable[] a;
+    final Runnable poll() {
+        Runnable[] a;
         int b;
 
         while ((b = getBase ()) - top < 0 && (a = array) != null) {
             final int j = (((a.length - 1) & b) << ASHIFT) + ABASE;
-            final WorkStealingPoolImpl.ASubmittable t = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile(a, j);
+            final Runnable t = (Runnable) U.getObjectVolatile(a, j);
             if (t != null) {
                 if (U.compareAndSwapObject(a, j, t, null)) {
                     U.putOrderedInt(this, QBASE, b + 1);
@@ -205,7 +205,7 @@ class WorkStealingLocalQueue {
     /**
      * Takes next task, if one exists, in order specified by mode.
      */
-    final WorkStealingPoolImpl.ASubmittable nextLocalTask() {
+    final Runnable nextLocalTask() {
         return lifo ? pop() : poll();
     }
 
@@ -222,7 +222,7 @@ class WorkStealingLocalQueue {
             U = (Unsafe) f.get (null);
 
             Class<?> k = WorkStealingLocalQueue.class;
-            Class<?> ak = WorkStealingPoolImpl.ASubmittable[].class;
+            Class<?> ak = Runnable[].class;
             QBASE = U.objectFieldOffset (k.getDeclaredField("base"));
             ABASE = U.arrayBaseOffset (ak);
             int scale = U.arrayIndexScale (ak);

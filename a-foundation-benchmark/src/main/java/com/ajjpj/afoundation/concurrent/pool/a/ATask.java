@@ -2,6 +2,8 @@ package com.ajjpj.afoundation.concurrent.pool.a;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
 import com.ajjpj.afoundation.conc2.AFuture;
+import com.ajjpj.afoundation.conc2.ATry;
+import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,9 +41,15 @@ public class ATask<T> implements AFuture<T> {
         return result.get () != null;
     }
 
-    @Override public T get () throws ExecutionException, InterruptedException {
-        await (false, 0);
-        return doGet();
+    @Override public void onFinished (AStatement1NoThrow<ATry<T>> listener) {
+        throw new UnsupportedOperationException ();
+    }
+
+    @Override public ATry<T> get () {
+        return ATry.fromEval (() -> {
+            await (false, 0);
+            return doGet();
+        });
     }
 
     @SuppressWarnings ("unchecked")

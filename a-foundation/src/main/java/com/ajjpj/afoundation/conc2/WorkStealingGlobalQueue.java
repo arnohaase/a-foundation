@@ -36,12 +36,12 @@ class WorkStealingGlobalQueue {
     volatile int qlock;        // 1: locked, -1: terminate; else 0
     volatile int base;         // index of next slot for poll
     int top;                   // index of next slot for push
-    WorkStealingPoolImpl.ASubmittable[] array;          // the elements (initially unallocated)
+    Runnable[] array;          // the elements (initially unallocated)
 
     WorkStealingGlobalQueue () {
         // Place indices in the center of array (that is not yet allocated)
         base = top = INITIAL_QUEUE_CAPACITY >>> 1;
-        array = new WorkStealingPoolImpl.ASubmittable[INITIAL_QUEUE_CAPACITY];
+        array = new Runnable[INITIAL_QUEUE_CAPACITY];
     }
 
     private int getBase() {
@@ -69,9 +69,9 @@ class WorkStealingGlobalQueue {
      *
      * @param task the task. Caller must ensure non-null.
      */
-    final void externalPush(WorkStealingPoolImpl.ASubmittable task) {
+    final void externalPush(Runnable task) {
         if (U.compareAndSwapInt (this, QLOCK, 0, 1)) { // lock
-            final WorkStealingPoolImpl.ASubmittable[] a = array;
+            final Runnable[] a = array;
             final int am = a.length - 1;
             final int s = top;
             final int n = s - getBase (); //TODO unlock in finally block? --> shutdown exception?
@@ -105,10 +105,10 @@ class WorkStealingGlobalQueue {
      * eventually wrap around zero, this method harmlessly fails to
      * reinitialize if workQueues exists, while still advancing plock.
      */
-    private void fullExternalPush (WorkStealingPoolImpl.ASubmittable task) {
+    private void fullExternalPush (Runnable task) {
         for (;;) { //TODO refactor into CAS loop?
             if (U.compareAndSwapInt(this, QLOCK, 0, 1)) {
-                WorkStealingPoolImpl.ASubmittable[] a = array;
+                Runnable[] a = array;
                 int s = top;
                 boolean submitted = false;
                 try {
@@ -136,13 +136,13 @@ class WorkStealingGlobalQueue {
      * Initializes or doubles the capacity of array. Call only with lock held -- it is OK for base, but not
      * top, to move while resizings are in progress.
      */
-    final WorkStealingPoolImpl.ASubmittable[] growArray() { //TODO is the new value of 'array' even safely published? --> code is from FJP, but still...
-        final WorkStealingPoolImpl.ASubmittable[] oldA = array;
+    final Runnable[] growArray() { //TODO is the new value of 'array' even safely published? --> code is from FJP, but still...
+        final Runnable[] oldA = array;
         final int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
         if (size > MAXIMUM_QUEUE_CAPACITY)
             throw new RejectedExecutionException ("Queue capacity exceeded");
-        array = new WorkStealingPoolImpl.ASubmittable[size];
-        final WorkStealingPoolImpl.ASubmittable[] a = array;
+        array = new Runnable[size];
+        final Runnable[] a = array;
 
         if (oldA != null) {
             final int oldMask = oldA.length - 1;
@@ -153,7 +153,7 @@ class WorkStealingGlobalQueue {
                 do {
                     int oldj = ((b & oldMask) << ASHIFT) + ABASE;
                     int j = ((b & mask) << ASHIFT) + ABASE;
-                    final WorkStealingPoolImpl.ASubmittable x = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile (oldA, oldj);
+                    final Runnable x = (Runnable) U.getObjectVolatile (oldA, oldj);
                     if (x != null && U.compareAndSwapObject (oldA, oldj, x, null)) {
                         U.putObjectVolatile (a, j, x);
                     }
@@ -169,13 +169,13 @@ class WorkStealingGlobalQueue {
     /**
      * Takes next task, if one exists, in FIFO order.
      */
-    final WorkStealingPoolImpl.ASubmittable poll() {
-        WorkStealingPoolImpl.ASubmittable[] a;
+    final Runnable poll() {
+        Runnable[] a;
         int b;
 
         while ((b = getBase ()) - top < 0 && (a = array) != null) {
             final int j = (((a.length - 1) & b) << ASHIFT) + ABASE;
-            final WorkStealingPoolImpl.ASubmittable t = (WorkStealingPoolImpl.ASubmittable) U.getObjectVolatile(a, j);
+            final Runnable t = (Runnable) U.getObjectVolatile(a, j);
             if (t != null) {
                 if (U.compareAndSwapObject(a, j, t, null)) {
                     U.putOrderedInt(this, QBASE, b + 1);

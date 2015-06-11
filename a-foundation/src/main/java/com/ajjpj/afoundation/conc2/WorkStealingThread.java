@@ -1,7 +1,6 @@
 package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
-import com.ajjpj.afoundation.conc2.WorkStealingPoolImpl.ASubmittable;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import sun.misc.Unsafe;
 
@@ -25,7 +24,7 @@ class WorkStealingThread extends Thread {
     //TODO configuration parameter for 'no work stealing'
 
     @SuppressWarnings ("unused") // is written with Unsafe.putOrderedObject
-    private volatile ASubmittable wakeUpTask;
+    private volatile Runnable wakeUpTask;
 
     //TODO optimization: is a lazySet sufficient for in-thread access as long as other threads use a volatile read? Is there a 'lazy CAS'?
 
@@ -87,15 +86,15 @@ class WorkStealingThread extends Thread {
         }
     }
 
-    private ASubmittable tryGlobalFetch () {
+    private Runnable tryGlobalFetch () {
         return pool.globalQueue.poll ();
     }
 
-    private ASubmittable tryLocalFetch () {
+    private Runnable tryLocalFetch () {
         return queue.nextLocalTask ();
     }
 
-    private boolean exec (ASubmittable optTask) {
+    private boolean exec (Runnable optTask) {
         if (optTask != null) {
             optTask.run ();
             return true;
@@ -103,11 +102,11 @@ class WorkStealingThread extends Thread {
         return false;
     }
 
-    private ASubmittable tryActiveWorkStealing () {
+    private Runnable tryActiveWorkStealing () {
         for (int i=1; i<pool.localQueues.length; i++) { //TODO store this length in an attribute of this class?
             final int victimThreadIndex = (ownThreadIndex + i) % pool.localQueues.length;
 
-            final ASubmittable stolenTask = pool.localQueues[victimThreadIndex].poll ();
+            final Runnable stolenTask = pool.localQueues[victimThreadIndex].poll ();
             if (stolenTask != null) {
                 return stolenTask;
             }
@@ -116,7 +115,7 @@ class WorkStealingThread extends Thread {
     }
 
     private void waitForWork () {
-        ASubmittable newTask;
+        Runnable newTask;
 
         // There is currently no work available for this thread. That means that there is currently not enough work for all
         //  worker threads, i.e. the pool is in a 'low load' situation.
@@ -166,14 +165,14 @@ class WorkStealingThread extends Thread {
                 //  conscious trade-off to keep pool.submit() fast - this race condition is pretty rare, so the trade-off pays in
                 //  practice.
 
-                ASubmittable wakeUp;
+                Runnable wakeUp;
                 //noinspection StatementWithEmptyBody
                 while ((wakeUp = wakeUpTask) == null) {
                     // wait actively
                 }
 
                 // re-inject the wake-up task into the pool
-                pool.doSubmit (wakeUp);
+                pool.submit (wakeUp);
             }
 
             newTask.run();
@@ -198,7 +197,7 @@ class WorkStealingThread extends Thread {
         newTask.run ();
     }
 
-    void wakeUpWith (ASubmittable task) {
+    void wakeUpWith (Runnable task) {
         U.putOrderedObject (this, WAKE_UP_TASK, task); // is read with volatile semantics after wake-up
         LockSupport.unpark (this);
     }

@@ -2,7 +2,6 @@ package com.ajjpj.afoundation.conc2;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10,7 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /*
 
-  TODO Promise / Future API
   TODO 'statistics' API: wakeUps, global, local; numAvailableWorkers; backlog size
   TODO with / without timeout (combinable)
   TODO cancel
@@ -18,7 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
   TODO exception handling
   TODO fixed size queues
   TODO Builder
-  TODO adapter --> as ExecutorService
+  TODO adapter --> as ExecutorService, from ExecutorService
   TODO adapter --> as ExecutionContext
   TODO shutdown: finsish processing submitted tasks
   TODO shutdownNow (with / without interrupting)
@@ -40,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author arno
  */
-public class WorkStealingPoolImpl {
+public class WorkStealingPoolImpl implements AExecutor {
     final WorkStealingThread[] threads;
     final WorkStealingLocalQueue[] localQueues;
     final WorkStealingGlobalQueue globalQueue;
@@ -49,7 +47,10 @@ public class WorkStealingPoolImpl {
 
     private final CountDownLatch shutdownLatch;
 
-    static final ASubmittable SHUTDOWN = new ASubmittable (null, null);
+    static final Runnable SHUTDOWN = new Runnable () {
+        @Override public void run () {
+        }
+    };
 
     public WorkStealingPoolImpl (int numThreads) { //TODO move default values to Builder class
         this (numThreads, 100, 1, 100);
@@ -78,32 +79,22 @@ public class WorkStealingPoolImpl {
         return this;
     }
 
-    //TODO @Override
-    public <T> AFuture<T> submit (Callable<T> code) {
-        final ATask<T> result = new ATask<> ();
-        final ASubmittable submittable = new ASubmittable (result, code);
-
-        doSubmit (submittable);
-
-        return result;
-    }
-
-    void doSubmit (ASubmittable submittable) {
+    @Override public void submit (Runnable task) {
         try {
             final WorkStealingThread availableWorker = availableWorker ();
             if (availableWorker != null) {
                 if (shouldCollectStatistics) numWakeups.incrementAndGet ();
-                availableWorker.wakeUpWith (submittable);
+                availableWorker.wakeUpWith (task);
             }
             else {
                 final Thread curThread = Thread.currentThread ();
                 if (curThread instanceof WorkStealingThread && ((WorkStealingThread) curThread).pool == this) {
                     if (shouldCollectStatistics) numLocalPush.incrementAndGet ();
-                    ((WorkStealingThread) curThread).queue.submit (submittable);
+                    ((WorkStealingThread) curThread).queue.submit (task);
                 }
                 else {
                     if (shouldCollectStatistics) numGlobalPush.incrementAndGet ();
-                    globalQueue.externalPush (submittable);
+                    globalQueue.externalPush (task);
                 }
             }
         }
@@ -133,8 +124,11 @@ public class WorkStealingPoolImpl {
         shutdownLatch.countDown ();
     }
 
-    //TODO @Override
-    public void shutdown () throws InterruptedException {
+    @Override
+    public void shutdown (boolean cancelBacklog, boolean interruptRunningTasks) throws InterruptedException {
+        //TODO handle shutdown without cancelling back log
+        //TODO interrupt running tasks
+
         globalQueue.shutdown ();
         for (WorkStealingLocalQueue q: localQueues) {
             q.shutdown ();
@@ -166,27 +160,5 @@ public class WorkStealingPoolImpl {
 
     public long getNumLocalPushs() {
         return numLocalPush.get ();
-    }
-
-    //----------------------------------- internal data structure for submitted task
-
-    static class ASubmittable implements Runnable {
-        private final ATask result;
-        private final Callable code;
-
-        public ASubmittable (ATask result, Callable code) {
-            this.result = result;
-            this.code = code;
-        }
-
-        @SuppressWarnings ("unchecked")
-        @Override public void run () {
-            try {
-                result.set (code.call ());
-            }
-            catch (Throwable th) {
-                result.setException (th);
-            }
-        }
     }
 }
