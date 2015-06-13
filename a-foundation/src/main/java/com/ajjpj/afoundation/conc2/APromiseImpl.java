@@ -60,14 +60,14 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
 
     @Override public boolean tryComplete (ATry<T> result) {
         if (value.compareAndSet (null, result)) { //TODO putObjectOrdered would suffice --> ?!
-//            for (Thread thread: waiters) {
-//                LockSupport.unpark (thread);
-//            }
-//            waiters.clear ();
-//
-//            for (AStatement1NoThrow<ATry<T>> l: listeners.getAndSet (AList.<AStatement1NoThrow<ATry<T>>>nil())) {
-//                l.apply (result);
-//            }
+            for (Thread thread: waiters) {
+                LockSupport.unpark (thread);
+            }
+            waiters.clear ();
+
+            for (AStatement1NoThrow<ATry<T>> l: listeners.getAndSet (AList.<AStatement1NoThrow<ATry<T>>>nil())) {
+                l.apply (result);
+            }
 
             return true;
         }
