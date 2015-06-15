@@ -13,7 +13,7 @@ public class AExecutors {
         executor.submit (new Runnable () {
             @Override public void run () {
                 // skip execution if the promise was completed in some other way --> 'cancellation'
-                if (result.isDone ()) return;
+                if (result.isDone ()) return; //TODO optimize this!
                 result.tryComplete (ATry.fromEval (function));
             }
         });

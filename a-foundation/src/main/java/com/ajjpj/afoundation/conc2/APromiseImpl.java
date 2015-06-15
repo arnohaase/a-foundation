@@ -7,9 +7,6 @@ import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -20,11 +17,13 @@ import java.util.concurrent.locks.LockSupport;
 class APromiseImpl<T> implements APromise<T>, AFuture<T> {
     private final APromisingExecutor implicitThreadPool;
 
-    //TODO merge all state behind a single AtomicReference to minimize volatile accesses in 'tryComplete'?
-    private final Set<Thread> waiters = Collections.newSetFromMap (new ConcurrentHashMap<Thread, Boolean>());
-    private final AtomicReference<AList<AStatement1NoThrow<ATry<T>>>> listeners = new AtomicReference<> (AList.<AStatement1NoThrow<ATry<T>>>nil());
+    private final AtomicReference<State<T>> state = new AtomicReference<> (State.<T>initial ());
 
-    private final AtomicReference<ATry<T>> value = new AtomicReference<> ();
+//    //TODO merge all state behind a single AtomicReference to minimize volatile accesses in 'tryComplete'?
+//    private final Set<Thread> waiters = Collections.newSetFromMap (new ConcurrentHashMap<Thread, Boolean>());
+//    private final AtomicReference<AList<AStatement1NoThrow<ATry<T>>>> listeners = new AtomicReference<> (AList.<AStatement1NoThrow<ATry<T>>>nil());
+//
+//    private final AtomicReference<ATry<T>> value = new AtomicReference<> ();
 
     public APromiseImpl (APromisingExecutor implicitThreadPool) {
         this.implicitThreadPool = implicitThreadPool;
@@ -59,19 +58,25 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
     }
 
     @Override public boolean tryComplete (ATry<T> result) {
-        if (value.compareAndSet (null, result)) { //TODO putObjectOrdered would suffice --> ?!
-            for (Thread thread: waiters) {
-                LockSupport.unpark (thread);
-            }
-            waiters.clear ();
-
-            for (AStatement1NoThrow<ATry<T>> l: listeners.getAndSet (AList.<AStatement1NoThrow<ATry<T>>>nil())) {
-                l.apply (result);
+        State<T> before, after;
+        do {
+            before = state.get ();
+            if (before.value != null) {
+                return false;
             }
 
-            return true;
+            after = State.<T>initial ().withValue (result);
         }
-        return false;
+        //TODO weakCompareAndSet?
+        while (! state.compareAndSet (before, after));
+
+        for (Thread waiter: before.waiters) {
+            LockSupport.unpark (waiter); //TODO Unsafe?
+        }
+        for (AStatement1NoThrow<ATry<T>> l: before.listeners) {
+            l.apply (result);
+        }
+        return true;
     }
 
     @Override public void complete (ATry<T> result) {
@@ -86,24 +91,33 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
         });
     }
 
-    @Override public boolean isDone () {
-        return value.get () != null;
-    }
-
     @Override public ATry<T> get () {
         ATry<T> result;
 
-        while ((result = value.get ()) == null) {
-            waiters.add (Thread.currentThread ());
-            LockSupport.park ();
-            waiters.remove (Thread.currentThread ());
+        while ((result = state.get().value) == null) {
+            State<T> before;
+            do {
+                before = state.get ();
+            }
+            while (! state.compareAndSet (before, before.withWaiter (Thread.currentThread ())));
+
+            LockSupport.park (); //TODO exception handling, especially InterruptedException
+
+            do {
+                before = state.get ();
+            }
+            while (! state.compareAndSet (before, before.withoutWaiter (Thread.currentThread ())));
         }
 
         return result;
     }
 
+    @Override public boolean isDone () {
+        return state.get ().value != null;
+    }
+
     @Override public AOption<ATry<T>> value () {
-        return AOption.fromNullable (value.get ());
+        return AOption.fromNullable (state.get().value);
     }
 
     @Override public void onSuccess (final AStatement1NoThrow<T> listener) {
@@ -127,31 +141,17 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
     }
 
     @Override public void onFinished (final AStatement1NoThrow<ATry<T>> listener) {
-        AList<AStatement1NoThrow<ATry<T>>> before;
+        State<T> before;
 
         do {
-            before = listeners.get ();
-        }
-        while (! listeners.compareAndSet (before, before.cons (listener)));
-
-        // The following code deals with registration of listeners after the promise was completed. The somewhat roundabout approach of first registering
-        //  the listener and then potentially immediately removing it handles races when registration of a listener and completion of the promise happen
-        //  concurrently.
-        final ATry<T> result = value.get ();
-        if (result != null) {
-            do {
-                before = listeners.get ();
+            before = state.get ();
+            if (before.value != null) {
+                // execute listener immediately if it is registered after the promise is fulfilled
+                listener.apply (before.value);
+                return;
             }
-            while (! listeners.compareAndSet (before, before.filter (
-                    new APredicateNoThrow<AStatement1NoThrow<ATry<T>>> () {
-                        @Override public boolean apply (AStatement1NoThrow<ATry<T>> o) {
-                            return o != listener;
-                        }
-                    })
-            ));
-
-            listener.apply (result);
         }
+        while (! state.compareAndSet (before, before.withListener (listener)));
     }
 
     //--------------------------------------- AFuture comprehensions -----------------------------------------------
@@ -191,5 +191,52 @@ class APromiseImpl<T> implements APromise<T>, AFuture<T> {
         });
 
         return result.asFuture ();
+    }
+
+    private static class State<T> {
+        final ATry<T> value;
+        final AList<Thread> waiters;
+        final AList<AStatement1NoThrow<ATry<T>>> listeners;
+
+        @SuppressWarnings ("unchecked")
+        static final State INITIAL = new State (null, AList.nil (), AList.nil ());
+
+        @SuppressWarnings ("unchecked")
+        static <T> State<T> initial() {
+            return INITIAL;
+        }
+
+        State (ATry<T> value, AList<Thread> waiters, AList<AStatement1NoThrow<ATry<T>>> listeners) {
+            this.value = value;
+            this.waiters = waiters;
+            this.listeners = listeners;
+        }
+
+        State<T> withValue (ATry<T> value) {
+            return new State<> (value, waiters, listeners);
+        }
+
+        State<T> withWaiter (Thread waiter) {
+            return new State<> (value, waiters.cons (waiter), listeners);
+        }
+        State<T> withoutWaiter (final Thread waiter) {
+            return new State<> (value, waiters.filter (new APredicateNoThrow<Thread> () {
+                @Override public boolean apply (Thread o) {
+                    return o != waiter;
+                }
+            }), listeners);
+        }
+
+        State<T> withListener (AStatement1NoThrow<ATry<T>> listener) {
+            return new State<> (value, waiters, listeners.cons (listener));
+        }
+
+        @Override public String toString () {
+            return "State{" +
+                    "value=" + value +
+                    ", waiters=" + waiters +
+                    ", listeners=" + listeners +
+                    '}';
+        }
     }
 }
