@@ -181,6 +181,16 @@ public class AFile implements ATraversable<String> {
         }
     }
 
+    @Override
+    public <X, E extends Exception> ATraversable<X> collect (APartialFunction<? super String, ? extends X, E> pf) throws E {
+        try {
+            return ACollectionHelper.asACollectionView (ACollectionHelper.collect (lines(), pf));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked (e);
+            return null; // for the compiler
+        }
+    }
+
     @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super String, R, E> f) throws E {
         try {
             return ACollectionHelper.foldLeft (lines(), startValue, f);

@@ -3,6 +3,7 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
+import com.ajjpj.afoundation.function.APartialFunction;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.io.*;
@@ -84,7 +85,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
     }
 
     @Override protected AList<T> createInternal(Collection<T> elements) {
-        return AList.create(elements);
+        return AList.create (elements);
     }
 
     @Override protected AEquality equalityForEquals() {
@@ -143,12 +144,16 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
     }
 
     @Override public <X, E extends Exception> AList<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-        return create(ACollectionHelper.flatMap(this, f));
+        return create(ACollectionHelper.flatMap (this, f));
     }
 
     @SuppressWarnings("unchecked")
     @Override public <X> AList<X> flatten() {
         return (AList<X>) create(ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
+    }
+
+    @Override public <X, E extends Exception> AList<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        return create (ACollectionHelper.collect (this, pf));
     }
 
     /**

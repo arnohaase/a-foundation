@@ -5,6 +5,7 @@ import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.immutable.AbstractACollection;
 import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AFunction2;
+import com.ajjpj.afoundation.function.APartialFunction;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.lang.reflect.Array;
@@ -53,7 +54,7 @@ public class ACollectionHelper {
      * Returns a string representation of a collection, separating elements with a comma.
      */
     public static String mkString(Iterable<?> iterable) {
-        return mkString(iterable, ", ");
+        return mkString (iterable, ", ");
     }
 
     /**
@@ -82,7 +83,7 @@ public class ACollectionHelper {
         }
 
         result.append(suffix);
-        return result.toString();
+        return result.toString ();
     }
 
     /**
@@ -94,7 +95,7 @@ public class ACollectionHelper {
                 return AOption.some(o);
             }
         }
-        return AOption.none();
+        return AOption.none ();
     }
 
     /**
@@ -279,6 +280,55 @@ public class ACollectionHelper {
     }
 
     /**
+     * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
+     *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
+     */
+    public static <T, X, E extends Exception> Collection<X> collect (Iterable<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+        final List<X> result = new ArrayList<>();
+
+        for (T o: coll) {
+            if (pf.isDefinedAt (o)) {
+                result.add (pf.apply (o));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
+     *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
+     */
+    public static <T, X, E extends Exception> List<X> collect (List<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+        final List<X> result = createEmptyListOfType (coll, true);
+
+        for (T o: coll) {
+            if (pf.isDefinedAt (o)) {
+                result.add (pf.apply (o));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
+     *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
+     */
+    public static <T, X, E extends Exception> Set<X> collect (Set<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+        final Set<X> result = createEmptySetOfType(coll, true);
+
+        for(T o: coll) {
+            if (pf.isDefinedAt (o)) {
+                result.add (pf.apply (o));
+            }
+        }
+
+        return result;
+    }
+
+
+    /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
     public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
@@ -388,7 +438,7 @@ public class ACollectionHelper {
             Collection<T> perKey = result.get(key);
             if(perKey == null) {
                 perKey = new ArrayList<>();
-                result.put(key, perKey);
+                result.put (key, perKey);
             }
             perKey.add(o);
         }
@@ -412,7 +462,7 @@ public class ACollectionHelper {
             List<T> perKey = result.get(key);
             if(perKey == null) {
                 perKey = createEmptyListOfType (coll, false);
-                result.put(key, perKey);
+                result.put (key, perKey);
             }
             perKey.add(o);
         }
@@ -573,6 +623,10 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner));
         }
 
+        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+            return new ACollectionWrapper<>(ACollectionHelper.collect (inner, pf));
+        }
+
         @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
             return ACollectionHelper.foldLeft (inner, startValue, f);
         }
@@ -643,6 +697,11 @@ public class ACollectionHelper {
         @Override
         public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap (Arrays.asList (inner), f));
+        }
+
+        @Override
+        public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+            return new ACollectionWrapper<> (ACollectionHelper.collect (Arrays.asList (inner), pf));
         }
 
         @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {

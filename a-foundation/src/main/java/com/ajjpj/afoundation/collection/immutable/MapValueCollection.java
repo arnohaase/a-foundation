@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.function.AFunction1;
+import com.ajjpj.afoundation.function.APartialFunction;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -46,6 +47,11 @@ class MapValueCollection<K,V> extends AbstractACollection<V, AList<V>> { //TODO 
     @Override public <X, E extends Exception> ACollection<X> flatMap (AFunction1<? super V, ? extends Iterable<X>, E> f) throws E {
         return AList.create (ACollectionHelper.flatMap (this, f));
     }
+
+    @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super V, ? extends X, E> pf) throws E {
+        return AList.create (ACollectionHelper.collect (this, pf));
+    }
+
     @Override public Iterator<V> iterator () {
         return new Iterator<V> () {
             private final Iterator<AMapEntry<K,V>> iter = inner.iterator ();

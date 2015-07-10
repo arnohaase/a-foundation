@@ -2,10 +2,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.AEquality;
-import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.AFunction2;
-import com.ajjpj.afoundation.function.APredicate;
-import com.ajjpj.afoundation.function.AStatement1;
+import com.ajjpj.afoundation.function.*;
 
 import java.io.Serializable;
 import java.util.*;
@@ -186,6 +183,10 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
 
     @Override public <X, E extends Exception> ACollection<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
         return ACollectionHelper.asACollectionView (ACollectionHelper.flatMap (this, f));
+    }
+
+    @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {
+        return ACollectionHelper.asACollectionView (ACollectionHelper.collect (this, pf));
     }
 
     @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super K, R, E> f) throws E {
