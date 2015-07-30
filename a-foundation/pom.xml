@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.ajjpj.a-foundation</groupId>
         <artifactId>a-foundation-parent</artifactId>
-        <version>1.0-pre15</version>
+        <version>1.0-pre16-SNAPSHOT</version>
     </parent>
 
     <artifactId>a-foundation</artifactId>
