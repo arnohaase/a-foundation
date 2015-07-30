@@ -140,13 +140,13 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
 
     protected abstract C wrapAsSet (AMap<K,?> inner);
 
-    @Override public <E extends Exception> ACollection<K> filter (APredicate<? super K, E> pred) throws E {
+    @Override public <E extends Exception> ASet<K> filter (APredicate<? super K, E> pred) throws E {
         return createInternal (ACollectionHelper.filter (this, pred));
     }
 
     @SuppressWarnings ("unchecked")
-    @Override public <X> ACollection<X> flatten () {
-        return (ACollection<X>) createInternal (ACollectionHelper.flatten ((Iterable<? extends Iterable<Object>>) this));
+    @Override public <X> ASet<X> flatten () {
+        return (ASet<X>) createInternal (ACollectionHelper.flatten ((Iterable<? extends Iterable<Object>>) this));
     }
 
     @SuppressWarnings ("unchecked")
@@ -177,12 +177,12 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         }
     }
 
-    @Override public <X, E extends Exception> ACollection<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
-        return ACollectionHelper.asACollectionView (ACollectionHelper.map (this, f));
+    @Override public <X, E extends Exception> ASet<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
+        return ACollectionHelper.asASetView (ACollectionHelper.map (this, f));
     }
 
-    @Override public <X, E extends Exception> ACollection<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
-        return ACollectionHelper.asACollectionView (ACollectionHelper.flatMap (this, f));
+    @Override public <X, E extends Exception> ASet<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
+        return ACollectionHelper.asASetView (ACollectionHelper.flatMap (this, f));
     }
 
     @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {

@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.collection;
 
 import com.ajjpj.afoundation.collection.immutable.ACollection;
 import com.ajjpj.afoundation.collection.immutable.AOption;
+import com.ajjpj.afoundation.collection.immutable.ASet;
 import com.ajjpj.afoundation.collection.immutable.AbstractACollection;
 import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AFunction2;
@@ -553,6 +554,22 @@ public class ACollectionHelper {
     }
 
     /**
+     * Wraps the content of a <code>java.util.Set</code> in an <code>ASet</code> instance. While the returned
+     *  instance itself has no mutator methods, changes to the underlying collection are reflected in the wrapping
+     *  <code>ASet</code> instance.<p>
+     *
+     * The returned collection has set semantics with regard to <code>map()</code> and other modifying methods; duplicate
+     *  values are removed.
+     */
+    public static <T> ASetWrapper<T> asASetView (Collection<T> c) {
+        if (c instanceof Set) {
+            return new ASetWrapper<> ((Set<T>) c);
+        }
+
+        return new ASetWrapper<> (new HashSet<> (c));
+    }
+
+    /**
      * Copies the content of an array into an (immutable) <code>ACollection</code> instance. Subsequent
      *  changes to the underlying array have no effect on the returned <code>ACollection</code> instance.<p>
      *
@@ -634,6 +651,62 @@ public class ACollectionHelper {
         @SuppressWarnings("NullableProblems")
         @Override public Iterator<T> iterator() {
             return inner.iterator();
+        }
+    }
+
+    public static class ASetWrapper<T> extends AbstractACollection<T, ASetWrapper<T>> implements ASet<T> {
+        private final Set<T> inner;
+
+        public ASetWrapper (Set<T> inner) {
+            this.inner = inner;
+        }
+
+        @Override public Set<T> asJavaUtilSet () {
+            return inner;
+        }
+
+        @Override protected ASetWrapper<T> createInternal (Collection<T> elements) {
+            return new ASetWrapper<> (new HashSet <> (elements));
+        }
+        @Override public ACollection<T> clear () {
+            return createInternal (new HashSet<T> ());
+        }
+        @Override public int size () {
+            return inner.size ();
+        }
+        @Override public boolean contains (T el) {
+            return inner.contains (el);
+        }
+        @Override public Iterator<T> iterator () {
+            return inner.iterator ();
+        }
+
+        @Override public AEquality equalityForEquals () {
+            return AEquality.EQUALS;
+        }
+        @Override public ASet<T> added (T el) {
+            throw new UnsupportedOperationException ("adding and removing elements is not supported for views - create a full-blown AHashSet instead");
+        }
+
+        @Override public ASet<T> removed (T el) {
+            throw new UnsupportedOperationException ("adding and removing elements is not supported for views - create a full-blown AHashSet instead");
+        }
+
+        @Override public <X, E extends Exception> ASet<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
+            return new ASetWrapper<> (ACollectionHelper.map (inner, f));
+        }
+
+        @Override public <X, E extends Exception> ASet<X> flatMap (AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+            return new ASetWrapper<> (new HashSet<> (ACollectionHelper.flatMap (inner, f)));
+        }
+
+        @SuppressWarnings ("unchecked")
+        @Override public <X> ASet<X> flatten () {
+            return new ASetWrapper<>(new HashSet<> (ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner)));
+        }
+
+        @Override public <E extends Exception> ASetWrapper<T> filter (APredicate<? super T, E> pred) throws E {
+            return new ASetWrapper<> (ACollectionHelper.filter (inner, pred));
         }
     }
 

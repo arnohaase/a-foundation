@@ -42,6 +42,9 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
      * Creates an AList based on the contents of an existing <code>java.util.Iterable</code>, copying its contents.
      */
     public static <T> AList<T> create(Iterable<T> elements) {
+        if (elements instanceof AList) {
+            return (AList<T>) elements;
+        }
         if(elements instanceof List) {
             return create((List<T>) elements);
         }
