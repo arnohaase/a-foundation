@@ -700,6 +700,10 @@ public class ACollectionHelper {
             return new ASetWrapper<> (new HashSet<> (ACollectionHelper.flatMap (inner, f)));
         }
 
+        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+            return new ACollectionWrapper<> (ACollectionHelper.collect (inner, pf));
+        }
+
         @SuppressWarnings ("unchecked")
         @Override public <X> ASet<X> flatten () {
             return new ASetWrapper<>(new HashSet<> (ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner)));
