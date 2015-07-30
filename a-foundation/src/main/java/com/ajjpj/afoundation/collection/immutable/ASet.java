@@ -3,6 +3,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
+import com.ajjpj.afoundation.function.APartialFunction1;
 import com.ajjpj.afoundation.function.APredicate;
 
 
@@ -22,6 +23,7 @@ public interface ASet<T> extends ACollection<T> {
 
     @Override <X, E extends Exception> ASet<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
     @Override <X, E extends Exception> ASet<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
+    @Override <X, E extends Exception> ASet<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E;
 
     @Override <X> ASet<X> flatten ();
 

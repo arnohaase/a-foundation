@@ -6,7 +6,7 @@ import com.ajjpj.afoundation.collection.immutable.ASet;
 import com.ajjpj.afoundation.collection.immutable.AbstractACollection;
 import com.ajjpj.afoundation.function.AFunction1;
 import com.ajjpj.afoundation.function.AFunction2;
-import com.ajjpj.afoundation.function.APartialFunction;
+import com.ajjpj.afoundation.function.APartialFunction1;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.lang.reflect.Array;
@@ -284,7 +284,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> Collection<X> collect (Iterable<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Exception> Collection<X> collect (Iterable<T> coll, APartialFunction1<? super T, ? extends X, E> pf) throws E {
         final List<X> result = new ArrayList<>();
 
         for (T o: coll) {
@@ -300,7 +300,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> List<X> collect (List<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Exception> List<X> collect (List<T> coll, APartialFunction1<? super T, ? extends X, E> pf) throws E {
         final List<X> result = createEmptyListOfType (coll, true);
 
         for (T o: coll) {
@@ -316,7 +316,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> Set<X> collect (Set<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Exception> Set<X> collect (Set<T> coll, APartialFunction1<? super T, ? extends X, E> pf) throws E {
         final Set<X> result = createEmptySetOfType(coll, true);
 
         for(T o: coll) {
@@ -640,7 +640,7 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner));
         }
 
-        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.collect (inner, pf));
         }
 
@@ -700,8 +700,8 @@ public class ACollectionHelper {
             return new ASetWrapper<> (new HashSet<> (ACollectionHelper.flatMap (inner, f)));
         }
 
-        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
-            return new ACollectionWrapper<> (ACollectionHelper.collect (inner, pf));
+        @Override public <X, E extends Exception> ASet<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E {
+            return new ASetWrapper<> (ACollectionHelper.collect (inner, pf));
         }
 
         @SuppressWarnings ("unchecked")
@@ -777,7 +777,7 @@ public class ACollectionHelper {
         }
 
         @Override
-        public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        public <X, E extends Exception> ACollection<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E {
             return new ACollectionWrapper<> (ACollectionHelper.collect (Arrays.asList (inner), pf));
         }
 

@@ -185,8 +185,8 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return ACollectionHelper.asASetView (ACollectionHelper.flatMap (this, f));
     }
 
-    @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {
-        return ACollectionHelper.asACollectionView (ACollectionHelper.collect (this, pf));
+    @Override public <X, E extends Exception> ASet<X> collect (APartialFunction1<? super K, ? extends X, E> pf) throws E {
+        return ACollectionHelper.asASetView (ACollectionHelper.collect (this, pf));
     }
 
     @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super K, R, E> f) throws E {

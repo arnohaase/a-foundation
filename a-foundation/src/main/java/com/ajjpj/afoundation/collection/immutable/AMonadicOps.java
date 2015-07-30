@@ -1,7 +1,7 @@
 package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.APartialFunction;
+import com.ajjpj.afoundation.function.APartialFunction1;
 import com.ajjpj.afoundation.function.APredicate;
 
 /**
@@ -39,7 +39,7 @@ public interface AMonadicOps<T> {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    <X, E extends Exception> AMonadicOps<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
+    <X, E extends Exception> AMonadicOps<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E;
 
     /**
      * Wraps a filter around the existing collection, making creation of the result a constant time operation. This comes

@@ -3,7 +3,7 @@ package com.ajjpj.afoundation.collection.immutable;
 import com.ajjpj.afoundation.collection.ACollectionHelper;
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.APartialFunction;
+import com.ajjpj.afoundation.function.APartialFunction1;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.io.*;
@@ -155,7 +155,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return (AList<X>) create(ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
     }
 
-    @Override public <X, E extends Exception> AList<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+    @Override public <X, E extends Exception> AList<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E {
         return create (ACollectionHelper.collect (this, pf));
     }
 

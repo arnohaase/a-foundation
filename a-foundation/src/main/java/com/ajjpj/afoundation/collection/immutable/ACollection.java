@@ -2,7 +2,7 @@ package com.ajjpj.afoundation.collection.immutable;
 
 import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.APartialFunction;
+import com.ajjpj.afoundation.function.APartialFunction1;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.util.Collection;
@@ -59,7 +59,7 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
      */
     <X> ACollection<X> flatten();
 
-    @Override <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
+    @Override <X, E extends Exception> ACollection<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E;
 
     /**
      * Creates a map from this collection, applying a function to every element in order to determine that element's key. All

@@ -165,10 +165,10 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         }
 
         @Override public <X,E extends Exception> AOption<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
-            return some(f.apply(el));
+            return some (f.apply (el));
         }
 
-        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E {
             if (pf.isDefinedAt (el)) {
                 return some (pf.apply (el));
             } else {
@@ -344,7 +344,7 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return none();
         }
 
-        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super Object, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction1<? super Object, ? extends X, E> pf) throws E {
             return none();
         }
 

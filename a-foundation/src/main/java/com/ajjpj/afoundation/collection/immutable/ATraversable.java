@@ -19,7 +19,7 @@ public interface ATraversable<T> extends AMonadicOps<T> {
     @Override <E extends Exception> ATraversable<T> filter(APredicate<? super T, E> pred) throws E;
     @Override <X, E extends Exception> ATraversable<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
     @Override <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
-    @Override <X, E extends Exception> ATraversable<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
+    @Override <X, E extends Exception> ATraversable<X> collect (APartialFunction1<? super T, ? extends X, E> pf) throws E;
 
     /**
      * This method 'folds' the elements of this collection into a single value. It iterates over the elements, passing the

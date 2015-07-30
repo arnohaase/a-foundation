@@ -3,6 +3,6 @@ package com.ajjpj.afoundation.function;
 /**
  * @author Roman Krüger
  */
-public interface APartialFunctionNoThrow<P, R> extends APartialFunction<P, R, RuntimeException> {
+public interface APartialFunction1NoThrow<P, R> extends APartialFunction1<P, R, RuntimeException> {
     @Override R apply (P param);
 }
