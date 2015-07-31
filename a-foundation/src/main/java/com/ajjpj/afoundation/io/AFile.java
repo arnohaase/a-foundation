@@ -182,7 +182,7 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <X, E extends Exception> ATraversable<X> collect (APartialFunction1<? super String, ? extends X, E> pf) throws E {
+    public <X, E extends Exception> ATraversable<X> collect (APartialFunction<? super String, ? extends X, E> pf) throws E {
         try {
             return ACollectionHelper.asACollectionView (ACollectionHelper.collect (lines(), pf));
         } catch (IOException e) {

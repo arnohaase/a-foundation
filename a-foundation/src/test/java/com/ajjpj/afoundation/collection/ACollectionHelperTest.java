@@ -3,7 +3,7 @@ package com.ajjpj.afoundation.collection;
 import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.function.AFunction1NoThrow;
 import com.ajjpj.afoundation.function.AFunction2;
-import com.ajjpj.afoundation.function.APartialFunction1NoThrow;
+import com.ajjpj.afoundation.function.APartialFunctionNoThrow;
 import com.ajjpj.afoundation.function.APredicateNoThrow;
 import org.junit.Test;
 
@@ -253,7 +253,7 @@ public class ACollectionHelperTest {
 
     @Test
     public void testCollect() throws Exception {
-        APartialFunction1NoThrow<Integer, Double> squareRoot = new APartialFunction1NoThrow<Integer, Double> () {
+        APartialFunctionNoThrow<Integer, Double> squareRoot = new APartialFunctionNoThrow<Integer, Double> () {
             @Override public boolean isDefinedAt (Integer param) {
                 return param != 0;
             }
