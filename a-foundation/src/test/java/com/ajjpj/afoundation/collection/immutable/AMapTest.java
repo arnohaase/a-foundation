@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.collection.immutable;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -161,6 +162,7 @@ public class AMapTest {
     }
 
     @Test
+    @Ignore
     public void testShotgun() {
         final Random rand = new Random(12345);
 
