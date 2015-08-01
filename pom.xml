@@ -11,7 +11,7 @@
 
     <groupId>com.ajjpj.a-foundation</groupId>
     <artifactId>a-foundation-parent</artifactId>
-    <version>1.0-pre16</version>
+    <version>1.0-pre17-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}-${project.version}</name>
