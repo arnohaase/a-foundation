@@ -41,9 +41,9 @@ public class AMapReadBenchmark {
         };
 
         switch (mapType) {
-            case "AHashMap": map = AHashMap.empty (); break;
-            case "ALongHashMap64": map = ALongHashMap.empty (); break;
-            case "ARedBlackTree": map = ARedBlackTreeMap.empty (NATURAL_ORDER); break;
+            case "AHashMap": map = AHashMap.<Long, Integer>empty (); break;
+            case "ALongHashMap64": map = ALongHashMap.<Integer>empty (); break;
+            case "ARedBlackTree": map = ARedBlackTreeMap.<Long, Integer>empty (NATURAL_ORDER); break;
             case "ALongRedBlackTree": map = ALongRedBlackTreeMap.empty (); break;
             case "ABTree4":  map = ABTreeMap.empty (new ABTreeSpec (4, NATURAL_ORDER)); break;
             case "ABTree8":  map = ABTreeMap.empty (new ABTreeSpec (8, NATURAL_ORDER)); break;
