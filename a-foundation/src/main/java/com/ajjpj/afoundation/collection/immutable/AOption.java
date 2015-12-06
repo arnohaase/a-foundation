@@ -90,6 +90,8 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
      */
     public abstract <E extends Exception> T getOrElseThrow (AFunction0NoThrow<E> producer) throws E;
 
+    @Override public abstract <X, E extends Exception> AOption<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
+
     @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         throw new UnsupportedOperationException("AOption can not be flattened");
     }
@@ -156,7 +158,7 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return none ();
         }
 
-        @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E {
+        @Override public <E extends Exception> void foreach(AStatement1<? super T, E> f) throws E {
             f.apply(el);
         }
 
@@ -332,7 +334,7 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             return false;
         }
 
-        @Override public <E extends Exception> void forEach(AStatement1<? super Object, E> f) {
+        @Override public <E extends Exception> void foreach(AStatement1<? super Object, E> f) {
             // nothing to be done
         }
 

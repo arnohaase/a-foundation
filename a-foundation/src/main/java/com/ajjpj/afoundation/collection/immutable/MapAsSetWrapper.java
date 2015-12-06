@@ -171,7 +171,7 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return result;
     }
 
-    @Override public <E extends Exception> void forEach (AStatement1<? super K, E> f) throws E {
+    @Override public <E extends Exception> void foreach(AStatement1<? super K, E> f) throws E {
         for (K el: this) {
             f.apply (el);
         }

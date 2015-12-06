@@ -14,7 +14,7 @@ public interface ATraversable<T> extends AMonadicOps<T> {
     /**
      * Executes the statement {@code f} for each element of the {@code ATraversable}.
      */
-    <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E;
+    <E extends Exception> void foreach(AStatement1<? super T, E> f) throws E;
 
     @Override <E extends Exception> ATraversable<T> filter(APredicate<? super T, E> pred) throws E;
     @Override <X, E extends Exception> ATraversable<X> map(AFunction1<? super T, ? extends X, E> f) throws E;

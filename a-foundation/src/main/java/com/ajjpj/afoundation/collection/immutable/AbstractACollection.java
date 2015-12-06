@@ -50,7 +50,7 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return size() > 0;
     }
 
-    @Override public <E extends Exception> void forEach(AStatement1<? super T, E> f) throws E { //TODO junit
+    @Override public <E extends Exception> void foreach(AStatement1<? super T, E> f) throws E { //TODO junit
         for(T o: this) {
             f.apply(o);
         }

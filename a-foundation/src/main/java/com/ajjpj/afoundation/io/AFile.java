@@ -140,7 +140,7 @@ public class AFile implements ATraversable<String> {
         };
     }
 
-    @Override public <E extends Exception> void forEach(AStatement1<? super String, E> f) throws E {
+    @Override public <E extends Exception> void foreach(AStatement1<? super String, E> f) throws E {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = iterator(r);
             while(iter.hasNext()) {

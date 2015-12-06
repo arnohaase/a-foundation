@@ -81,7 +81,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
 
     private String[] fromForEach(ACollection<String> raw) {
         final Collection<String> result = new ArrayList<>();
-        raw.forEach(new AStatement1NoThrow<String> () {
+        raw.foreach(new AStatement1NoThrow<String> () {
             @Override public void apply(String param) {
                 result.add(param);
             }
