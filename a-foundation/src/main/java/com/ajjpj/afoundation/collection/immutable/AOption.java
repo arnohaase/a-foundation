@@ -359,7 +359,7 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         }
 
         @Override public boolean nonEmpty() {
-            return true;
+            return false;
         }
 
         @Override public int size() {
