@@ -14,186 +14,202 @@ import java.util.Locale;
 
 /**
  * This class is a collection of helper methods for manually writing JSON to an OutputStream. <p>
- *
+ * <p/>
  * For details on the JSON spec, see http://json.org
  *
  * @author arno
  */
 public class AJsonSerHelper {
-    static final Charset UTF_8 = Charset.forName("UTF-8");
+    static final Charset UTF_8 = Charset.forName ("UTF-8");
 
-    private static final int[] TEN_POW = new int[] {1, 10, 100, 1000, 10*1000, 100*1000, 1000*1000, 10*1000*1000, 100*1000*1000, 1000*1000*1000};
+    private static final int[] TEN_POW = new int[] {1, 10, 100, 1_000, 10_000, 100_000, 1000_000, 10_000_000, 100_000_000, 1_000_000_000};
     private static final String[] PATTERNS = new String[] {"0", "0.0", "0.00", "0.000", "0.0000", "0.00000", "0.000000", "0.0000000", "0.00000000", "0.000000000"};
-    private static final DecimalFormatSymbols DECIMAL_FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
+    private static final DecimalFormatSymbols DECIMAL_FORMAT_SYMBOLS = new DecimalFormatSymbols (Locale.US);
 
     private final Writer out;
-    private final AStack<JsonSerState> state = new AStack<>();
+    private final AStack<JsonSerState> state = new AStack<> ();
 
-    public AJsonSerHelper(OutputStream out) {
-        this.out = new OutputStreamWriter(out, UTF_8);
-        state.push(JsonSerState.initial);
+    public AJsonSerHelper (OutputStream out) {
+        this.out = new OutputStreamWriter (out, UTF_8);
+        state.push (JsonSerState.initial);
     }
 
-    public void startObject() throws IOException {
-        checkAcceptsValueAndPrefixComma();
-        state.push(JsonSerState.startOfObject);
-        out.write("{");
+    public void startObject () throws IOException {
+        checkAcceptsValueAndPrefixComma ();
+        state.push (JsonSerState.startOfObject);
+        out.write ("{");
     }
 
-    public void endObject() throws IOException {
-        checkInObject();
-        state.pop();
-        out.write("}");
-        afterValueWritten();
+    public void endObject () throws IOException {
+        checkInObject ();
+        state.pop ();
+        out.write ("}");
+        afterValueWritten ();
     }
 
-    public void writeKey(String key) throws IOException {
-        if(!state().acceptsKey) {
-            throw new IllegalStateException("state " + state() + " does not accept a key");
+    public void writeKey (String key) throws IOException {
+        if (!state ().acceptsKey) {
+            throw new IllegalStateException ("state " + state () + " does not accept a key");
         }
-        if(state() == JsonSerState.inObject) {
-            out.write(",");
+        if (state () == JsonSerState.inObject) {
+            writeCommaInObject ();
         }
-        _writeStringLiteral(key);
-        out.write(":");
-        state.push(JsonSerState.afterKey);
+        _writeStringLiteral (key);
+        writeColonAfterKey ();
+        state.push (JsonSerState.afterKey);
     }
 
-    public void startArray() throws IOException {
-        checkAcceptsValueAndPrefixComma();
-        state.push(JsonSerState.startOfArray);
-        out.write("[");
+    public void startArray () throws IOException {
+        checkAcceptsValueAndPrefixComma ();
+        state.push (JsonSerState.startOfArray);
+        out.write ("[");
     }
 
-    public void endArray() throws IOException {
-        checkInArray();
-        state.pop();
-        out.write("]");
-        afterValueWritten();
+    public void endArray () throws IOException {
+        checkInArray ();
+        state.pop ();
+        out.write ("]");
+        afterValueWritten ();
     }
 
-    public void writeStringLiteral(String s) throws IOException {
+    public void writeStringLiteral (String s) throws IOException {
         if (s == null) {
             writeNullLiteral ();
             return;
         }
 
-        checkAcceptsValueAndPrefixComma();
-        _writeStringLiteral(s);
-        afterValueWritten();
+        checkAcceptsValueAndPrefixComma ();
+        _writeStringLiteral (s);
+        afterValueWritten ();
     }
 
-    private void _writeStringLiteral(String s) throws IOException {
-        out.write('"');
-        for(int i=0; i<s.length(); i++) {
-            final char ch = s.charAt(i);
+    private void _writeStringLiteral (String s) throws IOException {
+        out.write ('"');
+        for (int i = 0; i < s.length (); i++) {
+            final char ch = s.charAt (i);
 
-            if(ch == '"') {
-                out.write("\\\"");
+            if (ch == '"') {
+                out.write ("\\\"");
             }
             else if (ch == '\\') {
                 out.write ("\\\\");
             }
-            else if(ch < 16) {
-                out.write("\\u000" + Integer.toHexString(ch));
+            else if (ch < 16) {
+                out.write ("\\u000" + Integer.toHexString (ch));
             }
-            else if(ch < 32) {
-                out.write("\\u00" + Integer.toHexString(ch));
+            else if (ch < 32) {
+                out.write ("\\u00" + Integer.toHexString (ch));
             }
             else {
-                out.write(ch);
+                out.write (ch);
             }
         }
 
-        out.write('"');
+        out.write ('"');
     }
 
-    public void writeNumberLiteral(long value, int numFracDigits) throws IOException {
-        checkAcceptsValueAndPrefixComma();
+    public void writeNumberLiteral (long value, int numFracDigits) throws IOException {
+        checkAcceptsValueAndPrefixComma ();
 
         if (value < 0) {
             out.write ('-');
             value = -value;
         }
 
-        if(numFracDigits == 0) {
-            out.write(String.valueOf(value));
+        if (numFracDigits == 0) {
+            out.write (String.valueOf (value));
         }
         else {
             final long intPart = value / TEN_POW[numFracDigits];
-            final String fracPart = String.valueOf(1_000_000_000 + value%TEN_POW[numFracDigits]).substring (10 - numFracDigits, 10);
+            final String fracPart = String.valueOf (1_000_000_000 + value % TEN_POW[numFracDigits]).substring (10 - numFracDigits, 10);
 
-            out.write(String.valueOf(intPart));
-            out.write(".");
-            out.write(fracPart);
+            out.write (String.valueOf (intPart));
+            out.write (".");
+            out.write (fracPart);
         }
 
-        afterValueWritten();
+        afterValueWritten ();
     }
 
-    public void writeNumberLiteral(double value, int numFracDigits) throws IOException {
-        checkAcceptsValueAndPrefixComma();
-        out.write(new DecimalFormat(PATTERNS[numFracDigits], DECIMAL_FORMAT_SYMBOLS).format(value));
-        afterValueWritten();
+    public void writeNumberLiteral (double value, int numFracDigits) throws IOException {
+        checkAcceptsValueAndPrefixComma ();
+        out.write (new DecimalFormat (PATTERNS[numFracDigits], DECIMAL_FORMAT_SYMBOLS).format (value));
+        afterValueWritten ();
     }
 
-    public void writeBooleanLiteral(boolean value) throws IOException {
-        checkAcceptsValueAndPrefixComma();
-        out.write(String.valueOf(value));
-        afterValueWritten();
+    public void writeBooleanLiteral (boolean value) throws IOException {
+        checkAcceptsValueAndPrefixComma ();
+        out.write (String.valueOf (value));
+        afterValueWritten ();
     }
 
-    public void writeNullLiteral() throws IOException {
-        checkAcceptsValueAndPrefixComma();
-        out.write("null");
-        afterValueWritten();
+    public void writeNullLiteral () throws IOException {
+        checkAcceptsValueAndPrefixComma ();
+        out.write ("null");
+        afterValueWritten ();
     }
 
     //----------------------------------------- helper methods
 
-    private void checkAcceptsValueAndPrefixComma() throws IOException {
-        if(!state().acceptsValue) {
-            throw new IllegalStateException("state " + state() + " does not accept a value");
+    protected void writeCommaInObject () throws IOException {
+        out.write (",");
+    }
+
+    protected void writeCommaInArray () throws IOException {
+        out.write (",");
+    }
+
+    protected void writeColonAfterKey () throws IOException {
+        out.write (":");
+    }
+
+    protected void checkAcceptsValueAndPrefixComma () throws IOException {
+        if (!state ().acceptsValue) {
+            throw new IllegalStateException ("state " + state () + " does not accept a value");
         }
-        if(state() == JsonSerState.inArray) {
-            out.write(",");
+        if (state () == JsonSerState.inArray) {
+            writeCommaInArray ();
         }
     }
 
-    private void afterValueWritten() throws IOException {
-        if(state() == JsonSerState.afterKey) {
-            state.pop();
+    protected void afterValueWritten () throws IOException {
+        if (state () == JsonSerState.afterKey) {
+            state.pop ();
         }
-        switch(state()) {
-            case startOfArray:  replaceState(JsonSerState.inArray); break;
-            case startOfObject: replaceState(JsonSerState.inObject); break;
+        switch (state ()) {
+            case startOfArray:
+                replaceState (JsonSerState.inArray);
+                break;
+            case startOfObject:
+                replaceState (JsonSerState.inObject);
+                break;
             case initial:
-                replaceState(JsonSerState.finished);
-                out.flush();
+                replaceState (JsonSerState.finished);
+                out.flush ();
                 break;
             default:
         }
     }
 
-    private void checkInObject() {
-        if(state() != JsonSerState.inObject && state() != JsonSerState.startOfObject) {
-            throw new IllegalStateException("not in an object");
+    private void checkInObject () {
+        if (state () != JsonSerState.inObject && state () != JsonSerState.startOfObject) {
+            throw new IllegalStateException ("not in an object");
         }
     }
 
-    private void checkInArray() {
-        if(state() != JsonSerState.inArray && state() != JsonSerState.startOfArray) {
-            throw new IllegalStateException("not in an array");
+    private void checkInArray () {
+        if (state () != JsonSerState.inArray && state () != JsonSerState.startOfArray) {
+            throw new IllegalStateException ("not in an array");
         }
     }
 
-    private void replaceState(JsonSerState newState) {
-        state.pop();
-        state.push(newState);
+    private void replaceState (JsonSerState newState) {
+        state.pop ();
+        state.push (newState);
     }
 
-    private JsonSerState state() {
-        return state.peek();
+    protected JsonSerState state () {
+        return state.peek ();
     }
 }
 
