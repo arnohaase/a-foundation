@@ -140,7 +140,7 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
 
     protected abstract C wrapAsSet (AMap<K,?> inner);
 
-    @Override public <E extends Exception> ASet<K> filter (APredicate<? super K, E> pred) throws E {
+    @Override public <E extends Throwable> ASet<K> filter (APredicate<? super K, E> pred) throws E {
         return createInternal (ACollectionHelper.filter (this, pred));
     }
 
@@ -150,12 +150,12 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
     }
 
     @SuppressWarnings ("unchecked")
-    @Override public <X, E extends Exception> AMap<X, ? extends ACollection<K>> groupBy (AFunction1<? super K, ? extends X, E> f) throws E {
+    @Override public <X, E extends Throwable> AMap<X, ? extends ACollection<K>> groupBy (AFunction1<? super K, ? extends X, E> f) throws E {
         return groupBy (f, inner.keyEquality ());
     }
 
     @SuppressWarnings ("unchecked")
-    @Override public <X, E extends Exception> AMap<X, ? extends ACollection<K>> groupBy (AFunction1<? super K, ? extends X, E> f, AEquality keyEquality) throws E {
+    @Override public <X, E extends Throwable> AMap<X, ? extends ACollection<K>> groupBy (AFunction1<? super K, ? extends X, E> f, AEquality keyEquality) throws E {
         AMap<X, ASet<K>> result = (AMap<X, ASet<K>>) (keyEquality.equals (inner.keyEquality ()) ? inner.clear () : AHashMap.empty (keyEquality));
 
         final ASet<K> emptySet = createInternal (Collections.<K>emptyList ());
@@ -171,37 +171,37 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return result;
     }
 
-    @Override public <E extends Exception> void foreach(AStatement1<? super K, E> f) throws E {
+    @Override public <E extends Throwable> void foreach(AStatement1<? super K, E> f) throws E {
         for (K el: this) {
             f.apply (el);
         }
     }
 
-    @Override public <X, E extends Exception> ASet<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
+    @Override public <X, E extends Throwable> ASet<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
         return ACollectionHelper.asASetView (ACollectionHelper.map (this, f));
     }
 
-    @Override public <X, E extends Exception> ASet<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
+    @Override public <X, E extends Throwable> ASet<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
         return ACollectionHelper.asASetView (ACollectionHelper.flatMap (this, f));
     }
 
-    @Override public <X, E extends Exception> ASet<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {
+    @Override public <X, E extends Throwable> ASet<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {
         return ACollectionHelper.asASetView (ACollectionHelper.collect (this, pf));
     }
 
-    @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super K, R, E> f) throws E {
+    @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super K, R, E> f) throws E {
         return ACollectionHelper.foldLeft (this, startValue, f);
     }
 
-    @Override public <E extends Exception> AOption<K> find (APredicate<? super K, E> pred) throws E {
+    @Override public <E extends Throwable> AOption<K> find (APredicate<? super K, E> pred) throws E {
         return ACollectionHelper.find (this, pred);
     }
 
-    @Override public <E extends Exception> boolean forAll (APredicate<? super K, E> pred) throws E {
+    @Override public <E extends Throwable> boolean forAll (APredicate<? super K, E> pred) throws E {
         return ACollectionHelper.forAll (this, pred);
     }
 
-    @Override public <E extends Exception> boolean exists (APredicate<? super K, E> pred) throws E {
+    @Override public <E extends Throwable> boolean exists (APredicate<? super K, E> pred) throws E {
         return ACollectionHelper.exists (this, pred);
     }
 }

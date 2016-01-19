@@ -38,7 +38,7 @@ public class ACollectionHelper {
     /**
      * Create a {@link java.util.Set} from an {@link Iterator}, transforming each element.
      */
-    public static <T,U,E extends Exception> Set<U> createSet (Iterator<T> elements, AFunction1<T,U,E> f) throws E {
+    public static <T,U,E extends Throwable> Set<U> createSet (Iterator<T> elements, AFunction1<T,U,E> f) throws E {
         final Set<U> result = new HashSet<> ();
         while (elements.hasNext ()) result.add (f.apply (elements.next ()));
         return result;
@@ -47,7 +47,7 @@ public class ACollectionHelper {
     /**
      * Create a {@link java.util.Set} from an {@link Iterable}, transforming each element.
      */
-    public static <T,U,E extends Exception> Set<U> createSet (Iterable<T> elements, AFunction1<T,U,E> f) throws E {
+    public static <T,U,E extends Throwable> Set<U> createSet (Iterable<T> elements, AFunction1<T,U,E> f) throws E {
         return createSet (elements.iterator (), f);
     }
 
@@ -90,7 +90,7 @@ public class ACollectionHelper {
     /**
      * Returns an element of a collection that matches a predicate, if any, or AOption.none() if there is no match.
      */
-    public static <T, E extends Exception> AOption<T> find(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> AOption<T> find(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(pred.apply(o)) {
                 return AOption.some(o);
@@ -102,7 +102,7 @@ public class ACollectionHelper {
     /**
      * Matches a predicate against collection elements, and returns true iff it matches them all.
      */
-    public static <T, E extends Exception> boolean forAll(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> boolean forAll(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(!pred.apply(o)) {
                 return false;
@@ -114,7 +114,7 @@ public class ACollectionHelper {
     /**
      * Matches a predicate against collection elements, and returns true iff it matches at least one of them.
      */
-    public static <T, E extends Exception> boolean exists(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> boolean exists(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         for(T o: coll) {
             if(pred.apply(o)) {
                 return true;
@@ -126,7 +126,7 @@ public class ACollectionHelper {
     /**
      * Applies a transformation function to all elements of a collection, creating a new collection from the results.
      */
-    public static <T, X, E extends Exception> Collection<X> map(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> Collection<X> map(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -139,7 +139,7 @@ public class ACollectionHelper {
     /**
      * Applies a transformation function to all elements of a collection, creating a new collection from the results.
      */
-    public static <T, X, E extends Exception> List<X> map(List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> List<X> map(List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final List<X> result = createEmptyListOfType (coll, true);
 
         for(T o: coll) {
@@ -152,7 +152,7 @@ public class ACollectionHelper {
     /**
      * Applies a transformation function to all elements of a collection, creating a new collection from the results.
      */
-    public static <T, X, E extends Exception> Set<X> map (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> Set<X> map (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Set<X> result = createEmptySetOfType(coll, true);
 
         for(T o: coll) {
@@ -194,7 +194,7 @@ public class ACollectionHelper {
      * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
      *  flattened into a single collection.
      */
-    public static <T, X, E extends Exception> Collection<X> flatMap(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+    public static <T, X, E extends Throwable> Collection<X> flatMap(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -210,7 +210,7 @@ public class ACollectionHelper {
      * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
      *  flattened into a single collection.
      */
-    public static <T, X, E extends Exception> List<X> flatMapList(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+    public static <T, X, E extends Throwable> List<X> flatMapList(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         final List<X> result = new ArrayList<>();
 
         for(T o: coll) {
@@ -226,7 +226,7 @@ public class ACollectionHelper {
      * Same as <code>map()</code>, except that the transformation function returns collections and all the results are
      *  flattened into a single collection.
      */
-    public static <T, X, E extends Exception> Set<X> flatMapSet(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+    public static <T, X, E extends Throwable> Set<X> flatMapSet(Iterable<T> coll, AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         final Set<X> result = new HashSet<>();
 
         for(T o: coll) {
@@ -284,7 +284,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> Collection<X> collect (Iterable<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Throwable> Collection<X> collect (Iterable<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
         final List<X> result = new ArrayList<>();
 
         for (T o: coll) {
@@ -300,7 +300,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> List<X> collect (List<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Throwable> List<X> collect (List<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
         final List<X> result = createEmptyListOfType (coll, true);
 
         for (T o: coll) {
@@ -316,7 +316,7 @@ public class ACollectionHelper {
      * Applies a transformation function to all elements of a collection, where the partial function is defined for. Creates a new collection
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
-    public static <T, X, E extends Exception> Set<X> collect (Set<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
+    public static <T, X, E extends Throwable> Set<X> collect (Set<T> coll, APartialFunction<? super T, ? extends X, E> pf) throws E {
         final Set<X> result = createEmptySetOfType(coll, true);
 
         for(T o: coll) {
@@ -332,7 +332,7 @@ public class ACollectionHelper {
     /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
-    public static <T, E extends Exception> Collection<T> filter(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> Collection<T> filter(Iterable<T> coll, APredicate<? super T, E> pred) throws E {
         final List<T> result = new ArrayList<>();
         for(T o: coll) {
             if(pred.apply(o)) {
@@ -345,7 +345,7 @@ public class ACollectionHelper {
     /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
-    public static <T, E extends Exception> List<T> filter(List<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> List<T> filter(List<T> coll, APredicate<? super T, E> pred) throws E {
         final List<T> result = createEmptyListOfType (coll, false);
         for(T o: coll) {
             if(pred.apply(o)) {
@@ -358,7 +358,7 @@ public class ACollectionHelper {
     /**
      * Matches all elements of a collection against a predicate, creating a new collection from those that match.
      */
-    public static <T, E extends Exception> Set<T> filter(Set<T> coll, APredicate<? super T, E> pred) throws E {
+    public static <T, E extends Throwable> Set<T> filter(Set<T> coll, APredicate<? super T, E> pred) throws E {
         final Set<T> result = createEmptySetOfType(coll, false);
         for(T o: coll) {
             if(pred.apply(o)) {
@@ -372,7 +372,7 @@ public class ACollectionHelper {
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
-    public static <T, X, E extends Exception> Map<X, Collection<T>> groupBy (Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> Map<X, Collection<T>> groupBy (Iterable<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, Collection<T>> result = new HashMap<>();
         for(T o: coll) {
             final X key = f.apply(o);
@@ -390,7 +390,7 @@ public class ACollectionHelper {
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
-    public static <T, X, E extends Exception> Map<X, List<T>> groupBy (List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> Map<X, List<T>> groupBy (List<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, List<T>> result = new HashMap<>();
         for(T o: coll) {
             final X key = f.apply(o);
@@ -408,7 +408,7 @@ public class ACollectionHelper {
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
-    public static <T, X, E extends Exception> Map<X, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
+    public static <T, X, E extends Throwable> Map<X, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, Set<T>> result = new HashMap<>();
         for(T o: coll) {
             final X key = f.apply(o);
@@ -432,7 +432,7 @@ public class ACollectionHelper {
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
      */
-    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Collection<T>> groupBy(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+    public static <T, X, E extends Throwable> Map<AEqualsWrapper<X>, Collection<T>> groupBy(Iterable<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
         final Map<AEqualsWrapper<X>, Collection<T>> result = new HashMap<>();
         for(T o: coll) {
             final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
@@ -456,7 +456,7 @@ public class ACollectionHelper {
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
      */
-    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, List<T>> groupBy(List<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+    public static <T, X, E extends Throwable> Map<AEqualsWrapper<X>, List<T>> groupBy(List<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
         final Map<AEqualsWrapper<X>, List<T>> result = new HashMap<>();
         for(T o: coll) {
             final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
@@ -480,7 +480,7 @@ public class ACollectionHelper {
      * This method is rather technical in nature, and it is probably more useful as a foundation for generic code than
      *  for direct use by applications.
      */
-    public static <T, X, E extends Exception> Map<AEqualsWrapper<X>, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+    public static <T, X, E extends Throwable> Map<AEqualsWrapper<X>, Set<T>> groupBy (Set<T> coll, AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
         final Map<AEqualsWrapper<X>, Set<T>> result = new HashMap<>();
         for(T o: coll) {
             final AEqualsWrapper<X> key = new AEqualsWrapper<>(keyEquality, f.apply(o));
@@ -500,7 +500,7 @@ public class ACollectionHelper {
      * @param <T> element type of the collection
      * @param <R> result type
      */
-    public static <T, R, E extends Exception> R foldLeft (Iterable<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+    public static <T, R, E extends Throwable> R foldLeft (Iterable<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
         R result = startValue;
 
         for (T e: coll) {
@@ -517,7 +517,7 @@ public class ACollectionHelper {
      * @param <R> result type
      *
      */
-    public static <T, R, E extends Exception> R foldRight (List<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+    public static <T, R, E extends Throwable> R foldRight (List<T> coll, R startValue, AFunction2<R, ? super T, R, E> f) throws E {
         R result = startValue;
 
         ListIterator<T> i = coll.listIterator(coll.size());
@@ -627,11 +627,11 @@ public class ACollectionHelper {
             return inner.size();
         }
 
-        @Override public <X, E extends Exception> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
+        @Override public <X, E extends Throwable> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
         }
 
-        @Override public <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        @Override public <X, E extends Throwable> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap (inner, f));
         }
 
@@ -640,11 +640,11 @@ public class ACollectionHelper {
             return new ACollectionWrapper<>(ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner));
         }
 
-        @Override public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Throwable> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.collect (inner, pf));
         }
 
-        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+        @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
             return ACollectionHelper.foldLeft (inner, startValue, f);
         }
 
@@ -692,15 +692,15 @@ public class ACollectionHelper {
             throw new UnsupportedOperationException ("adding and removing elements is not supported for views - create a full-blown AHashSet instead");
         }
 
-        @Override public <X, E extends Exception> ASet<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
+        @Override public <X, E extends Throwable> ASet<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
             return new ASetWrapper<> (ACollectionHelper.map (inner, f));
         }
 
-        @Override public <X, E extends Exception> ASet<X> flatMap (AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        @Override public <X, E extends Throwable> ASet<X> flatMap (AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ASetWrapper<> (new HashSet<> (ACollectionHelper.flatMap (inner, f)));
         }
 
-        @Override public <X, E extends Exception> ASet<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Throwable> ASet<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
             return new ASetWrapper<> (ACollectionHelper.collect (inner, pf));
         }
 
@@ -709,7 +709,7 @@ public class ACollectionHelper {
             return new ASetWrapper<>(new HashSet<> (ACollectionHelper.flatten ((Iterable<? extends Iterable<X>>) inner)));
         }
 
-        @Override public <E extends Exception> ASetWrapper<T> filter (APredicate<? super T, E> pred) throws E {
+        @Override public <E extends Throwable> ASetWrapper<T> filter (APredicate<? super T, E> pred) throws E {
             return new ASetWrapper<> (ACollectionHelper.filter (inner, pred));
         }
     }
@@ -763,25 +763,22 @@ public class ACollectionHelper {
         /**
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
-        @Override
-        public <X, E extends Exception> ACollectionWrapper<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
+        @Override public <X, E extends Throwable> ACollectionWrapper<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.map (Arrays.asList (inner), f));
         }
 
         /**
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
-        @Override
-        public <X, E extends Exception> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+        @Override public <X, E extends Throwable> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
             return new ACollectionWrapper<>(ACollectionHelper.flatMap (Arrays.asList (inner), f));
         }
 
-        @Override
-        public <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+        @Override public <X, E extends Throwable> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
             return new ACollectionWrapper<> (ACollectionHelper.collect (Arrays.asList (inner), pf));
         }
 
-        @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+        @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
             return ACollectionHelper.foldLeft (Arrays.asList (inner), startValue, f);
         }
 

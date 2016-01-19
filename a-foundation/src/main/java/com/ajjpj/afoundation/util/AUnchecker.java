@@ -21,20 +21,20 @@ public class AUnchecker {
     }
 
     @SuppressWarnings("unused")
-    public static void executeUnchecked(AStatement0<? extends Exception> callback) {
+    public static void executeUnchecked(AStatement0<? extends Throwable> callback) {
         try {
             callback.apply();
         }
-        catch(Exception exc) {
+        catch (Throwable exc) {
             throwUnchecked (exc);
         }
     }
 
-    public static <R> R executeUnchecked(AFunction0<R, ? extends Exception> callback) {
+    public static <R> R executeUnchecked(AFunction0<R, ? extends Throwable> callback) {
         try {
             return callback.apply();
         }
-        catch(Exception exc) {
+        catch (Throwable exc) {
             throwUnchecked (exc);
             return null; //for the compiler
         }

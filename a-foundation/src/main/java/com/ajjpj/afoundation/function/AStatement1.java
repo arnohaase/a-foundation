@@ -8,6 +8,6 @@ import java.io.Serializable;
  *
  * @author arno
  */
-public interface AStatement1<P, E extends Exception> extends Serializable {
+public interface AStatement1<P, E extends Throwable> extends Serializable {
     void apply(P param) throws E;
 }

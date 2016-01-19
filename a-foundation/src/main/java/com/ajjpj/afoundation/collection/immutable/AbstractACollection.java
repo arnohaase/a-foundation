@@ -50,17 +50,17 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return size() > 0;
     }
 
-    @Override public <E extends Exception> void foreach(AStatement1<? super T, E> f) throws E { //TODO junit
+    @Override public <E extends Throwable> void foreach(AStatement1<? super T, E> f) throws E { //TODO junit
         for(T o: this) {
             f.apply(o);
         }
     }
 
-    @Override public <E extends Exception> C filter(APredicate<? super T, E> pred) throws E {
+    @Override public <E extends Throwable> C filter(APredicate<? super T, E> pred) throws E {
         return createInternal(ACollectionHelper.filter (this, pred));
     }
 
-    @Override public <X, E extends Exception> AMap<X, C> groupBy(AFunction1<? super T, ? extends X, E> f) throws E {
+    @Override public <X, E extends Throwable> AMap<X, C> groupBy(AFunction1<? super T, ? extends X, E> f) throws E {
         final Map<X, Collection<T>> raw = ACollectionHelper.groupBy(this, f);
 
         AMap<X, C> result = AHashMap.empty();
@@ -70,7 +70,7 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return result;
     }
 
-    @Override public <X, E extends Exception> AMap<X, C> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
+    @Override public <X, E extends Throwable> AMap<X, C> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E {
         final Map<AEqualsWrapper<X>, Collection<T>> raw = ACollectionHelper.groupBy(this, f, keyEquality);
 
         AMap<X, C> result = AHashMap.empty(keyEquality);
@@ -80,19 +80,19 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
         return result;
     }
 
-    @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
+    @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
         return ACollectionHelper.foldLeft (this, startValue, f);
     }
 
-    @Override public <E extends Exception> AOption<T> find(APredicate<? super T, E> pred) throws E {
+    @Override public <E extends Throwable> AOption<T> find(APredicate<? super T, E> pred) throws E {
         return ACollectionHelper.find(this, pred);
     }
 
-    @Override public <E extends Exception> boolean forAll(APredicate<? super T, E> pred) throws E {
+    @Override public <E extends Throwable> boolean forAll(APredicate<? super T, E> pred) throws E {
         return ACollectionHelper.forAll(this, pred);
     }
 
-    @Override public <E extends Exception> boolean exists(APredicate<? super T, E> pred) throws E {
+    @Override public <E extends Throwable> boolean exists(APredicate<? super T, E> pred) throws E {
         return ACollectionHelper.exists(this, pred);
     }
 

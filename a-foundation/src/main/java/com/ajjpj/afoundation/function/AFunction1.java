@@ -12,6 +12,6 @@ import java.sql.SQLException;
  *
  * @author arno
  */
-public interface AFunction1<P, R, E extends Exception> extends Serializable {
+public interface AFunction1<P, R, E extends Throwable> extends Serializable {
     R apply(P param) throws E;
 }

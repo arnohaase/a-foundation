@@ -12,6 +12,6 @@ import java.io.Serializable;
  *
  * @author bitmagier
  */
-public interface AFunction2<P1, P2, R, E extends Exception> extends Serializable {
+public interface AFunction2<P1, P2, R, E extends Throwable> extends Serializable {
     R apply (P1 param1, P2 param2) throws E;
 }

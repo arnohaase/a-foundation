@@ -49,17 +49,17 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
      * Filters this collection's elements, this method returns a new collection comprised of only those elements that match
      *  a given predicate.
      */
-    @Override <E extends Exception> ACollection<T> filter(APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> ACollection<T> filter(APredicate<? super T, E> pred) throws E;
 
-    @Override <X, E extends Exception> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
-    @Override <X, E extends Exception> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
+    @Override <X, E extends Throwable> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
+    @Override <X, E extends Throwable> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
 
     /**
      * Turns a collection of collections into a 'flat' collection, removing one layer of collections.
      */
     <X> ACollection<X> flatten();
 
-    @Override <X, E extends Exception> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
+    @Override <X, E extends Throwable> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
 
     /**
      * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
@@ -69,7 +69,7 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
      * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
      *  given length.
      */
-    <X, E extends Exception> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f) throws E;
+    <X, E extends Throwable> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f) throws E;
 
     /**
      * Creates a map from this collection, applying a function to every element in order to determine that element's key. All
@@ -79,7 +79,7 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
      * This method can e.g. be used to transform a collection of strings into a map from string lengths to all elements of a
      *  given length.
      */
-    <X, E extends Exception> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E;
+    <X, E extends Throwable> AMap<X, ? extends ACollection<T>> groupBy(AFunction1<? super T, ? extends X, E> f, AEquality keyEquality) throws E;
 
     /**
      * Returns an AList instance with this collection's elements.

@@ -100,7 +100,7 @@ public class AHashMap<K, V> extends AbstractAMap<K,V> {
      *  determine the corresponding value, and the pair is then stored in the map.
      */
     @SuppressWarnings("unused")
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
+    public static <K,V, E extends Throwable> AHashMap<K,V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         return fromKeysAndFunction(DEFAULT_EQUALITY, keys, f);
     }
     /**
@@ -108,7 +108,7 @@ public class AHashMap<K, V> extends AbstractAMap<K,V> {
      *  keys and a function. For each element of the <code>keys</code> collection, the function is called once to
      *  determine the corresponding value, and the pair is then stored in the map.
      */
-    public static <K,V, E extends Exception> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
+    public static <K,V, E extends Throwable> AHashMap<K,V> fromKeysAndFunction(AEquality equality, Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
         AHashMap<K,V> result = AHashMap.empty(equality);

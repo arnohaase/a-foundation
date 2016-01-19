@@ -65,7 +65,7 @@ public class ALongHashMap<V> extends AbstractAMap<Long,V> {
      *  determine the corresponding value, and the pair is then stored in the map.
      */
     @SuppressWarnings("unused")
-    public static <K extends Number, V, E extends Exception> ALongHashMap<V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
+    public static <K extends Number, V, E extends Throwable> ALongHashMap<V> fromKeysAndFunction(Iterable<K> keys, AFunction1<? super K, ? extends V, E> f) throws E {
         final Iterator<K> ki = keys.iterator();
 
         ALongHashMap<V> result = empty ();

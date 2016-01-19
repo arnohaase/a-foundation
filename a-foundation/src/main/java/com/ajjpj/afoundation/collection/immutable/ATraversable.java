@@ -14,12 +14,12 @@ public interface ATraversable<T> extends AMonadicOps<T> {
     /**
      * Executes the statement {@code f} for each element of the {@code ATraversable}.
      */
-    <E extends Exception> void foreach(AStatement1<? super T, E> f) throws E;
+    <E extends Throwable> void foreach(AStatement1<? super T, E> f) throws E;
 
-    @Override <E extends Exception> ATraversable<T> filter(APredicate<? super T, E> pred) throws E;
-    @Override <X, E extends Exception> ATraversable<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
-    @Override <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
-    @Override <X, E extends Exception> ATraversable<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
+    @Override <E extends Throwable> ATraversable<T> filter(APredicate<? super T, E> pred) throws E;
+    @Override <X, E extends Throwable> ATraversable<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
+    @Override <X, E extends Throwable> ATraversable<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
+    @Override <X, E extends Throwable> ATraversable<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
 
     /**
      * This method 'folds' the elements of this collection into a single value. It iterates over the elements, passing the
@@ -32,12 +32,12 @@ public interface ATraversable<T> extends AMonadicOps<T> {
      * @param f the aggregation function
      * @return the resulting value of the aggregation
      */
-    <R, E extends Exception> R foldLeft(R startValue, AFunction2<R, ? super T, R, E> f) throws E;
+    <R, E extends Throwable> R foldLeft(R startValue, AFunction2<R, ? super T, R, E> f) throws E;
 
-    @Override <E extends Exception> AOption<T> find(APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> AOption<T> find(APredicate<? super T, E> pred) throws E;
 
     @Override <X> ATraversable<X> flatten();
 
-    @Override <E extends Exception> boolean forAll(APredicate<? super T, E> pred) throws E;
-    @Override <E extends Exception> boolean exists(APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> boolean forAll(APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> boolean exists(APredicate<? super T, E> pred) throws E;
 }

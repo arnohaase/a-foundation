@@ -45,7 +45,7 @@ public class AFile implements ATraversable<String> {
         return result;
     }
 
-    public <E extends Exception> void iterate(AStatement1<Iterator<String>, E> callback) throws E, IOException {
+    public <E extends Throwable> void iterate(AStatement1<Iterator<String>, E> callback) throws E, IOException {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = new Iterator<String>() {
                 private String line = r.readLine();
@@ -77,7 +77,7 @@ public class AFile implements ATraversable<String> {
         }
     }
 
-    public <R, E extends Exception> R iterate(AFunction1<? super Iterator<String>, ? extends R, E> callback) throws E, IOException {
+    public <R, E extends Throwable> R iterate(AFunction1<? super Iterator<String>, ? extends R, E> callback) throws E, IOException {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = new Iterator<String>() {
                 private String line = r.readLine();
@@ -140,7 +140,7 @@ public class AFile implements ATraversable<String> {
         };
     }
 
-    @Override public <E extends Exception> void foreach(AStatement1<? super String, E> f) throws E {
+    @Override public <E extends Throwable> void foreach(AStatement1<? super String, E> f) throws E {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = iterator(r);
             while(iter.hasNext()) {
@@ -152,7 +152,7 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <E extends Exception> ATraversable<String> filter(APredicate<? super String, E> pred) throws E {
+    public <E extends Throwable> ATraversable<String> filter(APredicate<? super String, E> pred) throws E {
         try {
             return ACollectionHelper.asACollectionView(ACollectionHelper.filter(lines(), pred));
         } catch (IOException e) {
@@ -162,7 +162,7 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <X, E extends Exception> ATraversable<X> map(AFunction1<? super String, ? extends X, E> f) throws E {
+    public <X, E extends Throwable> ATraversable<X> map(AFunction1<? super String, ? extends X, E> f) throws E {
         try {
             return ACollectionHelper.asACollectionView(ACollectionHelper.map(lines(), f));
         } catch (IOException e) {
@@ -172,7 +172,7 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <X, E extends Exception> ATraversable<X> flatMap(AFunction1<? super String, ? extends Iterable<X>, E> f) throws E {
+    public <X, E extends Throwable> ATraversable<X> flatMap(AFunction1<? super String, ? extends Iterable<X>, E> f) throws E {
         try {
             return ACollectionHelper.asACollectionView(ACollectionHelper.flatMap(lines(), f));
         } catch (IOException e) {
@@ -182,7 +182,7 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <X, E extends Exception> ATraversable<X> collect (APartialFunction<? super String, ? extends X, E> pf) throws E {
+    public <X, E extends Throwable> ATraversable<X> collect (APartialFunction<? super String, ? extends X, E> pf) throws E {
         try {
             return ACollectionHelper.asACollectionView (ACollectionHelper.collect (lines(), pf));
         } catch (IOException e) {
@@ -191,7 +191,7 @@ public class AFile implements ATraversable<String> {
         }
     }
 
-    @Override public <R, E extends Exception> R foldLeft (R startValue, AFunction2<R, ? super String, R, E> f) throws E {
+    @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super String, R, E> f) throws E {
         try {
             return ACollectionHelper.foldLeft (lines(), startValue, f);
         } catch (IOException e) {
@@ -200,7 +200,7 @@ public class AFile implements ATraversable<String> {
         }
     }
 
-    @Override public <E extends Exception> AOption<String> find(APredicate<? super String, E> pred) throws E {
+    @Override public <E extends Throwable> AOption<String> find(APredicate<? super String, E> pred) throws E {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = iterator(r);
             while(iter.hasNext()) {
@@ -219,7 +219,7 @@ public class AFile implements ATraversable<String> {
         throw new UnsupportedOperationException();
     }
 
-    @Override public <E extends Exception> boolean forAll(APredicate<? super String, E> pred) throws E {
+    @Override public <E extends Throwable> boolean forAll(APredicate<? super String, E> pred) throws E {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
             final Iterator<String> iter = iterator(r);
             while(iter.hasNext()) {
@@ -233,7 +233,7 @@ public class AFile implements ATraversable<String> {
         return true;
     }
 
-    @Override public <E extends Exception> boolean exists(APredicate<? super String, E> pred) throws E {
+    @Override public <E extends Throwable> boolean exists(APredicate<? super String, E> pred) throws E {
         return find(pred).isDefined();
     }
 }

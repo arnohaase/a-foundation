@@ -142,11 +142,11 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return this;
     }
 
-    @Override public <X,E extends Exception> AList<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
+    @Override public <X,E extends Throwable> AList<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
         return create(ACollectionHelper.map(this, f));
     }
 
-    @Override public <X, E extends Exception> AList<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
+    @Override public <X, E extends Throwable> AList<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
         return create(ACollectionHelper.flatMap (this, f));
     }
 
@@ -155,7 +155,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return (AList<X>) create(ACollectionHelper.flatten((Iterable<? extends Iterable<Object>>) this));
     }
 
-    @Override public <X, E extends Exception> AList<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
+    @Override public <X, E extends Throwable> AList<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
         return create (ACollectionHelper.collect (this, pf));
     }
 
@@ -246,11 +246,11 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
             return this;
         }
 
-        @Override public <E extends Exception> boolean forAll(APredicate<? super Object, E> pred) throws E {
+        @Override public <E extends Throwable> boolean forAll(APredicate<? super Object, E> pred) throws E {
             return true;
         }
 
-        @Override public <E extends Exception> boolean exists(APredicate<? super Object, E> pred) throws E {
+        @Override public <E extends Throwable> boolean exists(APredicate<? super Object, E> pred) throws E {
             return false;
         }
 
