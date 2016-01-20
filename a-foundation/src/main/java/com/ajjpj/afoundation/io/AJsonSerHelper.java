@@ -20,7 +20,7 @@ import java.util.Locale;
  * @author arno
  */
 public class AJsonSerHelper {
-    protected static final Charset UTF_8 = Charset.forName ("UTF-8");
+    public static final Charset UTF_8 = Charset.forName ("UTF-8");
 
     private static final int[] TEN_POW = new int[] {1, 10, 100, 1_000, 10_000, 100_000, 1000_000, 10_000_000, 100_000_000, 1_000_000_000};
     private static final String[] PATTERNS = new String[] {"0", "0.0", "0.00", "0.000", "0.0000", "0.00000", "0.000000", "0.0000000", "0.00000000", "0.000000000"};
