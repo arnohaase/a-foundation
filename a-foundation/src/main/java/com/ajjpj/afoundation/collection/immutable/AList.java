@@ -143,11 +143,11 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
     }
 
     @Override public <X,E extends Throwable> AList<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
-        return create(ACollectionHelper.map(this, f));
+        return create (ACollectionHelper.<T,X,E>map (this, f));
     }
 
     @Override public <X, E extends Throwable> AList<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-        return create(ACollectionHelper.flatMap (this, f));
+        return create(ACollectionHelper.<T,X,E>flatMap (this, f));
     }
 
     @SuppressWarnings("unchecked")
@@ -156,7 +156,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
     }
 
     @Override public <X, E extends Throwable> AList<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
-        return create (ACollectionHelper.collect (this, pf));
+        return create (ACollectionHelper.<T,X,E>collect (this, pf));
     }
 
     /**

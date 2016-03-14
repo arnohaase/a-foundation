@@ -58,7 +58,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
         <dependency>
             <groupId>com.ajjpj.a-foundation</groupId>
             <artifactId>a-foundation</artifactId>
-            <version>1.0-pre17-SNAPSHOT</version>
+            <version>1.0-pre20-SNAPSHOT</version>
         </dependency>
 
         <dependency>

@@ -628,11 +628,11 @@ public class ACollectionHelper {
         }
 
         @Override public <X, E extends Throwable> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.map(inner, f));
+            return new ACollectionWrapper<>(ACollectionHelper.<T,X,E>map(inner, f));
         }
 
         @Override public <X, E extends Throwable> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.flatMap (inner, f));
+            return new ACollectionWrapper<>(ACollectionHelper.<T,X,E>flatMap (inner, f));
         }
 
         @SuppressWarnings("unchecked")
@@ -641,7 +641,7 @@ public class ACollectionHelper {
         }
 
         @Override public <X, E extends Throwable> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.collect (inner, pf));
+            return new ACollectionWrapper<>(ACollectionHelper.<T,X,E>collect (inner, pf));
         }
 
         @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
@@ -693,15 +693,15 @@ public class ACollectionHelper {
         }
 
         @Override public <X, E extends Throwable> ASet<X> map (AFunction1<? super T, ? extends X, E> f) throws E {
-            return new ASetWrapper<> (ACollectionHelper.map (inner, f));
+            return new ASetWrapper<> (ACollectionHelper.<T,X,E>map (inner, f));
         }
 
         @Override public <X, E extends Throwable> ASet<X> flatMap (AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-            return new ASetWrapper<> (new HashSet<> (ACollectionHelper.flatMap (inner, f)));
+            return new ASetWrapper<> (new HashSet<> (ACollectionHelper.<T,X,E>flatMap (inner, f)));
         }
 
         @Override public <X, E extends Throwable> ASet<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
-            return new ASetWrapper<> (ACollectionHelper.collect (inner, pf));
+            return new ASetWrapper<> (ACollectionHelper.<T,X,E>collect (inner, pf));
         }
 
         @SuppressWarnings ("unchecked")
@@ -710,7 +710,7 @@ public class ACollectionHelper {
         }
 
         @Override public <E extends Throwable> ASetWrapper<T> filter (APredicate<? super T, E> pred) throws E {
-            return new ASetWrapper<> (ACollectionHelper.filter (inner, pred));
+            return new ASetWrapper<> (ACollectionHelper.<T,E>filter (inner, pred));
         }
     }
 
@@ -764,18 +764,18 @@ public class ACollectionHelper {
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
         @Override public <X, E extends Throwable> ACollectionWrapper<X> map(AFunction1<? super T, ? extends X, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.map (Arrays.asList (inner), f));
+            return new ACollectionWrapper<>(ACollectionHelper.<T,X,E>map (Arrays.asList (inner), f));
         }
 
         /**
          * Returns ACollectionWrapper instead of AArrayWrapper because Java can not instantiate an array for a component type that is available only as a generic parameter.
          */
         @Override public <X, E extends Throwable> ACollectionWrapper<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E {
-            return new ACollectionWrapper<>(ACollectionHelper.flatMap (Arrays.asList (inner), f));
+            return new ACollectionWrapper<>(ACollectionHelper.<T,X,E>flatMap (Arrays.asList (inner), f));
         }
 
         @Override public <X, E extends Throwable> ACollection<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E {
-            return new ACollectionWrapper<> (ACollectionHelper.collect (Arrays.asList (inner), pf));
+            return new ACollectionWrapper<> (ACollectionHelper.<T,X,E>collect (Arrays.asList (inner), pf));
         }
 
         @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {

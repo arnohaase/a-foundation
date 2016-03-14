@@ -154,7 +154,7 @@ public class AFile implements ATraversable<String> {
     @Override
     public <E extends Throwable> ATraversable<String> filter(APredicate<? super String, E> pred) throws E {
         try {
-            return ACollectionHelper.asACollectionView(ACollectionHelper.filter(lines(), pred));
+            return ACollectionHelper.asACollectionView(ACollectionHelper.<String,E>filter (lines(), pred));
         } catch (IOException e) {
             AUnchecker.throwUnchecked(e);
             return null; // for the compiler
@@ -164,7 +164,7 @@ public class AFile implements ATraversable<String> {
     @Override
     public <X, E extends Throwable> ATraversable<X> map(AFunction1<? super String, ? extends X, E> f) throws E {
         try {
-            return ACollectionHelper.asACollectionView(ACollectionHelper.map(lines(), f));
+            return ACollectionHelper.asACollectionView(ACollectionHelper.<String,X,E>map(lines(), f));
         } catch (IOException e) {
             AUnchecker.throwUnchecked(e);
             return null; // for the compiler
@@ -174,7 +174,7 @@ public class AFile implements ATraversable<String> {
     @Override
     public <X, E extends Throwable> ATraversable<X> flatMap(AFunction1<? super String, ? extends Iterable<X>, E> f) throws E {
         try {
-            return ACollectionHelper.asACollectionView(ACollectionHelper.flatMap(lines(), f));
+            return ACollectionHelper.asACollectionView(ACollectionHelper.<String,X,E>flatMap (lines(), f));
         } catch (IOException e) {
             AUnchecker.throwUnchecked(e);
             return null; // for the compiler
@@ -184,7 +184,7 @@ public class AFile implements ATraversable<String> {
     @Override
     public <X, E extends Throwable> ATraversable<X> collect (APartialFunction<? super String, ? extends X, E> pf) throws E {
         try {
-            return ACollectionHelper.asACollectionView (ACollectionHelper.collect (lines(), pf));
+            return ACollectionHelper.asACollectionView (ACollectionHelper.<String,X,E>collect (lines(), pf));
         } catch (IOException e) {
             AUnchecker.throwUnchecked (e);
             return null; // for the compiler

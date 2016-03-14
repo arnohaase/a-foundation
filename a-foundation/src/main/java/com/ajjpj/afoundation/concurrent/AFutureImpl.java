@@ -2,316 +2,247 @@ package com.ajjpj.afoundation.concurrent;
 
 import com.ajjpj.afoundation.collection.immutable.AList;
 import com.ajjpj.afoundation.collection.immutable.AOption;
+import com.ajjpj.afoundation.collection.immutable.ATry;
 import com.ajjpj.afoundation.collection.tuples.ATuple2;
-import com.ajjpj.afoundation.collection.tuples.ATuple3;
-import com.ajjpj.afoundation.function.AFunction1;
-import com.ajjpj.afoundation.function.AStatement1NoThrow;
-import com.ajjpj.afoundation.function.AStatement2NoThrow;
+import com.ajjpj.afoundation.function.*;
+import com.ajjpj.afoundation.util.AUnchecker;
 
-import java.util.concurrent.*;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 
-/**
- * @author arno
- */
-@SuppressWarnings ("Convert2Lambda")
-class AFutureImpl<T> extends FutureTask<T> implements AFuture<T> {
-    private final AtomicReference<AList<AStatement2NoThrow<T, Throwable>>> onFinishedListeners = new AtomicReference<> (AList.<AStatement2NoThrow<T, Throwable>>nil ());
+class AFutureImpl<T> implements ASettableFuture<T> {
+    private final AThreadPool internalThreadPool;
+    private final AtomicReference<State<T>> state = new AtomicReference<> (new State<> (null, AList.nil ()));
 
-    private final ATaskScheduler threadPool;
-
-    private static final Callable NO_CALLABLE = new Callable () {
-        @Override public Object call () throws Exception {
-            return null;
-        }
-    };
-
-    <X> AFutureImpl<X> unscheduled () {
-        return unscheduled (threadPool);
+    public AFutureImpl (AThreadPool internalThreadPool) {
+        this.internalThreadPool = internalThreadPool;
     }
 
-    @SuppressWarnings ("unchecked")
-    static <X> AFutureImpl<X> unscheduled (ATaskScheduler threadPool) {
-        return new AFutureImpl<> (threadPool, NO_CALLABLE);
+    public static <T> AFutureImpl<T> fromTry (AThreadPool tp, ATry<T> o) {
+        final AFutureImpl<T> result = new AFutureImpl<> (tp);
+        result.complete (o);
+        return result;
     }
 
-    AFutureImpl (ATaskScheduler threadPool, Callable<T> callable) {
-        super (callable);
-        this.threadPool = threadPool;
-    }
-    AFutureImpl (ATaskScheduler threadPool, Runnable runnable, T value) {
-        super (runnable, value);
-        this.threadPool = threadPool;
-    }
-
-     @Override public AFuture<T> withDefaultValue (final T defaultValue) {
-         final AFutureImpl<T> result = unscheduled ();
-
-         onFinished (new AStatement2NoThrow<T, Throwable> () {
-             @Override public void apply (T param1, Throwable param2) {
-                 if (param2 == null) {
-                     result.set (param1);
-                 }
-                 else {
-                     result.set (defaultValue);
-                 }
-             }
-         });
-         return result;
-     }
-
-    @Override protected void set (T t) {
-        super.set (t);
-    }
-
-    @Override protected void setException (Throwable t) {
-        super.setException (t);
-    }
-
-    void setTimedOut() {
-        setException (new TimeoutException ());
-    }
-
-    @Override public boolean isFinished () {
-        return super.isDone ();
-    }
-    @Override protected void done () {
-        notifyListeners ();
-    }
-
-    private void notifyListeners () {
-        T result = null;
-        Throwable th = null;
-
-        try {
-            result = get ();
-        }
-        catch (Exception exc) {
-            th = exc;
-        }
-
-        // This method can be called several times, even concurrently - see the comment in onFinished(). Atomically removing all listeners from the list deals with
-        //  that concurrency in a robust fashion.
-        for (AStatement2NoThrow<T, Throwable> l: onFinishedListeners.getAndSet (AList.<AStatement2NoThrow<T,Throwable>>nil())) {
-            l.apply (result, th);
-        }
-    }
-
-    @Override public void onSuccess (final AStatement1NoThrow<T> callback) {
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 == null) {
-                    callback.apply (param1);
-                }
-            }
-        });
-    }
-
-    @Override public void onFailure (final AStatement1NoThrow<Throwable> callback) {
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 != null) {
-                    callback.apply (param2);
-                }
-            }
-        });
-    }
-
-    @Override public void onFinished (AStatement2NoThrow<T, Throwable> callback) {
-        AList<AStatement2NoThrow<T, Throwable>> prev;
+    @Override public AFuture<T> onComplete (AThreadPool tp, AStatement1<ATry<T>, ?> handler) {
+        State<T> before, after;
         do {
-            prev = onFinishedListeners.get ();
+            before = state.get ();
+            if (before.isComplete ()) {
+                fireListener (tp, handler, before.value);
+                return this;
+            }
+            after = before.withListener (tp, handler);
         }
-        while (! onFinishedListeners.compareAndSet (prev, prev.cons (callback)));
+        while (! state.compareAndSet (before, after));
+        return this;
+    }
 
-        if (isDone ()) {
-            // This is necessary for notifying listeners that are registered *after* the future is done.
-            // NB: Doing it this way takes care of the situation that the future is not done at the beginning of onFinished() but becomes so before the listener is registered.
-            notifyListeners ();
+    @Override public boolean isComplete () {
+        return state.get ().isComplete ();
+    }
+
+    @Override public AOption<ATry<T>> optValue () {
+        return AOption.fromNullable (state.get ().value);
+    }
+
+    @Override public void await (long atMost, TimeUnit timeUnit) throws TimeoutException, InterruptedException {
+        final CompletionLatch l = new CompletionLatch ();
+        onComplete (AThreadPool.SYNC_THREADPOOL, x -> l.releaseShared (1));
+        if (! l.tryAcquireNanos (1, timeUnit.toNanos (atMost))) {
+            throw new TimeoutExceptionWithoutStackTrace ();
         }
     }
 
-    @SuppressWarnings ("unchecked")
-    @Override public <U, E extends Exception> AFuture<U> mapSync (final AFunction1<T, U, E> f) {
-        final AFutureImpl<U> result = new AFutureImpl<> (threadPool, NO_CALLABLE);
+    @Override public T value (long atMost, TimeUnit timeUnit) throws TimeoutException, InterruptedException {
+        await (atMost, timeUnit);
+        return optValue ().get ().getValue ();
+    }
 
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 != null) {
-                    if (param2 instanceof ExecutionException) {
-                        final ExecutionException ee = (ExecutionException) param2;
-                        if (ee.getCause () != null) {
-                            param2 = ee.getCause ();
-                        }
-                    }
+    @Override public AFuture<Throwable> inverse() {
+        return null;
+    }
 
-                    result.setException (param2);
-                    return;
-                }
+    @Override public void complete (ATry<T> o) {
+        if (!tryComplete (o)) throw new IllegalStateException ("trying to complete an already completed future");
+    }
 
-                try {
-                    result.set (f.apply (param1));
-                }
-                catch (Exception e) {
-                    result.setException (e);
-                }
+    private void fireListener (AThreadPool tp, AStatement1<ATry<T>, ?> f, ATry<T> value) {
+        tp.submit (() -> {
+            try {
+                f.apply (value);
+            }
+            catch (Throwable th) {
+                AUnchecker.throwUnchecked (th);
+            }
+        });
+    }
+
+    @Override public boolean tryComplete (ATry<T> o) {
+        State<T> before, after;
+
+        do {
+            before = state.get ();
+            if (before.isComplete ()) return false;
+
+            // set the result, and remove all listeners at the same time
+            after = new State<> (o, AList.nil ());
+        }
+        while (! state.compareAndSet (before, after));
+
+        // fire all listeners registered *before* the call to complete
+        before.listeners.foreach (l -> fireListener (l._1, l._2, o));
+
+        // ... and fire all listeners registered concurrently. After this call, new listeners will be executed immediately rather than stored, so this is sufficient
+        state.get().listeners.foreach (l -> fireListener (l._1, l._2, o));
+
+        return true;
+    }
+
+    //TODO completeWith, tryCompleteWith
+
+//    @Override public <S> AFuture<S> transform (AThreadPool tp, AFunction1<T, S, ?> s, AFunction1<Throwable, Throwable, ?> t) {
+//        final AFutureImpl<S> result = new AFutureImpl<> ();
+//
+//        onComplete (tp, res -> {
+//            TODO NonFatal?!
+//        });
+//
+//        return result;
+//    }
+
+    @Override public <S> AFuture<S> map (AThreadPool tp, AFunction1<T, S, ?> f) {
+        final AFutureImpl<S> result = new AFutureImpl<> (tp);
+
+        onComplete (tp, v -> {
+            try {
+                result.complete (v.map (f));
+            }
+            catch (Throwable th) {
+                result.completeAsFailure (th);
             }
         });
 
         return result;
     }
 
-    @Override public <U, E extends Exception> AFuture<U> mapAsync (AFunction1<T, U, E> f, long timeout, TimeUnit timeoutUnit) {
-        return mapAsync (f, threadPool, timeout, timeoutUnit);
-    }
+    @Override public <S> AFuture<S> flatMap (AThreadPool tp, AFunction1<T, AFuture<S>, ?> f) {
+        final AFutureImpl<S> result = new AFutureImpl<> (tp);
 
-    @SuppressWarnings ("unchecked")
-    @Override public <U, E extends Exception> AFuture<U> mapAsync (final AFunction1<T, U, E> f, final ATaskScheduler threadPool, final long timeout, final TimeUnit timeoutUnit) {
-        final AFutureImpl<U> result = new AFutureImpl<> (threadPool, NO_CALLABLE);
-
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (final T param1, Throwable param2) {
-                if (param2 != null) {
-                    if (param2 instanceof ExecutionException) {
-                        final ExecutionException ee = (ExecutionException) param2;
-                        if (ee.getCause () != null) {
-                            param2 = ee.getCause ();
-                        }
-                    }
-                    result.setException (param2);
-                    return;
-                }
-
-                try {
-                    final AFuture<U> mappedFuture = threadPool.submit (new Callable<U> () {
-                        @Override public U call () throws Exception {
-                            return f.apply (param1);
-                        }
-                    }, timeout, timeoutUnit);
-
-                    mappedFuture.onFinished (new AStatement2NoThrow<U, Throwable> () {
-                        @Override public void apply (U param1, Throwable param2) {
-                            if (param2 != null) {
-                                result.setException (param2);
-                            }
-                            else {
-                                result.set (param1);
-                            }
-                        }
-                    });
-                }
-                catch (Throwable exc) {
-                    result.setException (exc);
-                }
+        onComplete (tp, v -> {
+            if (v.isFailure()) {
+                //noinspection unchecked
+                result.complete ((ATry<S>) v);
+            }
+            else {
+                f.apply (v.getValue()).onComplete (tp, result::complete); //TODO Scala: NonFatal vs. Fatal exceptions?!
             }
         });
 
         return result;
     }
 
-    @SuppressWarnings ("unchecked")
-    @Override public <U> AFuture<ATuple2<T, U>> zip (AFuture<U> other) {
-        final AFutureImpl<ATuple2<T,U>> result = new AFutureImpl<> (threadPool, NO_CALLABLE);
-
-        final ResultCollector<T,U,Object> collector = new ResultCollector<> ();
-        collector.set3 (collector);
-
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 != null) {
-                    result.setException (param2);
-                }
-                else {
-                    final boolean finished = collector.set1 (param1);
-                    if (finished) {
-                        result.set (new ATuple2<> (collector._1.get (), collector._2.get ()));
-                    }
-                }
-            }
+    @Override public AFuture<T> filter (AThreadPool tp, APredicate<T, ?> f) {
+        return map (tp, x -> {
+            if (f.apply (x)) return x;
+            else throw new NoSuchElementException ();
         });
-        other.onFinished (new AStatement2NoThrow<U, Throwable> () {
-            @Override public void apply (U param1, Throwable param2) {
-                if (param2 != null) {
-                    result.setException (param2);
-                }
-                else {
-                    final boolean finished = collector.set2 (param1);
-                    if (finished) {
-                        result.set (new ATuple2<> (collector._1.get (), collector._2.get ()));
-                    }
-                }
-            }
-        });
+    }
 
+    @Override public <S> AFuture<S> collect (AThreadPool tp, APartialFunction<T, S, ?> f) {
+        return map (tp, x -> {
+            if (f.isDefinedAt (x)) return f.apply (x);
+            else throw new NoSuchElementException ();
+        });
+    }
+
+    @Override public AFuture<T> recover (AThreadPool tp, APartialFunction<Throwable, T, ?> f) {
+        final AFutureImpl<T> result = new AFutureImpl<> (tp);
+        onComplete (tp, x -> result.complete (x.recover (f)));
         return result;
     }
 
-    @SuppressWarnings ("unchecked")
-    @Override public <U, V> AFuture<ATuple3<T, U, V>> zip (AFuture<U> other1, AFuture<V> other2) {
-        final AFutureImpl<ATuple3<T,U,V>> result = new AFutureImpl<> (threadPool, NO_CALLABLE);
-
-        final ResultCollector<T,U,V> collector = new ResultCollector<> ();
-
-        onFinished (new AStatement2NoThrow<T, Throwable> () {
-            @Override public void apply (T param1, Throwable param2) {
-                if (param2 != null) {
-                    result.setException (param2);
-                }
-                else {
-                    final boolean finished = collector.set1 (param1);
-                    if (finished) {
-                        result.set (new ATuple3<> (collector._1.get (), collector._2.get (), collector._3.get ()));
-                    }
-                }
+    @Override public <S> AFuture<ATuple2<T, S>> zip (AFuture<S> that) {
+        final AFutureImpl<ATuple2<T,S>> result = new AFutureImpl<> (internalThreadPool);
+        onComplete (internalThreadPool, first -> {
+            if (first.isFailure ()) {
+                //noinspection unchecked
+                result.complete ((ATry) first);
+            }
+            else {
+                that.onComplete (internalThreadPool, second -> {
+                    result.complete (second.map (v -> new ATuple2<> (first.getValue (), v)));
+                });
             }
         });
-        other1.onFinished (new AStatement2NoThrow<U, Throwable> () {
-            @Override public void apply (U param1, Throwable param2) {
-                if (param2 != null) {
-                    result.setException (param2);
-                }
-                else {
-                    final boolean finished = collector.set2 (param1);
-                    if (finished) {
-                        result.set (new ATuple3<> (collector._1.get (), collector._2.get (), collector._3.get ()));
-                    }
-                }
-            }
-        });
-        other2.onFinished (new AStatement2NoThrow<V, Throwable> () {
-            @Override public void apply (V param1, Throwable param2) {
-                if (param2 != null) {
-                    result.setException (param2);
-                }
-                else {
-                    final boolean finished = collector.set3 (param1);
-                    if (finished) {
-                        result.set (new ATuple3<> (collector._1.get (), collector._2.get (), collector._3.get ()));
-                    }
-                }
-            }
-        });
-
         return result;
     }
 
-    static class ResultCollector<R,S,T> {
-        private AOption<R> _1 = AOption.none ();
-        private AOption<S> _2 = AOption.none ();
-        private AOption<T> _3 = AOption.none ();
+    @Override public AFuture<T> fallbackTo (AFuture<T> that) {
+        final AFutureImpl<T> result = new AFutureImpl<> (internalThreadPool);
+        onComplete (internalThreadPool, first -> {
+            if (first.isSuccess()) result.complete (first);
+            else {
+                that.onComplete (internalThreadPool, second -> {
+                    if (second.isSuccess ()) result.complete (second);
+                    else result.complete (first); // if both failed, complete with the first AFuture's throwable
+                });
+            }
+        });
+        return result;
+    }
 
-        synchronized boolean set1 (R o) {
-            _1 = AOption.some (o);
-            return _2.isDefined () && _3.isDefined ();
+    @Override public AFuture<T> andThen (AThreadPool tp, APartialStatement<ATry<T>, ?> f) {
+        final AFutureImpl<T> result = new AFutureImpl<> (tp);
+        onComplete (tp, v -> {
+            try {
+                if (f.isDefinedAt (v)) f.apply (v);
+            }
+            finally {
+                result.complete (v);
+            }
+        });
+        return result;
+    }
+
+
+    static class State<T> {
+        final ATry<T> value;
+        final AList<ATuple2<AThreadPool, AStatement1<ATry <T>, ?>>> listeners;
+
+        State (ATry<T> value, AList<ATuple2<AThreadPool, AStatement1<ATry<T>, ?>>> listeners) {
+            this.value = value;
+            this.listeners = listeners;
         }
-        synchronized boolean set2 (S o) {
-            _2 = AOption.some (o);
-            return _1.isDefined () && _3.isDefined ();
+
+        State<T> withListener (AThreadPool tp, AStatement1<ATry<T>, ?> l) {
+            return new State<> (value, listeners.cons (new ATuple2<> (tp, l)));
         }
-        synchronized boolean set3 (T o) {
-            _3 = AOption.some (o);
-            return _1.isDefined () && _2.isDefined ();
+
+        boolean isComplete() {
+            return value != null;
+        }
+
+        @Override public String toString () {
+            return "State{" +
+                    "value=" + value +
+                    ", listeners=" + listeners +
+                    '}';
+        }
+    }
+
+    static class CompletionLatch extends AbstractQueuedSynchronizer {
+        @Override protected int tryAcquireShared (int ignored) {
+            return getState () == 0 ? 1 : -1;
+        }
+
+        @Override protected boolean tryReleaseShared (int ignored) {
+            setState (1);
+            return true;
         }
     }
 }

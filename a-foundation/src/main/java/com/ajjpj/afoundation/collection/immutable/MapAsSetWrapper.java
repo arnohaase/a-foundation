@@ -141,7 +141,7 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
     protected abstract C wrapAsSet (AMap<K,?> inner);
 
     @Override public <E extends Throwable> ASet<K> filter (APredicate<? super K, E> pred) throws E {
-        return createInternal (ACollectionHelper.filter (this, pred));
+        return createInternal (ACollectionHelper.<K,E>filter (this, pred));
     }
 
     @SuppressWarnings ("unchecked")
@@ -178,15 +178,15 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
     }
 
     @Override public <X, E extends Throwable> ASet<X> map (AFunction1<? super K, ? extends X, E> f) throws E {
-        return ACollectionHelper.asASetView (ACollectionHelper.map (this, f));
+        return ACollectionHelper.asASetView (ACollectionHelper.<K,X,E>map (this, f));
     }
 
     @Override public <X, E extends Throwable> ASet<X> flatMap (AFunction1<? super K, ? extends Iterable<X>, E> f) throws E {
-        return ACollectionHelper.asASetView (ACollectionHelper.flatMap (this, f));
+        return ACollectionHelper.asASetView (ACollectionHelper.<K,X,E>flatMap (this, f));
     }
 
     @Override public <X, E extends Throwable> ASet<X> collect (APartialFunction<? super K, ? extends X, E> pf) throws E {
-        return ACollectionHelper.asASetView (ACollectionHelper.collect (this, pf));
+        return ACollectionHelper.asASetView (ACollectionHelper.<K,X,E>collect (this, pf));
     }
 
     @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super K, R, E> f) throws E {

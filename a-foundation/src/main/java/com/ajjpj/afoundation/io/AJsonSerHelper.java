@@ -1,7 +1,5 @@
 package com.ajjpj.afoundation.io;
 
-import com.ajjpj.afoundation.collection.mutable.AStack;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -9,6 +7,8 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Locale;
 
 
@@ -27,7 +27,7 @@ public class AJsonSerHelper {
     private static final DecimalFormatSymbols DECIMAL_FORMAT_SYMBOLS = new DecimalFormatSymbols (Locale.US);
 
     protected final Writer out;
-    private final AStack<JsonSerState> state = new AStack<> ();
+    private final Deque<JsonSerState> state = new ArrayDeque<> ();
 
     public AJsonSerHelper (OutputStream out) {
         this.out = new OutputStreamWriter (out, UTF_8);

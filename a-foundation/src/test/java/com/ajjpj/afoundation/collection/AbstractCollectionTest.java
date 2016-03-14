@@ -134,7 +134,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
     }
 
     @Test
-    public void testMap() {
+    public void testMap() throws Throwable {
         final AFunction1NoThrow<String, Integer> len = new AFunction1NoThrow<String, Integer>() {
             @Override public Integer apply(String param) {
                 return param.length();
@@ -147,7 +147,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
     }
 
     @Test
-    public void testFlatMapTokens() {
+    public void testFlatMapTokens() throws Throwable {
         final AFunction1NoThrow<String, List<String>> tokens = new AFunction1NoThrow<String, List<String>>() {
             @Override public List<String> apply(String param) {
                 return Arrays.asList(param.split(" "));
@@ -161,7 +161,7 @@ public abstract class AbstractCollectionTest<C extends ACollection<String>, CI e
     }
 
     @Test
-    public void testFlatMapOption() {
+    public void testFlatMapOption() throws Throwable {
         final AFunction1NoThrow<String, AOption<String>> uppercaseFirst = new AFunction1NoThrow<String, AOption<String>>() {
             @Override public AOption<String> apply(String param) {
                 if(Character.isUpperCase(param.charAt(0)))
