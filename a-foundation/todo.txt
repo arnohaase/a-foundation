@@ -8,6 +8,27 @@ todo
 * JavaDoc
 * Java 8: convenience factory methods in collection interfaces
 
+* AThreadPool
+  * strategy for work stealing
+  * swap queues, fetch several 'shared' items, ...
+  * 'dynamically growing overflow' as external add-on
+  * > 63 threads
+  * configurable thread factory --> core affinity (?)
+  * support for finding (internal) deadlocks
+
+* documentation
+  * Linux, server applications --> not optimized for F/J
+  * clean and lean, modular (AFuture separated from pool, builder, queue implementations, ...)
+  * highly configurable (and modular / open / extensible), Builder
+    * --> ideally a platform for experimentation, research and community sharing
+  * You pay only what you need: shutdown check, onComplete, ...
+  * fixed queue size, fixed number of threads, but 'bottom up' utilization of threads --> Monitoring
+  * rich monitoring API (with minimal impact on performance)
+  * API based on Scala, implementation based on 'best of' F/J
+  * Benchmark results: especially efficient on multi-socket machines
+
+* publish on StackOverflow --> persistent collections
+
 * list special handling: ACollectionHandler.asListView
 * ASeq
 * internal DSL for partial functions / statements

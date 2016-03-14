@@ -6,6 +6,7 @@ package com.ajjpj.afoundation.concurrent;
  */
 public class AWorkerThreadStatistics {
     public final Thread.State state;
+    public final long threadId;
 
     public final long numTasksExecuted;
     public final long numSharedTasksExecuted;
@@ -20,9 +21,11 @@ public class AWorkerThreadStatistics {
 
     public final int approximateLocalQueueSize;
 
-    public AWorkerThreadStatistics (Thread.State state, long numTasksExecuted, long numSharedTasksExecuted, long numSteals, long numExceptions, long numParks, long numFalseAlarmUnparks,
+    public AWorkerThreadStatistics (Thread.State state, long threadId,
+                                    long numTasksExecuted, long numSharedTasksExecuted, long numSteals, long numExceptions, long numParks, long numFalseAlarmUnparks,
                                     long numSharedQueueSwitches, long numLocalSubmits, int approximateLocalQueueSize) {
         this.state = state;
+        this.threadId = threadId;
         this.numTasksExecuted = numTasksExecuted;
         this.numSharedTasksExecuted = numSharedTasksExecuted;
         this.numSteals = numSteals;
@@ -38,6 +41,7 @@ public class AWorkerThreadStatistics {
     public String toString () {
         return "AWorkerThreadStatistics{" +
                 "state=" + state +
+                ", threadId=" + threadId +
                 ", numTasksExecuted=" + numTasksExecuted +
                 ", numSharedTasksExecuted=" + numSharedTasksExecuted +
                 ", numSteals=" + numSteals +

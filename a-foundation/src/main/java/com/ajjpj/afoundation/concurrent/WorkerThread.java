@@ -58,8 +58,8 @@ class WorkerThread extends Thread {
      *  long-running pools however even approximate data may provide useful insights. Your mileage may vary however, you have been warned ;-)
      */
     AWorkerThreadStatistics getStatistics() {
-        //TODO mark deadlocks explicitly
-        return new AWorkerThreadStatistics (getState (), stat_numTasksExecuted, stat_numSharedTasksExecuted, stat_numSteals, stat_numExceptions, stat_numParks, stat_numFalseAlarmUnparks, stat_numSharedQueueSwitches, stat_numLocalSubmits, localQueue.approximateSize ());
+        return new AWorkerThreadStatistics (getState (), getId (),
+                stat_numTasksExecuted, stat_numSharedTasksExecuted, stat_numSteals, stat_numExceptions, stat_numParks, stat_numFalseAlarmUnparks, stat_numSharedQueueSwitches, stat_numLocalSubmits, localQueue.approximateSize ());
     }
 
     @Override public void run () {
