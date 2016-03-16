@@ -52,7 +52,8 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     final boolean checkShutdownOnSubmission;
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
-                            int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory) {
+                            int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory,
+                            int numPrefetchLocal) {
         this.checkShutdownOnSubmission = checkShutdownOnSubmission;
         sharedQueues = new ASharedQueue[numSharedQueues];
         for (int i=0; i<numSharedQueues; i++) {
@@ -64,7 +65,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         localQueues = new LocalQueue[numThreads];
         for (int i=0; i<numThreads; i++) {
             localQueues[i] = new LocalQueue (this, localQueueSize);
-            final WorkerThread thread = new WorkerThread (localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
+            final WorkerThread thread = new WorkerThread (numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
             thread.setDaemon (isDaemon);
             thread.setName (threadNameFactory.apply ());
             localQueues[i].init (thread);

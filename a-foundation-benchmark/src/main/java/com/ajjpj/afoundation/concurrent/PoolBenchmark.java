@@ -29,14 +29,20 @@ public class PoolBenchmark {
     ABenchmarkPool pool;
 
     @Param({
+            "a-local-0",
+            "a-local-1",
+            "a-local-2",
+            "a-local-3",
+            "a-local-4",
+
 //            "a-prefetch-2",
 //            "a-prefetch-3",
 //            "a-prefetch-4",
 //            "a-prefetch-5",
-            "a-prefetch-6",
-            "a-sync-nocheck",
-            "a-lock-block",
-            "a-nonblocking",
+//            "a-prefetch-6",
+//            "a-sync-nocheck",
+//            "a-lock-block",
+//            "a-nonblocking",
 
 //            "a-strict-own",
 //            "no-conc",
@@ -58,11 +64,17 @@ public class PoolBenchmark {
     @Setup
     public void setUp() {
         switch (strategy) {
-            case "a-prefetch-2":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (2).withCheckShutdownOnSubmission (true). build ()); break;
-            case "a-prefetch-3":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (3).withCheckShutdownOnSubmission (true). build ()); break;
-            case "a-prefetch-4":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (4).withCheckShutdownOnSubmission (true). build ()); break;
-            case "a-prefetch-5":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (5).withCheckShutdownOnSubmission (true). build ()); break;
-            case "a-prefetch-6":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (6).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-local-0": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (0).build ()); break;
+            case "a-local-1": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (1).build ()); break;
+            case "a-local-2": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (2).build ()); break;
+            case "a-local-3": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (3).build ()); break;
+            case "a-local-4": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (4).build ()); break;
+
+            case "a-prefetch-2":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (2).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-3":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (3).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-4":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (4).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-5":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (5).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-6":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (6).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-sync-nocheck": pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withCheckShutdownOnSubmission (false).build ()); break;
             case "a-lock-block":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.LockPush).build ()); break;
             case "a-nonblocking":  pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.NonBlockingPush).build ()); break;
@@ -170,31 +182,31 @@ public class PoolBenchmark {
         doSimpleScheduling (false);
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(8)
     public void testSimpleScheduling08WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(15)
     public void testSimpleScheduling15() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(15)
     public void testSimpleScheduling15WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(16)
     public void testSimpleScheduling16() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(16)
     public void testSimpleScheduling16WithWork() throws InterruptedException {
         doSimpleScheduling (true);
@@ -260,7 +272,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(8)
     public void testFactorial08() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -268,7 +280,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(15)
     public void testFactorial15() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -276,7 +288,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-    @Benchmark
+//    @Benchmark
     @Threads(16)
     public void testFactorial16() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -313,7 +325,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void testStealVeryCheap() throws InterruptedException {
+    public void testSteal() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch (10_000);
 
         pool.submit (() -> {
@@ -325,7 +337,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void testStealExpensive() throws InterruptedException {
+    public void testStealWithWork() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch (10_000);
 
         pool.submit (() -> {
@@ -349,52 +361,52 @@ public class PoolBenchmark {
         testPingPong (true, 1);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong02() throws InterruptedException {
         testPingPong (false, 2);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong02WithWork() throws InterruptedException {
         testPingPong (true, 2);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong07() throws InterruptedException {
         testPingPong (false, 7);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong07WithWork() throws InterruptedException {
         testPingPong (true, 7);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong08() throws InterruptedException {
         testPingPong (false, 8);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong08WithWork() throws InterruptedException {
         testPingPong (true, 8);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong15() throws InterruptedException {
         testPingPong (false, 15);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong15WithWork() throws InterruptedException {
         testPingPong (true, 15);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong16() throws InterruptedException {
         testPingPong (false, 16);
     }
 
-    @Benchmark
+//    @Benchmark
     public void testPingPong16WithWork() throws InterruptedException {
         testPingPong (true, 16);
     }

@@ -19,6 +19,7 @@ public class AThreadPoolBuilder {
     private int sharedQueueSize = 16384;
 
     private int prefetchBatchSize = 4; //TODO tune this default based on benchmarks
+    private int numPrefetchLocal = 0; //TODO tune this default based on benchmarks; assimilate naming and semantics between shared and local prefetching
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
 
@@ -28,10 +29,9 @@ public class AThreadPoolBuilder {
 
     private AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory = pool -> {
         switch (sharedQueueStrategy) {
-            case SyncPush:             return new SharedQueueBlockPushBlockPopImpl (1, pool, sharedQueueSize); //TODO clean this up --> it is really only a single strategy with different config
-            case SyncPushWithPrefetch: return new SharedQueueBlockPushBlockPopImpl (prefetchBatchSize, pool, sharedQueueSize);
-            case LockPush:             return new SharedQueueNonblockPushBlockPopImpl (prefetchBatchSize, pool, sharedQueueSize);
-            case NonBlockingPush:      return new SharedQueueNonBlockingImpl (prefetchBatchSize, pool, sharedQueueSize);
+            case SyncPush:        return new SharedQueueBlockPushBlockPopImpl    (prefetchBatchSize, pool, sharedQueueSize);
+            case LockPush:        return new SharedQueueNonblockPushBlockPopImpl (prefetchBatchSize, pool, sharedQueueSize);
+            case NonBlockingPush: return new SharedQueueNonBlockingImpl          (prefetchBatchSize, pool, sharedQueueSize);
         }
         throw new IllegalStateException ("unknown shared queue strategy " + sharedQueueStrategy);
     };
@@ -68,6 +68,11 @@ public class AThreadPoolBuilder {
 
     public AThreadPoolBuilder withPrefetchBatchSize (int prefetchBatchSize) {
         this.prefetchBatchSize = prefetchBatchSize;
+        return this;
+    }
+
+    public AThreadPoolBuilder withNumPrefetchLocal (int numPrefetchLocal) {
+        this.numPrefetchLocal = numPrefetchLocal;
         return this;
     }
 
@@ -109,7 +114,7 @@ public class AThreadPoolBuilder {
     //TODO ensure that the prefetch size is no bigger than the local queues' capacity
 
     public AThreadPoolWithAdmin build() {
-        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory);
+        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, numPrefetchLocal);
     }
 
     @Override

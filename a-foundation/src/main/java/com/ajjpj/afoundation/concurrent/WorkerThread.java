@@ -18,6 +18,7 @@ class WorkerThread extends Thread {
     final long idleThreadMask;
     final int queueTraversalIncrement;
     final AStatement1NoThrow<Throwable> exceptionHandler;
+    final int numPrefetchLocal;
 
     //---------------------------------------------------
     //-- statistics data, written only from this thread
@@ -39,7 +40,8 @@ class WorkerThread extends Thread {
      */
     private int currentSharedQueue = 0;
 
-    WorkerThread (LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
+    WorkerThread (int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
+        this.numPrefetchLocal = numPrefetchLocal;
         this.exceptionHandler = exceptionHandler;
 
         this.localQueue = localQueue;
@@ -182,7 +184,7 @@ class WorkerThread extends Thread {
 
         //noinspection ForLoopReplaceableByForEach
         for (int i=0; i < sharedQueues.length; i++) {
-            if ((task = sharedQueues[currentSharedQueue].popFifo (localQueue)) != null) {
+            if ((task = sharedQueues[currentSharedQueue].popFifo (localQueue)) != null) { //TODO adjust statistics to reflect prefetched tasks
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSharedTasksExecuted += 1;
                 //noinspection PointlessBooleanExpression,ConstantConditions
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS && prevQueue != currentSharedQueue) stat_numSharedQueueSwitches += 1;
@@ -202,6 +204,13 @@ class WorkerThread extends Thread {
             }
             if ((task = otherQueue.popFifo ()) != null) {
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSteals += 1;
+
+                for (int i=0; i<numPrefetchLocal; i++) {
+                    final Runnable prefetched = otherQueue.popFifo ();
+                    if (prefetched == null) break;
+                    localQueue.push (prefetched);
+                    if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSteals += 1; //TODO count separately?
+                }
                 return task;
             }
         }
