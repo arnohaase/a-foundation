@@ -10,12 +10,12 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * @author arno
  */
-@Fork (2)
+//@Fork (2)
 //@Fork (0)
-//@Fork(1)
+@Fork(1)
 @Threads(1)
-@Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 //@Timeout (time=20, timeUnit=TimeUnit.SECONDS)
 public class PoolBenchmark {
@@ -29,28 +29,28 @@ public class PoolBenchmark {
     ABenchmarkPool pool;
 
     @Param({
-            "a-prefetch-2",
-            "a-prefetch-3",
-            "a-prefetch-4",
-            "a-prefetch-5",
+//            "a-prefetch-2",
+//            "a-prefetch-3",
+//            "a-prefetch-4",
+//            "a-prefetch-5",
             "a-prefetch-6",
-            "a-sync-block",
-            "a-sync-nocheck",
-            "a-lock-block",
+//            "a-sync-block",
+//            "a-sync-nocheck",
+//            "a-lock-block",
             "a-nonblocking",
 
 //            "a-strict-own",
-            "no-conc",
+//            "no-conc",
 
 //            "Executors.newFixedThreadPool",
 
-            "ForkJoinSharedQueues",
+//            "ForkJoinSharedQueues",
             "ForkJoinLifo",
-            "ForkJoinFifo",
+//            "ForkJoinFifo",
 
-            "J9FjSharedQueues",
-            "J9FjLifo",
-            "J9FjFifo"
+//            "J9FjSharedQueues",
+//            "J9FjLifo",
+//            "J9FjFifo"
     })
     public String strategy;
 

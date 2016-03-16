@@ -78,10 +78,59 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
             UNSAFE.putLongVolatile (this, OFFS_TOP, _top+1);
         }
 
-        // Notify pool only for the first added item per queue.
-        if (_top - _base <= 1) {
-            pool.onAvailableTask ();
+        pool.onAvailableTask ();
+    }
+
+    int asArrayIndex (long l) {
+        return (int) (l & mask);
+    }
+
+    @Override public synchronized Runnable popFifo (LocalQueue localQueue) {
+        final long _base = base;
+        final long _top = top;
+
+        final long size = _top-_base;
+
+        if (size == 0) {
+            // Terminate the loop: the queue is empty.
+            //TODO verify that Hotspot optimizes this kind of return-from-the-middle well
+            return null;
         }
+
+        final Runnable result = fetchTask (_base);
+        if (result == null) {
+            System.err.println ("null @ " + _base);
+            return null; //TODO why is this necessary?
+        }
+
+        int idx;
+
+        long newLocalTop = localQueue.top;
+        for (idx=1; idx < size && idx < prefetchBatchSize; idx++) {
+            final Runnable task = fetchTask (_base+idx);
+            if (task == null) {
+                System.err.println ("************************ fetched task[base+" + idx + "] is null although it really couldn't *******************************");
+            }
+
+            localQueue.tasks [localQueue.asArrayindex (newLocalTop++)] = task;
+        }
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        if (idx > 1) {
+            UNSAFE.putLongVolatile (localQueue, LocalQueue.OFFS_TOP, newLocalTop);
+        }
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        UNSAFE.putLongVolatile (this, OFFS_BASE, _base + idx);
+
+        return result;
+    }
+
+    private Runnable fetchTask (long idx) {
+        final int arrIdx = asArrayIndex (idx);
+        final Runnable result = tasks [arrIdx];
+        if (result != null) tasks[arrIdx] = null; //TODO remove the check
+        return result;
     }
 
     /**
@@ -106,57 +155,6 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
         // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
         UNSAFE.putLongVolatile (this, OFFS_BASE, _base+1);
 
-        return result;
-    }
-
-    int asArrayIndex (long l) {
-        return (int) (l & mask);
-    }
-
-    @Override public synchronized Runnable popFifo (LocalQueue localQueue) {
-
-        final long _base = base;
-        final long _top = top;
-
-        final long size = _top-_base;
-
-        if (size == 0) {
-            // Terminate the loop: the queue is empty.
-            //TODO verify that Hotspot optimizes this kind of return-from-the-middle well
-            return null;
-        }
-
-        final Runnable result = fetchTask (_base);
-        if (result == null) {
-            System.err.println ("null @ " + _base);
-            // System.err.println ("************************ fetched task[base] is null although it really couldn't *******************************");
-            return null; //TODO why is this necessary?
-        }
-
-        int idx;
-        long newLocalTop = localQueue.top;
-        for (idx=1; idx < size && idx < prefetchBatchSize; idx++) {
-            final Runnable task = fetchTask (_base+idx);
-            if (task == null) {
-                System.err.println ("************************ fetched task[base+" + idx + "] is null although it really couldn't *******************************");
-            }
-
-            localQueue.tasks [localQueue.asArrayindex (newLocalTop++)] = task;
-        }
-
-        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
-        UNSAFE.putLongVolatile (localQueue, LocalQueue.OFFS_TOP, newLocalTop);
-
-        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
-        UNSAFE.putLongVolatile (this, OFFS_BASE, _base + idx);
-
-        return result;
-    }
-
-    private Runnable fetchTask (long idx) {
-        final int arrIdx = asArrayIndex (idx);
-        final Runnable result = tasks [arrIdx];
-        if (result != null) tasks[arrIdx] = null; //TODO remove the check
         return result;
     }
 
