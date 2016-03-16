@@ -29,6 +29,11 @@ public class PoolBenchmark {
     ABenchmarkPool pool;
 
     @Param({
+            "a-prefetch-2",
+            "a-prefetch-3",
+            "a-prefetch-4",
+            "a-prefetch-5",
+            "a-prefetch-6",
             "a-sync-block",
             "a-sync-nocheck",
             "a-lock-block",
@@ -54,6 +59,11 @@ public class PoolBenchmark {
     @Setup
     public void setUp() {
         switch (strategy) {
+            case "a-prefetch-2":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (2).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-3":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (3).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-4":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (4).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-5":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (5).withCheckShutdownOnSubmission (true). build ()); break;
+            case "a-prefetch-6":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (6).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-sync-block":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-sync-nocheck": pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withCheckShutdownOnSubmission (false).build ()); break;
             case "a-lock-block":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.LockPush).build ()); break;
@@ -120,7 +130,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void testSimpleScheduling01() throws InterruptedException {
+    public void ___testSimpleScheduling01() throws InterruptedException {
         doSimpleScheduling (false);
     }
 

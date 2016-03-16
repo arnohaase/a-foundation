@@ -19,7 +19,7 @@ todo
 * documentation
   * Linux, server applications --> not optimized for F/J
   * clean and lean, modular (AFuture separated from pool, builder, queue implementations, ...)
-  * highly configurable (and modular / open / extensible), Builder
+  * highly configurable (and modular / open / extensible), builder
     * --> ideally a platform for experimentation, research and community sharing
   * You pay only what you need: shutdown check, onComplete, ...
   * fixed queue size, fixed number of threads, but 'bottom up' utilization of threads --> Monitoring

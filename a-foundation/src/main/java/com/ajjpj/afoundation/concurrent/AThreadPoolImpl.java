@@ -185,26 +185,26 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
             throw new IllegalStateException ("pool can be shut down only once");
         }
 
-        switch (shutdownMode) {
-            case SkipUnstarted:
-                for (ASharedQueue globalQueue: sharedQueues) {
-                    //noinspection StatementWithEmptyBody
-                    while (globalQueue.popFifo () != null) {
-                        // do nothing, just drain the queue
-                    }
+        if (shutdownMode == ShutdownMode.SkipUnstarted || shutdownMode == ShutdownMode.InterruptRunning) {
+            for (ASharedQueue globalQueue: sharedQueues) {
+                //noinspection StatementWithEmptyBody
+                while (globalQueue.popFifo () != null) {
+                    // do nothing, just drain the queue
                 }
+            }
 
-                for (LocalQueue queue: localQueues) {
-                    //noinspection StatementWithEmptyBody
-                    while (queue.popFifo () != null) {
-                        // do nothing, just drain the queue
-                    }
+            for (LocalQueue queue: localQueues) {
+                //noinspection StatementWithEmptyBody
+                while (queue.popFifo () != null) {
+                    // do nothing, just drain the queue
                 }
-                // fall-through is intentional
-            case InterruptRunning:
+            }
+
+            if (shutdownMode == ShutdownMode.InterruptRunning) {
                 for (LocalQueue queue: localQueues) {
                     queue.thread.interrupt ();
                 }
+            }
         }
 
         final List<AFuture<Void>> result = new ArrayList<> ();

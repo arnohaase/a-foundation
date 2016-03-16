@@ -182,7 +182,7 @@ class WorkerThread extends Thread {
 
         //noinspection ForLoopReplaceableByForEach
         for (int i=0; i < sharedQueues.length; i++) {
-            if ((task = sharedQueues[currentSharedQueue].popFifo ()) != null) {
+            if ((task = sharedQueues[currentSharedQueue].popFifo (localQueue)) != null) {
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSharedTasksExecuted += 1;
                 //noinspection PointlessBooleanExpression,ConstantConditions
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS && prevQueue != currentSharedQueue) stat_numSharedQueueSwitches += 1;

@@ -6,6 +6,11 @@ package com.ajjpj.afoundation.concurrent;
  */
 public interface ASharedQueue {
     Runnable popFifo ();
+
+    default Runnable popFifo (LocalQueue localQueue) {
+        return popFifo (); //TODO
+    };
+
     void push (Runnable task);
 
     /**

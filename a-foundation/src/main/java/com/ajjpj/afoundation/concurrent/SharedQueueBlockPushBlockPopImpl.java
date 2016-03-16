@@ -10,10 +10,13 @@ import java.lang.reflect.Field;
  * @author arno
  */
 class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
+    private final int prefetchBatchSize;
+    private final Object PUSH_LOCK = new Object ();
+
     /**
      * an array holding all currently submitted tasks.
      */
-    private final Runnable[] tasks;
+    final Runnable[] tasks;
 
     //TODO here and elsewhere: memory layout
     /**
@@ -26,7 +29,14 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
     long base = 0;
     long top = 0;
 
-    SharedQueueBlockPushBlockPopImpl (AThreadPoolImpl pool, int size) {
+    /**
+     * @param prefetchBatchSize the number of tasks a worker thread should attempt to fetch when its local queue has run empty, to the degree they are available in this
+     *                          queue. A value of 1 denotes no prefetch, i.e. a worker thread just fetches one item and is done with. A value of 2 means a worker thread
+     *                          attempts to prefetch one task in addition to the task it gets for immediate consumption etc.
+     */
+    SharedQueueBlockPushBlockPopImpl (int prefetchBatchSize, AThreadPoolImpl pool, int size) {
+        if (prefetchBatchSize < 1) throw new IllegalArgumentException ("worker threads must (attempt to) fetch a minimum of 1 task");
+        this.prefetchBatchSize = prefetchBatchSize;
         this.pool = pool;
 
         if (1 != Integer.bitCount (size)) throw new IllegalArgumentException ("size must be a power of 2");
@@ -46,8 +56,6 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
                 UNSAFE.getLongVolatile (this, OFFS_BASE)
         );
     }
-
-    private final Object PUSH_LOCK = new Object ();
 
     /**
      * Add a new task to the top of the shared queue, incrementing 'top'.
@@ -101,15 +109,62 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
         return result;
     }
 
-    private int asArrayIndex (long l) {
+    int asArrayIndex (long l) {
         return (int) (l & mask);
     }
 
-    //------------- Unsafe stuff
-    private static final Unsafe UNSAFE;
+    @Override public synchronized Runnable popFifo (LocalQueue localQueue) {
 
-    private static final long OFFS_BASE;
-    private static final long OFFS_TOP;
+        final long _base = base;
+        final long _top = top;
+
+        final long size = _top-_base;
+
+        if (size == 0) {
+            // Terminate the loop: the queue is empty.
+            //TODO verify that Hotspot optimizes this kind of return-from-the-middle well
+            return null;
+        }
+
+        final Runnable result = fetchTask (_base);
+        if (result == null) {
+            // System.err.println ("************************ fetched task[base] is null although it really couldn't *******************************");
+            return null; //TODO why is this necessary?
+        }
+
+        int idx;
+        long newLocalTop = localQueue.top;
+        for (idx=1; idx < size && idx < prefetchBatchSize; idx++) {
+            final Runnable task = fetchTask (_base+idx);
+            if (task == null) {
+                System.err.println ("************************ fetched task[base+" + idx + "] is null although it really couldn't *******************************");
+            }
+
+            localQueue.tasks [localQueue.asArrayindex (newLocalTop++)] = task;
+        }
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        UNSAFE.putLongVolatile (localQueue, LocalQueue.OFFS_TOP, newLocalTop);
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        UNSAFE.putLongVolatile (this, OFFS_BASE, _base + idx);
+
+        return result;
+    }
+
+    private Runnable fetchTask (long idx) {
+        final int arrIdx = asArrayIndex (idx);
+        final Runnable result = tasks [arrIdx];
+        if (result != null) tasks[arrIdx] = null;
+        return result;
+    }
+
+
+    //------------- Unsafe stuff
+    static final Unsafe UNSAFE;
+
+    static final long OFFS_BASE;
+    static final long OFFS_TOP;
 
     static {
         try {

@@ -13,7 +13,7 @@ class LocalQueue {
     /**
      * an array holding all currently submitted tasks.
      */
-    private final Runnable[] tasks;
+    final Runnable[] tasks;
 
     /**
      * The thread is really final and not-null. Because of circular references during initialization, it is technically not final and initialized not in the constructor but in
@@ -30,8 +30,8 @@ class LocalQueue {
     final AThreadPoolImpl pool;
 
     @SuppressWarnings ("unused")
-    private long base = 0;
-    private long top = 0;
+    long base = 0;
+    long top = 0;
 
     LocalQueue (AThreadPoolImpl pool, int size) {
         this.pool = pool;
@@ -141,7 +141,7 @@ class LocalQueue {
         return OFFS_TASKS + SCALE_TASKS * (l & mask);
     }
 
-    private int asArrayindex (long l) {
+    int asArrayindex (long l) {
         return (int) (l & mask);
     }
 
@@ -152,7 +152,7 @@ class LocalQueue {
     private static final long SCALE_TASKS;
 
     private static final long OFFS_BASE;
-    private static final long OFFS_TOP;
+    static final long OFFS_TOP;
 
     static {
         try {
