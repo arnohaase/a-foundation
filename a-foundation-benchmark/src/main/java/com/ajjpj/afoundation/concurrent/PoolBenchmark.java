@@ -10,12 +10,12 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * @author arno
  */
-//@Fork (2)
+@Fork (2)
 //@Fork (0)
-@Fork(1)
+//@Fork(1)
 @Threads(1)
-@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 //@Timeout (time=20, timeUnit=TimeUnit.SECONDS)
 public class PoolBenchmark {
@@ -130,7 +130,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void ___testSimpleScheduling01() throws InterruptedException {
+    public void testSimpleScheduling01() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
@@ -162,7 +162,7 @@ public class PoolBenchmark {
 
     @Benchmark
     @Threads(7)
-    public void testSimpleScheduling07WithWork() throws InterruptedException {
+    public void ___testSimpleScheduling07WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 

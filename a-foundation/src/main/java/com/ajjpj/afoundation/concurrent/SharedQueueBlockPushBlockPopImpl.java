@@ -128,6 +128,7 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
 
         final Runnable result = fetchTask (_base);
         if (result == null) {
+            System.err.println ("null @ " + _base);
             // System.err.println ("************************ fetched task[base] is null although it really couldn't *******************************");
             return null; //TODO why is this necessary?
         }
@@ -155,7 +156,7 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
     private Runnable fetchTask (long idx) {
         final int arrIdx = asArrayIndex (idx);
         final Runnable result = tasks [arrIdx];
-        if (result != null) tasks[arrIdx] = null;
+        if (result != null) tasks[arrIdx] = null; //TODO remove the check
         return result;
     }
 
