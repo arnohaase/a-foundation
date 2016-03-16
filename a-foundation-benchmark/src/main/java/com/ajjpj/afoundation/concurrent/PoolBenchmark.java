@@ -34,9 +34,8 @@ public class PoolBenchmark {
 //            "a-prefetch-4",
 //            "a-prefetch-5",
             "a-prefetch-6",
-//            "a-sync-block",
-//            "a-sync-nocheck",
-//            "a-lock-block",
+            "a-sync-nocheck",
+            "a-lock-block",
             "a-nonblocking",
 
 //            "a-strict-own",
@@ -64,7 +63,6 @@ public class PoolBenchmark {
             case "a-prefetch-4":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (4).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-prefetch-5":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (5).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-prefetch-6":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPushWithPrefetch).withPrefetchBatchSize (6).withCheckShutdownOnSubmission (true). build ()); break;
-            case "a-sync-block":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-sync-nocheck": pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withCheckShutdownOnSubmission (false).build ()); break;
             case "a-lock-block":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.LockPush).build ()); break;
             case "a-nonblocking":  pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.NonBlockingPush).build ()); break;
@@ -135,7 +133,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void ___testSimpleScheduling01WithWork() throws InterruptedException {
+    public void testSimpleScheduling01WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
@@ -162,7 +160,7 @@ public class PoolBenchmark {
 
     @Benchmark
     @Threads(7)
-    public void ___testSimpleScheduling07WithWork() throws InterruptedException {
+    public void testSimpleScheduling07WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
@@ -343,47 +341,85 @@ public class PoolBenchmark {
 
     @Benchmark
     public void testPingPong01() throws InterruptedException {
-        testPingPong (1);
+        testPingPong (false, 1);
+    }
+
+    @Benchmark
+    public void testPingPong01WithWork() throws InterruptedException {
+        testPingPong (true, 1);
     }
 
     @Benchmark
     public void testPingPong02() throws InterruptedException {
-        testPingPong (2);
+        testPingPong (false, 2);
+    }
+
+    @Benchmark
+    public void testPingPong02WithWork() throws InterruptedException {
+        testPingPong (true, 2);
     }
 
     @Benchmark
     public void testPingPong07() throws InterruptedException {
-        testPingPong (7);
+        testPingPong (false, 7);
+    }
+
+    @Benchmark
+    public void testPingPong07WithWork() throws InterruptedException {
+        testPingPong (true, 7);
     }
 
     @Benchmark
     public void testPingPong08() throws InterruptedException {
-        testPingPong (8);
+        testPingPong (false, 8);
+    }
+
+    @Benchmark
+    public void testPingPong08WithWork() throws InterruptedException {
+        testPingPong (true, 8);
     }
 
     @Benchmark
     public void testPingPong15() throws InterruptedException {
-        testPingPong (15);
+        testPingPong (false, 15);
+    }
+
+    @Benchmark
+    public void testPingPong15WithWork() throws InterruptedException {
+        testPingPong (true, 15);
     }
 
     @Benchmark
     public void testPingPong16() throws InterruptedException {
-        testPingPong (16);
+        testPingPong (false, 16);
+    }
+
+    @Benchmark
+    public void testPingPong16WithWork() throws InterruptedException {
+        testPingPong (true, 16);
     }
 
     @Benchmark
     public void testPingPong32() throws InterruptedException {
-        testPingPong (32);
+        testPingPong (false, 32);
     }
 
-    private void testPingPong(int numThreads) throws InterruptedException {
+    @Benchmark
+    public void testPingPong32WithWork() throws InterruptedException {
+        testPingPong (true, 32);
+    }
+
+    private void testPingPong (boolean withWork, int numThreads) throws InterruptedException {
         final PingPongActor a1 = new PingPongActor ();
         final PingPongActor a2 = new PingPongActor ();
 
         final CountDownLatch latch = new CountDownLatch (numThreads);
 
         for (int i=0; i<numThreads; i++) {
-            a1.receive (a2, 10_000, latch::countDown);
+            a1.receive (a2, 10_000, () -> {
+                if (withWork) Blackhole.consumeCPU (100);
+                latch.countDown ();
+            });
         }
 
         latch.await ();
