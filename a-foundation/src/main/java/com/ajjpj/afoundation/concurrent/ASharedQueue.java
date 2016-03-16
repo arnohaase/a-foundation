@@ -5,13 +5,18 @@ package com.ajjpj.afoundation.concurrent;
  * @author arno
  */
 public interface ASharedQueue {
-    Runnable popFifo ();
-
-    default Runnable popFifo (LocalQueue localQueue) {
-        return popFifo (); //TODO
-    };
-
     void push (Runnable task);
+
+    /**
+     * Returns a task from this queue or null, if there is none, pre-fetching a configured number of task to the given LocalQueue. This method is
+     *  only called from the local queue's worker thread.
+     */
+    Runnable popFifo (LocalQueue localQueue);
+
+    /**
+     * for shutdown only
+     */
+    void clear();
 
     /**
      * This is an optional method, used only for providing statistics data to aid monitoring and debugging. Implementations should therefore

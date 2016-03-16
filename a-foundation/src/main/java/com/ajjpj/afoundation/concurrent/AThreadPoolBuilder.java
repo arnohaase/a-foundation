@@ -18,7 +18,7 @@ public class AThreadPoolBuilder {
     private int localQueueSize = 16384; //TODO smaller default; handle overflow so that it pushes to shared queue instead
     private int sharedQueueSize = 16384;
 
-    private int prefetchBatchSize = 1; //TODO tune this default based on benchmarks
+    private int prefetchBatchSize = 4; //TODO tune this default based on benchmarks
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
 
@@ -30,8 +30,8 @@ public class AThreadPoolBuilder {
         switch (sharedQueueStrategy) {
             case SyncPush:             return new SharedQueueBlockPushBlockPopImpl (1, pool, sharedQueueSize); //TODO clean this up --> it is really only a single strategy with different config
             case SyncPushWithPrefetch: return new SharedQueueBlockPushBlockPopImpl (prefetchBatchSize, pool, sharedQueueSize);
-            case LockPush:             return new SharedQueueNonblockPushBlockPopImpl (pool, sharedQueueSize);
-            case NonBlockingPush:      return new SharedQueueNonBlockingImpl (pool, sharedQueueSize);
+            case LockPush:             return new SharedQueueNonblockPushBlockPopImpl (prefetchBatchSize, pool, sharedQueueSize);
+            case NonBlockingPush:      return new SharedQueueNonBlockingImpl (prefetchBatchSize, pool, sharedQueueSize);
         }
         throw new IllegalStateException ("unknown shared queue strategy " + sharedQueueStrategy);
     };
@@ -106,8 +106,9 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    //TODO ensure that the prefetch size is no bigger than the local queues' capacity
+
     public AThreadPoolWithAdmin build() {
-        //TODO log configuration
         return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory);
     }
 

@@ -186,11 +186,8 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         }
 
         if (shutdownMode == ShutdownMode.SkipUnstarted || shutdownMode == ShutdownMode.InterruptRunning) {
-            for (ASharedQueue globalQueue: sharedQueues) {
-                //noinspection StatementWithEmptyBody
-                while (globalQueue.popFifo () != null) {
-                    // do nothing, just drain the queue
-                }
+            for (ASharedQueue sharedQueue: sharedQueues) {
+                sharedQueue.clear ();
             }
 
             for (LocalQueue queue: localQueues) {

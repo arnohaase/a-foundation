@@ -133,31 +133,14 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
         return result;
     }
 
-    /**
-     * Fetch (and remove) a task from the bottom of the queue, i.e. FIFO semantics. This method can be called by any thread.
-     */
-    @Override public synchronized Runnable popFifo () {
-        final long _base = base;
+    @Override public synchronized void clear () {
         final long _top = top;
-
-        if (_base == _top) {
-            // Terminate the loop: the queue is empty.
-            //TODO verify that Hotspot optimizes this kind of return-from-the-middle well
-            return null;
+        for (long _base=base; _base < _top; _base++) {
+            tasks[asArrayIndex (_base)] = null;
         }
 
-        final int arrIdx = asArrayIndex (_base);
-        final Runnable result = tasks [arrIdx];
-        if (result == null) return null; //TODO is this necessary?
-
-        tasks[arrIdx] = null;
-
-        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
-        UNSAFE.putLongVolatile (this, OFFS_BASE, _base+1);
-
-        return result;
+        UNSAFE.putLongVolatile (this, OFFS_BASE, _top);
     }
-
 
     //------------- Unsafe stuff
     static final Unsafe UNSAFE;

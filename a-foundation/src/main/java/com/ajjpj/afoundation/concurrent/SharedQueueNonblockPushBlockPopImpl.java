@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author arno
  */
 class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
+    private final int prefetchBatchSize;
     /**
      * an array holding all currently submitted tasks.
      */
@@ -34,7 +35,9 @@ class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
     @SuppressWarnings ("UnusedDeclaration")
     private int lock = 0;
 
-    SharedQueueNonblockPushBlockPopImpl (AThreadPoolImpl pool, int size) {
+    SharedQueueNonblockPushBlockPopImpl (int prefetchBatchSize, AThreadPoolImpl pool, int size) {
+        if (prefetchBatchSize < 1) throw new IllegalArgumentException ("worker threads must (attempt to) fetch a minimum of 1 task");
+        this.prefetchBatchSize = prefetchBatchSize;
         this.pool = pool;
 
         if (1 != Integer.bitCount (size)) throw new IllegalArgumentException ("size must be a power of 2");
@@ -82,35 +85,64 @@ class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
             unlock ();
         }
 
-        // Notify pool only for the first added item per queue.
-        if (_top - _base <= 1) {
-            pool.onAvailableTask ();
-        }
+        pool.onAvailableTask ();
     }
 
-    /**
-     * Fetch (and remove) a task from the bottom of the queue, i.e. FIFO semantics. This method can be called by any thread.
-     */
-    @Override public synchronized Runnable popFifo () {
+    @Override public synchronized Runnable popFifo (LocalQueue localQueue) {
         final long _base = base;
         final long _top = top;
 
-        if (_base == _top) {
+        final long size = _top-_base;
+
+        if (size == 0) {
             // Terminate the loop: the queue is empty.
             //TODO verify that Hotspot optimizes this kind of return-from-the-middle well
             return null;
         }
 
-        final int arrIdx = asArrayIndex (_base);
-        final Runnable result = tasks [arrIdx];
-        if (result == null) return null; //TODO is this necessary?
+        final Runnable result = fetchTask (_base);
+        if (result == null) {
+            System.err.println ("null @ " + _base);
+            return null; //TODO why is this necessary?
+        }
 
-        tasks[arrIdx] = null;
+        int idx;
 
-        // volatile put for atomicity and to ensure ordering wrt. nulling the task
-        UNSAFE.putLongVolatile (this, OFFS_BASE, _base+1);
+        long newLocalTop = localQueue.top;
+        for (idx=1; idx < size && idx < prefetchBatchSize; idx++) {
+            final Runnable task = fetchTask (_base+idx);
+            if (task == null) {
+                System.err.println ("************************ fetched task[base+" + idx + "] is null although it really couldn't *******************************");
+            }
+
+            localQueue.tasks [localQueue.asArrayindex (newLocalTop++)] = task;
+        }
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        if (idx > 1) {
+            UNSAFE.putLongVolatile (localQueue, LocalQueue.OFFS_TOP, newLocalTop);
+        }
+
+        // volatile put for atomicity and to ensure ordering wrt. nulling the task --> read operations do not hold the same monitor
+        UNSAFE.putLongVolatile (this, OFFS_BASE, _base + idx);
 
         return result;
+    }
+
+    private Runnable fetchTask (long idx) {
+        final int arrIdx = asArrayIndex (idx);
+        final Runnable result = tasks [arrIdx];
+        if (result != null) tasks[arrIdx] = null; //TODO remove the check
+        return result;
+    }
+
+    @Override public synchronized void clear () {
+        final long _top = top;
+        for (long _base=base; _base < _top; _base++) {
+            tasks[asArrayIndex (_base)] = null;
+        }
+
+        UNSAFE.putLongVolatile (this, OFFS_BASE, _top);
     }
 
     private void lock() {
