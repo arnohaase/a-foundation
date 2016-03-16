@@ -22,10 +22,10 @@ class SharedQueueNonBlockingImpl implements ASharedQueue {
      */
     private final int mask;
 
-    final AThreadPoolImpl pool;
+    private final AThreadPoolImpl pool;
 
-    long base = 0;
-    long top = 0;
+    private long base = 0;
+    private long top = 0;
 
     SharedQueueNonBlockingImpl (int prefetchBatchSize, AThreadPoolImpl pool, int size) {
         if (prefetchBatchSize < 1) throw new IllegalArgumentException ("worker threads must (attempt to) fetch a minimum of 1 task");

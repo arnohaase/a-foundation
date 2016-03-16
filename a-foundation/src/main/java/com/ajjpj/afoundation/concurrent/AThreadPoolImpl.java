@@ -136,7 +136,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         }
 
         WorkerThread wt;
-        if (Thread.currentThread () instanceof WorkerThread && (wt = (WorkerThread) Thread.currentThread ()).pool == this) {
+        if (Thread.currentThread () instanceof WorkerThread && (wt = (WorkerThread) Thread.currentThread ()).pool == this) { //TODO is .getClass() == ... faster than 'instanceof'? Read Thread.currentThread() only once!
             if (SHOULD_GATHER_STATISTICS) wt.stat_numLocalSubmits += 1;
             try {
                 wt.localQueue.push (code);

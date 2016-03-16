@@ -24,10 +24,10 @@ class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
      */
     private final int mask;
 
-    final AThreadPoolImpl pool;
+    private final AThreadPoolImpl pool;
 
-    long base = 0;
-    long top = 0;
+    private long base = 0;
+    private long top = 0;
 
     /**
      * This variable serves as a spin lock. All access goes through UNSAFE.

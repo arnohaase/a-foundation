@@ -19,7 +19,7 @@ class LocalQueue {
      * The thread is really final and not-null. Because of circular references during initialization, it is technically not final and initialized not in the constructor but in
      *  a separate call to method {@code init()}.
      */
-    WorkerThread thread = null;
+    WorkerThread thread;
 
     //TODO here and elsewhere: memory layout
     /**
@@ -27,7 +27,7 @@ class LocalQueue {
      */
     private final int mask;
 
-    final AThreadPoolImpl pool;
+    private final AThreadPoolImpl pool;
 
     @SuppressWarnings ("unused")
     long base = 0;

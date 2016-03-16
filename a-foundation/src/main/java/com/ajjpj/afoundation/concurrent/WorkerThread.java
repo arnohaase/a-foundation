@@ -11,14 +11,14 @@ import java.lang.reflect.Field;
  * @author arno
  */
 class WorkerThread extends Thread {
-    final LocalQueue localQueue;
-    final ASharedQueue[] sharedQueues;
-    final LocalQueue[] allLocalQueues;
-    final AThreadPoolImpl pool;
-    final long idleThreadMask;
-    final int queueTraversalIncrement;
-    final AStatement1NoThrow<Throwable> exceptionHandler;
-    final int numPrefetchLocal;
+    final LocalQueue localQueue;               // accessed only from this thread
+    private final ASharedQueue[] sharedQueues; // accessed only from this thread
+    private final LocalQueue[] allLocalQueues; // accessed only from this thread
+    final AThreadPoolImpl pool;                // accessed only from this thread
+    final long idleThreadMask;                 //TODO accessed from arbitrary other thread during thread wake-up
+    private final int queueTraversalIncrement; // accessed only from this thread
+    private final AStatement1NoThrow<Throwable> exceptionHandler; // accessed only from this thread
+    private final int numPrefetchLocal;        // accessed only from this thread
 
     //---------------------------------------------------
     //-- statistics data, written only from this thread
@@ -205,6 +205,8 @@ class WorkerThread extends Thread {
             if ((task = otherQueue.popFifo ()) != null) {
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSteals += 1;
 
+                //TODO refine prefetching based on other queue's size
+                //TODO other LocalQueue implementations
                 for (int i=0; i<numPrefetchLocal; i++) {
                     final Runnable prefetched = otherQueue.popFifo ();
                     if (prefetched == null) break;

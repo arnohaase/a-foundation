@@ -16,7 +16,7 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
     /**
      * an array holding all currently submitted tasks.
      */
-    final Runnable[] tasks;
+    private final Runnable[] tasks;
 
     //TODO here and elsewhere: memory layout
     /**
@@ -24,10 +24,10 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
      */
     private final int mask;
 
-    final AThreadPoolImpl pool;
+    private final AThreadPoolImpl pool;
 
-    long base = 0;
-    long top = 0;
+    private long base = 0;
+    private long top = 0;
 
     /**
      * @param prefetchBatchSize the number of tasks a worker thread should attempt to fetch when its local queue has run empty, to the degree they are available in this
