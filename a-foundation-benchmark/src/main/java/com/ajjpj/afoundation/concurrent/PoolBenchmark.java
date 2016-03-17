@@ -10,16 +10,16 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * @author arno
  */
-//@Fork (2)
+@Fork (2)
 //@Fork (0)
-@Fork(1)
+//@Fork(1)
 @Threads(1)
 @Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 //@Timeout (time=20, timeUnit=TimeUnit.SECONDS)
 public class PoolBenchmark {
-    public static final int TIMEOUT_SECONDS = 200;
+    public static final int TIMEOUT_SECONDS = 40;
     public static final int POOL_SIZE = Runtime.getRuntime ().availableProcessors ();
 
     static {
@@ -35,14 +35,15 @@ public class PoolBenchmark {
             "a-local-3",
             "a-local-4",
 
-//            "a-prefetch-2",
-//            "a-prefetch-3",
-//            "a-prefetch-4",
-//            "a-prefetch-5",
-//            "a-prefetch-6",
-//            "a-sync-nocheck",
-//            "a-lock-block",
-//            "a-nonblocking",
+            "a-no-prefetch",
+            "a-prefetch-2",
+            "a-prefetch-3",
+            "a-prefetch-4",
+            "a-prefetch-5",
+            "a-prefetch-6",
+            "a-sync-nocheck",
+            "a-lock-block",
+            "a-nonblocking",
 
 //            "a-strict-own",
 //            "no-conc",
@@ -70,6 +71,7 @@ public class PoolBenchmark {
             case "a-local-3": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (3).build ()); break;
             case "a-local-4": pool = new AThreadPoolAdapter (new AThreadPoolBuilder().withNumThreads (POOL_SIZE).withNumPrefetchLocal (4).build ()); break;
 
+            case "a-no-prefetch":  pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (1).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-prefetch-2":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (2).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-prefetch-3":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (3).withCheckShutdownOnSubmission (true). build ()); break;
             case "a-prefetch-4":   pool = new AThreadPoolAdapter (new AThreadPoolBuilder ().withNumThreads (POOL_SIZE).withSharedQueueStrategy (SharedQueueStrategy.SyncPush).withPrefetchBatchSize (4).withCheckShutdownOnSubmission (true). build ()); break;
@@ -182,31 +184,31 @@ public class PoolBenchmark {
         doSimpleScheduling (false);
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(8)
     public void testSimpleScheduling08WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(15)
     public void testSimpleScheduling15() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(15)
     public void testSimpleScheduling15WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(16)
     public void testSimpleScheduling16() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(16)
     public void testSimpleScheduling16WithWork() throws InterruptedException {
         doSimpleScheduling (true);
@@ -272,7 +274,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(8)
     public void testFactorial08() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -280,7 +282,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(15)
     public void testFactorial15() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -288,7 +290,7 @@ public class PoolBenchmark {
         fact.get ();
     }
 
-//    @Benchmark
+    @Benchmark
     @Threads(16)
     public void testFactorial16() throws ExecutionException, InterruptedException {
         final SettableFutureTask<Long> fact = new SettableFutureTask<> (() -> null);
@@ -361,52 +363,52 @@ public class PoolBenchmark {
         testPingPong (true, 1);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong02() throws InterruptedException {
         testPingPong (false, 2);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong02WithWork() throws InterruptedException {
         testPingPong (true, 2);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong07() throws InterruptedException {
         testPingPong (false, 7);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong07WithWork() throws InterruptedException {
         testPingPong (true, 7);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong08() throws InterruptedException {
         testPingPong (false, 8);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong08WithWork() throws InterruptedException {
         testPingPong (true, 8);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong15() throws InterruptedException {
         testPingPong (false, 15);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong15WithWork() throws InterruptedException {
         testPingPong (true, 15);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong16() throws InterruptedException {
         testPingPong (false, 16);
     }
 
-//    @Benchmark
+    @Benchmark
     public void testPingPong16WithWork() throws InterruptedException {
         testPingPong (true, 16);
     }
