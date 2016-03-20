@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
  */
 @Contended
 class WorkerThread extends Thread {
+    long a1, a2, a3, a4, a5, a6, a7;
+
     final LocalQueue localQueue;               // accessed only from this thread
     private final ASharedQueue[] sharedQueues; // accessed only from this thread
     private final LocalQueue[] allLocalQueues; // accessed only from this thread
@@ -23,7 +25,7 @@ class WorkerThread extends Thread {
 
     final long idleThreadMask;                 //accessed from arbitrary other thread during thread wake-up
 
-    long padding1, padding2, padding3, padding4, padding5, padding6, padding7;
+    long p1, p2, p3, p4, p5, p6, p7;
 
     //---------------------------------------------------
     //-- statistics data, written only from this thread
@@ -44,6 +46,8 @@ class WorkerThread extends Thread {
      * This is the index of the shared queue that this thread currently feeds from.
      */
     private int currentSharedQueue = 0;
+
+    long q1, q2, q3, q4, q5, q6, q7;
 
     WorkerThread (int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
         this.numPrefetchLocal = numPrefetchLocal;

@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.concurrent;
 
 import com.ajjpj.afoundation.util.AUnchecker;
+import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -9,7 +10,10 @@ import java.lang.reflect.Field;
 /**
  * @author arno
  */
+@Contended
 class LocalQueue {
+    long p1, p2, p3, p4, p5, p6, p7;
+
     /**
      * an array holding all currently submitted tasks.
      */
@@ -21,7 +25,6 @@ class LocalQueue {
      */
     WorkerThread thread;
 
-    //TODO here and elsewhere: memory layout
     /**
      * a bit mask to project an offset into the valid range of offsets for the tasks array
      */
@@ -32,6 +35,8 @@ class LocalQueue {
     @SuppressWarnings ("unused")
     long base = 0;
     long top = 0;
+
+    long q1, q2, q3, q4, q5, q6, q7;
 
     LocalQueue (AThreadPoolImpl pool, int size) {
         this.pool = pool;

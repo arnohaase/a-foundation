@@ -4,6 +4,7 @@ import com.ajjpj.afoundation.function.AFunction0NoThrow;
 import com.ajjpj.afoundation.function.AFunction1NoThrow;
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 import com.ajjpj.afoundation.util.AUnchecker;
+import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -17,7 +18,10 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author arno
  */
+@Contended
 public class AThreadPoolImpl implements AThreadPoolWithAdmin {
+    long p1, p2, p3, p4, p5, p6, p7;
+
     /**
      * This is a compile-time switch to completely remove all statistics gathering for the really paranoid
      */
@@ -50,6 +54,8 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
     final AtomicBoolean shutdown = new AtomicBoolean (false);
     final boolean checkShutdownOnSubmission;
+
+    long q1, q2, q3, q4, q5, q6, q7;
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
                             int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory,

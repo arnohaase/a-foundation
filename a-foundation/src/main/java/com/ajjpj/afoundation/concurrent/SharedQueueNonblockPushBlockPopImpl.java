@@ -5,8 +5,6 @@ import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -14,13 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Contended
 class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
+    long p1, p2, p3, p4, p5, p6, p7;
+
     private final int prefetchBatchSize;
     /**
      * an array holding all currently submitted tasks.
      */
     private final Runnable[] tasks;
 
-    //TODO here and elsewhere: memory layout
     /**
      * a bit mask to project an offset into the valid range of offsets for the tasks array
      */
@@ -37,6 +36,8 @@ class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
     @SuppressWarnings ("UnusedDeclaration")
     private int lock = 0;
 
+    long q1, q2, q3, q4, q5, q6, q7;
+
     SharedQueueNonblockPushBlockPopImpl (int prefetchBatchSize, AThreadPoolImpl pool, int size) {
         if (prefetchBatchSize < 1) throw new IllegalArgumentException ("worker threads must (attempt to) fetch a minimum of 1 task");
         this.prefetchBatchSize = prefetchBatchSize;
@@ -48,8 +49,6 @@ class SharedQueueNonblockPushBlockPopImpl implements ASharedQueue {
         this.tasks = new Runnable[size];
         this.mask = size-1;
     }
-
-    final Map<Long, String> byTopValue = new ConcurrentHashMap<> ();
 
     /**
      * @return an approximation of the queue's current size. The value may be stale and is not synchronized in any way, and it is intended for debugging and statistics

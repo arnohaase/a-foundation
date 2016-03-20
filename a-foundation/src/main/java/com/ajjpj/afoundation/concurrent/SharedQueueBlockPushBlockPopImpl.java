@@ -12,6 +12,8 @@ import java.lang.reflect.Field;
  */
 @Contended
 class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
+    long p1, p2, p3, p4, p5, p6, p7;
+
     private final int prefetchBatchSize;
     private final Object PUSH_LOCK = new Object ();
 
@@ -20,7 +22,6 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
      */
     private final Runnable[] tasks;
 
-    //TODO here and elsewhere: memory layout
     /**
      * a bit mask to project an offset into the valid range of offsets for the tasks array
      */
@@ -30,6 +31,8 @@ class SharedQueueBlockPushBlockPopImpl implements ASharedQueue {
 
     private long base = 0;
     private long top = 0;
+
+    long q1, q2, q3, q4, q5, q6, q7;
 
     /**
      * @param prefetchBatchSize the number of tasks a worker thread should attempt to fetch when its local queue has run empty, to the degree they are available in this

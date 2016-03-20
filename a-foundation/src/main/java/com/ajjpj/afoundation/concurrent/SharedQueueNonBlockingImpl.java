@@ -12,13 +12,14 @@ import java.lang.reflect.Field;
  */
 @Contended
 class SharedQueueNonBlockingImpl implements ASharedQueue {
+    long p1, p2, p3, p4, p5, p6, p7;
+
     private final int prefetchBatchSize;
     /**
      * an array holding all currently submitted tasks.
      */
     private final Runnable[] tasks;
 
-    //TODO here and elsewhere: memory layout
     /**
      * a bit mask to project an offset into the valid range of offsets for the tasks array
      */
@@ -28,6 +29,8 @@ class SharedQueueNonBlockingImpl implements ASharedQueue {
 
     private long base = 0;
     private long top = 0;
+
+    long q1, q2, q3, q4, q5, q6, q7;
 
     SharedQueueNonBlockingImpl (int prefetchBatchSize, AThreadPoolImpl pool, int size) {
         if (prefetchBatchSize < 1) throw new IllegalArgumentException ("worker threads must (attempt to) fetch a minimum of 1 task");
