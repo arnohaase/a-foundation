@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.concurrent;
 
 import com.ajjpj.afoundation.function.AStatement1NoThrow;
 import com.ajjpj.afoundation.util.AUnchecker;
+import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -10,15 +11,19 @@ import java.lang.reflect.Field;
 /**
  * @author arno
  */
+@Contended
 class WorkerThread extends Thread {
     final LocalQueue localQueue;               // accessed only from this thread
     private final ASharedQueue[] sharedQueues; // accessed only from this thread
     private final LocalQueue[] allLocalQueues; // accessed only from this thread
     final AThreadPoolImpl pool;                // accessed only from this thread
-    final long idleThreadMask;                 //TODO accessed from arbitrary other thread during thread wake-up
     private final int queueTraversalIncrement; // accessed only from this thread
     private final AStatement1NoThrow<Throwable> exceptionHandler; // accessed only from this thread
     private final int numPrefetchLocal;        // accessed only from this thread
+
+    final long idleThreadMask;                 //accessed from arbitrary other thread during thread wake-up
+
+    long padding1, padding2, padding3, padding4, padding5, padding6, padding7;
 
     //---------------------------------------------------
     //-- statistics data, written only from this thread

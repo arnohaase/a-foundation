@@ -8,18 +8,20 @@ import java.util.concurrent.ForkJoinPool;
 
 
 /**
+ * -XX:+EnableContended -XX:-RestrictContended
+ *
  * @author arno
  */
-@Fork (2)
+@Fork (1)
 //@Fork (0)
 //@Fork(1)
 @Threads(1)
 @Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 3, time = 3, timeUnit = TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 //@Timeout (time=20, timeUnit=TimeUnit.SECONDS)
 public class PoolBenchmark {
-    public static final int TIMEOUT_SECONDS = 40;
+    public static final int TIMEOUT_SECONDS = 50;
     public static final int POOL_SIZE = Runtime.getRuntime ().availableProcessors ();
 
     static {
@@ -46,7 +48,7 @@ public class PoolBenchmark {
             "a-nonblocking",
 
 //            "a-strict-own",
-//            "no-conc",
+            "no-conc",
 
 //            "Executors.newFixedThreadPool",
 

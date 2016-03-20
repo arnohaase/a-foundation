@@ -66,6 +66,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         for (int i=0; i<numThreads; i++) {
             localQueues[i] = new LocalQueue (this, localQueueSize);
             final WorkerThread thread = new WorkerThread (numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
+            //TODO onCreatedThread callback --> core affinity etc. --> ThreadLifecycleCallback: onPostStart, onPreFinish
             thread.setDaemon (isDaemon);
             thread.setName (threadNameFactory.apply ());
             localQueues[i].init (thread);
@@ -131,12 +132,14 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     }
 
     @Override public void submit (Runnable code) {
-        if (checkShutdownOnSubmission && shutdown.get ()) { //TODO verify if this check incurs significant cost
+        // check to reject submissions after shutdown, but only if this check is enabled - it does incur a volatile read on each submission, after all
+        if (checkShutdownOnSubmission && shutdown.get ()) {
             throw new IllegalStateException ("pool is already shut down");
         }
 
-        WorkerThread wt;
-        if (Thread.currentThread () instanceof WorkerThread && (wt = (WorkerThread) Thread.currentThread ()).pool == this) { //TODO is .getClass() == ... faster than 'instanceof'? Read Thread.currentThread() only once!
+        final WorkerThread wt;
+        final Thread curThread = Thread.currentThread ();
+        if (curThread.getClass () == WorkerThread.class && (wt = (WorkerThread) curThread).pool == this) {
             if (SHOULD_GATHER_STATISTICS) wt.stat_numLocalSubmits += 1;
             try {
                 wt.localQueue.push (code);
@@ -288,7 +291,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         final long mask = worker.idleThreadMask;
         long prev, after;
         do {
-            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS); //TODO is a regular read more efficient here?
+            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
             if ((prev & mask) == 0L) {
                 // someone else woke up the thread concurrently --> it is scanning now, and there is no need to wake it up or change the 'idle' mask
                 return false;
@@ -331,5 +334,4 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
             throw new RuntimeException(); // for the compiler
         }
     }
-
 }

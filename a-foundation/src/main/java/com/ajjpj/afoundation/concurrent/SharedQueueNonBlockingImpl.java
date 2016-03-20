@@ -1,6 +1,7 @@
 package com.ajjpj.afoundation.concurrent;
 
 import com.ajjpj.afoundation.util.AUnchecker;
+import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -9,6 +10,7 @@ import java.lang.reflect.Field;
 /**
  * @author arno
  */
+@Contended
 class SharedQueueNonBlockingImpl implements ASharedQueue {
     private final int prefetchBatchSize;
     /**
