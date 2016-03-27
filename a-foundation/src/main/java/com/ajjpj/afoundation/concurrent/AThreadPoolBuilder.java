@@ -24,6 +24,7 @@ public class AThreadPoolBuilder {
     private int numPrefetchLocal = 0;
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
+    private ASharedQueueAffinityStrategy sharedQueueAffinityStrategy = ASharedQueueAffinityStrategy.createDefault ();
 
     private boolean isDaemon = false;
     private AFunction0NoThrow<String> threadNameFactory = new DefaultThreadNameFactory ("AThreadPool");
@@ -137,6 +138,11 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    public AThreadPoolBuilder withSharedQueueAffinityStrategy (ASharedQueueAffinityStrategy sharedQueueAffinityStrategy) {
+        this.sharedQueueAffinityStrategy = sharedQueueAffinityStrategy;
+        return this;
+    }
+
     public <T extends Throwable> AThreadPoolBuilder log (AStatement1<String, T> logOperation) throws T {
         final String stringRepresentation = toString ();
         logOperation.apply (stringRepresentation);
@@ -144,7 +150,7 @@ public class AThreadPoolBuilder {
     }
 
     public AThreadPoolWithAdmin build() {
-        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, ownLocalFifoInterval, numPrefetchLocal, skipLocalWorkInterval, switchScharedQueueInterval);
+        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, ownLocalFifoInterval, numPrefetchLocal, skipLocalWorkInterval, switchScharedQueueInterval, sharedQueueAffinityStrategy);
     }
 
     @Override

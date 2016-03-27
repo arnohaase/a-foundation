@@ -48,6 +48,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     final LocalQueue[] localQueues;
 
     private final Map<Integer, Integer> producerToQueueAffinity = new ConcurrentHashMap<> ();
+    private final ASharedQueueAffinityStrategy sharedQueueAffinityStrategy;
 
     /**
      * this is a long rather than an int to be on the safe side - 2 billion different producer threads during the lifetime of a thread pool, but still...
@@ -61,7 +62,8 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
                             int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl, ASharedQueue> sharedQueueFactory,
-                            int ownLocalFifoInterval, int numPrefetchLocal, int skipLocalWorkInterval, int switchSharedQueueInterval) {
+                            int ownLocalFifoInterval, int numPrefetchLocal, int skipLocalWorkInterval, int switchSharedQueueInterval, ASharedQueueAffinityStrategy sharedQueueAffinityStrategy) {
+        this.sharedQueueAffinityStrategy = sharedQueueAffinityStrategy;
         if (numPrefetchLocal >= localQueueSize - 2) {
             throw new IllegalArgumentException ("prefetch number must be smaller than local queue size");
         }
@@ -175,7 +177,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
                 producerToQueueAffinity.clear ();
             }
 
-            result = (int) nextSharedQueue.getAndIncrement () % sharedQueues.length;
+            result = sharedQueueAffinityStrategy.getSharedQueueIndex (Thread.currentThread (), sharedQueues.length);
             producerToQueueAffinity.put (key, result);
         }
 
