@@ -10,11 +10,11 @@ todo
 
 * AThreadPool
   * strategy for work stealing
-  * swap queues, fetch several 'shared' items, ...
   * 'dynamically growing overflow' as external add-on
   * > 63 threads
   * configurable thread factory --> core affinity (?)
   * support for finding (internal) deadlocks
+  * AFuture: callbacks always in a pool thread and *not* in the caller's thread
 
 * documentation
   * Linux, server applications --> not optimized for F/J

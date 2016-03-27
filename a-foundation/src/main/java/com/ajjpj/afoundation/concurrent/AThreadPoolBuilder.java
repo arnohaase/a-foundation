@@ -8,7 +8,6 @@ import com.ajjpj.afoundation.function.AStatement1NoThrow;
 
 //TODO no-steal implementation: WakeupForLocalTasks, StealOnIdle, NoStealing
 //TODO separate implementation optimized for blocking
-//TODO configurable starvation avoidance: steal, shared
 
 public class AThreadPoolBuilder {
     private boolean checkShutdownOnSubmission = true;
@@ -19,7 +18,9 @@ public class AThreadPoolBuilder {
     private int sharedQueueSize = 16384;
 
     private int prefetchBatchSize = 4;
-    private int ownLocalFifoInterval = 1000;
+    private int ownLocalFifoInterval = 100_000;
+    private int skipLocalWorkInterval = 100_000;
+    private int switchScharedQueueInterval = 1_000_000;
     private int numPrefetchLocal = 0;
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
@@ -83,6 +84,25 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    /**
+     * It is usually most efficient for worker threads to only read from their own local queues as long as there is work there.
+     *  There are however some load scenarios in which this leads to starvation of work in shared, global queues, and therefore this
+     *  parameter exists. It determines how often a worker thread skips local work, even if some is available, and looks for work
+     *  elsewhere.
+     */
+    public AThreadPoolBuilder withSkipLocalWorkInterval (int skipLocalWorkInterval) {
+        this.skipLocalWorkInterval = skipLocalWorkInterval;
+        return this;
+    }
+
+    /**
+     *
+     */
+    public AThreadPoolBuilder switchSwitchSharedQueueInterval (int switchScharedQueueInterval) {
+        this.switchScharedQueueInterval = switchScharedQueueInterval;
+        return this;
+    }
+
     public AThreadPoolBuilder withNumPrefetchLocal (int numPrefetchLocal) {
         this.numPrefetchLocal = numPrefetchLocal;
         return this;
@@ -123,10 +143,8 @@ public class AThreadPoolBuilder {
         return this;
     }
 
-    //TODO ensure that the prefetch size is no bigger than the local queues' capacity
-
     public AThreadPoolWithAdmin build() {
-        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, ownLocalFifoInterval, numPrefetchLocal);
+        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, ownLocalFifoInterval, numPrefetchLocal, skipLocalWorkInterval, switchScharedQueueInterval);
     }
 
     @Override
@@ -137,8 +155,14 @@ public class AThreadPoolBuilder {
                 ", numSharedQueues=" + numSharedQueues +
                 ", localQueueSize=" + localQueueSize +
                 ", sharedQueueSize=" + sharedQueueSize +
+                ", prefetchBatchSize=" + prefetchBatchSize +
+                ", ownLocalFifoInterval=" + ownLocalFifoInterval +
+                ", skipLocalWorkInterval=" + skipLocalWorkInterval +
+                ", numPrefetchLocal=" + numPrefetchLocal +
                 ", sharedQueueStrategy=" + sharedQueueStrategy +
                 ", isDaemon=" + isDaemon +
+                ", threadNameFactory=" + threadNameFactory +
+                ", exceptionHandler=" + exceptionHandler +
                 ", sharedQueueFactory=" + sharedQueueFactory +
                 '}';
     }

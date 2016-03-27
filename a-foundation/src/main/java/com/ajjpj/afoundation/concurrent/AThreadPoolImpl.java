@@ -60,8 +60,12 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     long q1, q2, q3, q4, q5, q6, q7;
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
-                            int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory,
-                            int ownLocalFifoInterval, int numPrefetchLocal) {
+                            int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl, ASharedQueue> sharedQueueFactory,
+                            int ownLocalFifoInterval, int numPrefetchLocal, int skipLocalWorkInterval, int switchSharedQueueInterval) {
+        if (numPrefetchLocal >= localQueueSize - 2) {
+            throw new IllegalArgumentException ("prefetch number must be smaller than local queue size");
+        }
+
         this.checkShutdownOnSubmission = checkShutdownOnSubmission;
         sharedQueues = new ASharedQueue[numSharedQueues];
         for (int i=0; i<numSharedQueues; i++) {
@@ -73,7 +77,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         localQueues = new LocalQueue[numThreads];
         for (int i=0; i<numThreads; i++) {
             localQueues[i] = new LocalQueue (this, localQueueSize);
-            final WorkerThread thread = new WorkerThread (ownLocalFifoInterval, numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
+            final WorkerThread thread = new WorkerThread (ownLocalFifoInterval, skipLocalWorkInterval, switchSharedQueueInterval, numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
             //TODO onCreatedThread callback --> core affinity etc. --> ThreadLifecycleCallback: onPostStart, onPreFinish
             thread.setDaemon (isDaemon);
             thread.setName (threadNameFactory.apply ());

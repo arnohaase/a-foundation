@@ -15,13 +15,15 @@ import java.lang.reflect.Field;
 class WorkerThread extends Thread {
     long a1, a2, a3, a4, a5, a6, a7;
 
-    final LocalQueue localQueue;               // accessed only from this thread
-    private final ASharedQueue[] sharedQueues; // accessed only from this thread
-    private final LocalQueue[] allLocalQueues; // accessed only from this thread
-    final AThreadPoolImpl pool;                // accessed only from this thread
-    private final int queueTraversalIncrement; // accessed only from this thread
+    final LocalQueue localQueue;                 // accessed only from this thread
+    private final ASharedQueue[] sharedQueues;   // accessed only from this thread
+    private final LocalQueue[] allLocalQueues;   // accessed only from this thread
+    final AThreadPoolImpl pool;                  // accessed only from this thread
+    private final int queueTraversalIncrement;   // accessed only from this thread
     private final AStatement1NoThrow<Throwable> exceptionHandler; // accessed only from this thread
-    private final int ownLocalFifoInterval;    // accessed only from this thread
+    private final int ownLocalFifoInterval;      // accessed only from this thread
+    private final int skipLocalWorkInterval;     // accessed only from this thread
+    private final int switchSharedQueueInterval; // accessed only from this thread
 
     /**
      * Processing the 'top', i.e. LIFO, element of a thread's local queue is typically desirable because caches tend to still be
@@ -35,9 +37,9 @@ class WorkerThread extends Thread {
 
     long p1, p2, p3, p4, p5, p6, p7;
 
-    //---------------------------------------------------
-    //-- statistics data, written only from this thread
-    //---------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------
+    //-- all mutable state is below this point; it is accessed (both read and write) only from this thread.
+    //---------------------------------------------------------------------------------------------------------
 
     long stat_numTasksExecuted = 0;
     long stat_numSharedTasksExecuted = 0;
@@ -56,17 +58,27 @@ class WorkerThread extends Thread {
     private int currentSharedQueue = 0;
 
     private int localIntermittentFifoCounter = 0;
+    private int skipLocalWorkCounter = 0;
+    private int switchSharedQueueCounter = 0;
 
     long q1, q2, q3, q4, q5, q6, q7;
 
-    WorkerThread (int ownLocalFifoInterval, int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
+    WorkerThread (int ownLocalFifoInterval, int skipLocalWorkInterval, int switchSharedQueueInterval, int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
         this.ownLocalFifoInterval = ownLocalFifoInterval;
+        this.skipLocalWorkInterval = skipLocalWorkInterval;
+        this.switchSharedQueueInterval = switchSharedQueueInterval;
+
+        this.localIntermittentFifoCounter = ownLocalFifoInterval;
+        this.skipLocalWorkCounter = skipLocalWorkInterval;
+        this.switchSharedQueueCounter = switchSharedQueueInterval;
+
         this.numPrefetchLocal = numPrefetchLocal;
         this.exceptionHandler = exceptionHandler;
 
         this.localQueue = localQueue;
         this.sharedQueues = sharedQueues;
         this.pool = pool;
+
         this.allLocalQueues = pool.localQueues;
         idleThreadMask = 1L << threadIdx;
         this.queueTraversalIncrement = queueTraversalIncrement;
@@ -92,7 +104,6 @@ class WorkerThread extends Thread {
             try {
                 Runnable task;
 
-                //TODO intermittently read from global localQueue(s) and FIFO end of local localQueue
                 if ((task = tryGetWork ()) != null) {
                     if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numTasksExecuted += 1;
                     task.run ();
@@ -183,6 +194,12 @@ class WorkerThread extends Thread {
     }
 
     private Runnable getOwnWork() {
+        if (skipLocalWorkCounter == 0) {
+            skipLocalWorkCounter = skipLocalWorkInterval;
+            return null;
+        }
+        skipLocalWorkCounter -= 1;
+
         if (localIntermittentFifoCounter == 0) {
             localIntermittentFifoCounter = ownLocalFifoInterval;
             return localQueue.popFifo();
@@ -214,7 +231,12 @@ class WorkerThread extends Thread {
     private Runnable tryGetSharedWork() {
         Runnable task;
 
-        //TODO go forward once in a while to avoid starvation
+        if (switchSharedQueueCounter == 0) {
+            // change the queue once in a while
+            switchSharedQueueCounter = switchSharedQueueInterval;
+            currentSharedQueue = (currentSharedQueue + queueTraversalIncrement) % sharedQueues.length;
+        }
+
 
         final int prevQueue = currentSharedQueue;
 
@@ -224,9 +246,11 @@ class WorkerThread extends Thread {
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS) stat_numSharedTasksExecuted += 1;
                 //noinspection PointlessBooleanExpression,ConstantConditions
                 if (AThreadPoolImpl.SHOULD_GATHER_STATISTICS && prevQueue != currentSharedQueue) stat_numSharedQueueSwitches += 1;
+
+                switchSharedQueueCounter -= 1;
                 return task;
             }
-            currentSharedQueue = (currentSharedQueue + queueTraversalIncrement) % sharedQueues.length; //TODO bit mask instead of division?
+            currentSharedQueue = (currentSharedQueue + queueTraversalIncrement) % sharedQueues.length;
         }
 
         return null;
