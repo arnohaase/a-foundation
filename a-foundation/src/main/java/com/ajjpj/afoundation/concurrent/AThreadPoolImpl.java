@@ -49,6 +49,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
     private final Map<Integer, Integer> producerToQueueAffinity = new ConcurrentHashMap<> ();
     private final ASharedQueueAffinityStrategy sharedQueueAffinityStrategy;
+    private final AWorkerThreadLifecycleCallback workerThreadLifecycleCallback;
 
     /**
      * this is a long rather than an int to be on the safe side - 2 billion different producer threads during the lifetime of a thread pool, but still...
@@ -62,8 +63,10 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
                             int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl, ASharedQueue> sharedQueueFactory,
-                            int ownLocalFifoInterval, int numPrefetchLocal, int skipLocalWorkInterval, int switchSharedQueueInterval, ASharedQueueAffinityStrategy sharedQueueAffinityStrategy) {
+                            int ownLocalFifoInterval, int numPrefetchLocal, int skipLocalWorkInterval, int switchSharedQueueInterval, ASharedQueueAffinityStrategy sharedQueueAffinityStrategy,
+                            AWorkerThreadLifecycleCallback workerThreadLifecycleCallback) {
         this.sharedQueueAffinityStrategy = sharedQueueAffinityStrategy;
+        this.workerThreadLifecycleCallback = workerThreadLifecycleCallback;
         if (numPrefetchLocal >= localQueueSize - 2) {
             throw new IllegalArgumentException ("prefetch number must be smaller than local queue size");
         }
@@ -84,11 +87,14 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
             thread.setDaemon (isDaemon);
             thread.setName (threadNameFactory.apply ());
             localQueues[i].init (thread);
+
+            workerThreadLifecycleCallback.onPreStart (thread);
         }
 
         for (LocalQueue queue: localQueues) {
             //noinspection ConstantConditions
             queue.thread.start ();
+            workerThreadLifecycleCallback.onPostStart (queue.thread);
         }
     }
 
@@ -227,10 +233,13 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         for (LocalQueue localQueue : localQueues) {
             final ASettableFuture<Void> f = ASettableFuture.create ();
             sharedQueues[0].push (() -> {
+                workerThreadLifecycleCallback.onPreDie (localQueue.thread);
                 throw new PoolShutdown (f);
             });
             UNSAFE.unpark (localQueue.thread);
             result.add (f);
+
+            f.onComplete (AThreadPool.SYNC_THREADPOOL, x -> workerThreadLifecycleCallback.onPostDie (localQueue.thread));
         }
 
         return result;
