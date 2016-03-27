@@ -156,9 +156,13 @@ public class AThreadPoolBuilder {
     }
 
     public AThreadPoolWithAdmin build() {
-        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory,
-                ownLocalFifoInterval, numPrefetchLocal, skipLocalWorkInterval, switchScharedQueueInterval,
-                sharedQueueAffinityStrategy, workerThreadLifecycleCallback);
+        if (numThreads <= 63) {
+            return new AThreadPool63Impl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory,
+                    ownLocalFifoInterval, numPrefetchLocal, skipLocalWorkInterval, switchScharedQueueInterval,
+                    sharedQueueAffinityStrategy, workerThreadLifecycleCallback);
+        }
+
+        throw new IllegalArgumentException ("currently no more than 63 worker threads are supported");
     }
 
     @Override
@@ -172,8 +176,11 @@ public class AThreadPoolBuilder {
                 ", prefetchBatchSize=" + prefetchBatchSize +
                 ", ownLocalFifoInterval=" + ownLocalFifoInterval +
                 ", skipLocalWorkInterval=" + skipLocalWorkInterval +
+                ", switchScharedQueueInterval=" + switchScharedQueueInterval +
                 ", numPrefetchLocal=" + numPrefetchLocal +
                 ", sharedQueueStrategy=" + sharedQueueStrategy +
+                ", sharedQueueAffinityStrategy=" + sharedQueueAffinityStrategy +
+                ", workerThreadLifecycleCallback=" + workerThreadLifecycleCallback +
                 ", isDaemon=" + isDaemon +
                 ", threadNameFactory=" + threadNameFactory +
                 ", exceptionHandler=" + exceptionHandler +

@@ -18,30 +18,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author arno
  */
 @Contended
-public class AThreadPoolImpl implements AThreadPoolWithAdmin {
+public abstract class AThreadPoolImpl implements AThreadPoolWithAdmin {
     private static final int MAX_NUM_PRODUCER_AFFINITIES = 10_000;
 
+    @SuppressWarnings ("unused")
     long p1, p2, p3, p4, p5, p6, p7;
 
     /**
      * This is a compile-time switch to completely remove all statistics gathering for the really paranoid
      */
     public static final boolean SHOULD_GATHER_STATISTICS = true;
-
-
-    /**
-     * This long is a bit set with the indexes of threads that are currently idling. All idling threads are guaranteed to be in this set,
-     *  but some threads may be marked as idle though they are still settling down or otherwise not quite idle. All modifications are
-     *  done as CAS via UNSAFE.<p>
-     * This mechanism allows an optimization when threads are unparked: only threads marked as idle need to be unparked, and only one
-     *  volatile read is required rather than one per worker thread.
-     * TODO is this really faster, and if so, is the difference significant?
-     * TODO this currently limits the number of threads to 64 --> generalize
-     */
-    @SuppressWarnings({"unused"})
-    private volatile long idleThreads = 0;
-
-    static final long MASK_IDLE_THREAD_SCANNING = Long.MIN_VALUE; // top-most bit reserved to signify 'scanning'
 
     private final ASharedQueue[] sharedQueues;
     final LocalQueue[] localQueues;
@@ -53,7 +39,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     final AtomicBoolean shutdown = new AtomicBoolean (false);
     final boolean checkShutdownOnSubmission;
 
-    long q1, q2, q3, q4, q5, q6, q7;
+    // padding in subclasses
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
                             int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl, ASharedQueue> sharedQueueFactory,
@@ -240,111 +226,22 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     }
 
 
-    void onAvailableTask () {
-        long idleBitMask = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-        if ((idleBitMask & MASK_IDLE_THREAD_SCANNING) != 0L) {
-            // some other thread is scanning, so there is no need to wake another thread
-            return;
-        }
-        doWakeUpWorker (idleBitMask);
-    }
+    abstract void onAvailableTask ();
+    abstract void wakeUpWorker ();
 
-    void wakeUpWorker () {
-        long idleBitMask = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-        doWakeUpWorker (idleBitMask);
-    }
-
-    private void doWakeUpWorker (long idleBitMask) {
-        if ((idleBitMask & ~MASK_IDLE_THREAD_SCANNING) == 0L) {
-            // all threads are busy already
-            return;
-        }
-
-        for (LocalQueue localQueue : localQueues) {
-            if ((idleBitMask & 1L) != 0) {
-                //noinspection ConstantConditions
-                if (markWorkerAsBusyAndScanning (localQueue.thread)) {
-                    // wake up the worker only if no-one else woke up the thread in the meantime
-                    UNSAFE.unpark (localQueue.thread);
-                }
-                // even if someone else woke up the thread in the meantime, at least one thread is scanning --> we can safely abort here
-                break;
-            }
-            idleBitMask = idleBitMask >> 1;
-        }
-    }
-
-    void markWorkerAsIdle (long mask) {
-        long prev, after;
-        do {
-            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-            after = prev | mask;
-
-            // A 'scanning' thread (i.e. a thread that was triggered by 'onAvailableTask') going to sleep means that scanning is finished, so we
-            //  can clear the flag. A thread going to sleep after doing some work also triggers the flag to be cleared, but that is safe and
-            //  incurs little additional overhead - clearing the flag in this place is basically for free.
-//            after = after & ~MASK_IDLE_THREAD_SCANNING;
-        }
-        while (! UNSAFE.compareAndSwapLong (this, OFFS_IDLE_THREADS, prev, after));
-    }
-
-    boolean markWorkerAsBusy (long mask) {
-        long prev, after;
-        do {
-            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-            if ((prev & mask) == 0) {
-                // someone else woke up the thread in the meantime
-                return false;
-            }
-
-            after = prev & ~mask;
-        }
-        while (! UNSAFE.compareAndSwapLong (this, OFFS_IDLE_THREADS, prev, after));
-
-        return true;
-    }
-
-    boolean markWorkerAsBusyAndScanning (WorkerThread worker) {
-        final long mask = worker.idleThreadMask;
-        long prev, after;
-        do {
-            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-            if ((prev & mask) == 0L) {
-                // someone else woke up the thread concurrently --> it is scanning now, and there is no need to wake it up or change the 'idle' mask
-                return false;
-            }
-
-            after = prev & ~mask;
-            after = after | MASK_IDLE_THREAD_SCANNING;
-        }
-        while (! UNSAFE.compareAndSwapLong (this, OFFS_IDLE_THREADS, prev, after));
-        return true;
-    }
-
-    void unmarkScanning() {
-        long prev, after;
-        do {
-            prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
-            after = prev & ~MASK_IDLE_THREAD_SCANNING;
-            if (prev == after) {
-                return;
-            }
-        }
-        while (! UNSAFE.compareAndSwapLong (this, OFFS_IDLE_THREADS, prev, after));
-    }
+    abstract void markWorkerAsIdle (long mask);
+    abstract boolean markWorkerAsBusy (long mask);
+    abstract boolean markWorkerAsBusyAndScanning (WorkerThread worker);
+    abstract void unmarkScanning();
 
     //------------------ Unsafe stuff
-    private static final Unsafe UNSAFE;
-
-    private static final long OFFS_IDLE_THREADS;
+    static final Unsafe UNSAFE;
 
     static {
         try {
             final Field f = Unsafe.class.getDeclaredField ("theUnsafe");
             f.setAccessible (true);
             UNSAFE = (Unsafe) f.get (null);
-
-            OFFS_IDLE_THREADS = UNSAFE.objectFieldOffset (AThreadPoolImpl.class.getDeclaredField ("idleThreads"));
         }
         catch (Exception e) {
             AUnchecker.throwUnchecked (e);
