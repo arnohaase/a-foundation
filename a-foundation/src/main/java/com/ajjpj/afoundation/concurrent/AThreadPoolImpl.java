@@ -61,7 +61,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
     public AThreadPoolImpl (boolean isDaemon, AFunction0NoThrow<String> threadNameFactory, AStatement1NoThrow<Throwable> exceptionHandler,
                             int numThreads, int localQueueSize, int numSharedQueues, boolean checkShutdownOnSubmission, AFunction1NoThrow<AThreadPoolImpl,ASharedQueue> sharedQueueFactory,
-                            int numPrefetchLocal) {
+                            int ownLocalFifoInterval, int numPrefetchLocal) {
         this.checkShutdownOnSubmission = checkShutdownOnSubmission;
         sharedQueues = new ASharedQueue[numSharedQueues];
         for (int i=0; i<numSharedQueues; i++) {
@@ -73,7 +73,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
         localQueues = new LocalQueue[numThreads];
         for (int i=0; i<numThreads; i++) {
             localQueues[i] = new LocalQueue (this, localQueueSize);
-            final WorkerThread thread = new WorkerThread (numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
+            final WorkerThread thread = new WorkerThread (ownLocalFifoInterval, numPrefetchLocal, localQueues[i], sharedQueues, this, i, prime (i, sharedQueuePrimes), exceptionHandler);
             //TODO onCreatedThread callback --> core affinity etc. --> ThreadLifecycleCallback: onPostStart, onPreFinish
             thread.setDaemon (isDaemon);
             thread.setName (threadNameFactory.apply ());

@@ -19,6 +19,7 @@ public class AThreadPoolBuilder {
     private int sharedQueueSize = 16384;
 
     private int prefetchBatchSize = 4;
+    private int ownLocalFifoInterval = 1000;
     private int numPrefetchLocal = 0;
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
@@ -71,6 +72,17 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    /**
+     * Processing the 'top', i.e. LIFO, element of a thread's local queue is typically desirable because caches tend to still be
+     *  hot. It can however lead to starvation with 'old' work never getting done in very specific (pretty pathological) load
+     *  scenarios where every work item spawns a new work item. To avoid these starvation scenarios, a WorkerThread reads from
+     *  the bottom of its local queue once in a while.
+     */
+    public AThreadPoolBuilder withOwnLocalFifoInterval (int ownLocalFifoInterval) {
+        this.ownLocalFifoInterval = ownLocalFifoInterval;
+        return this;
+    }
+
     public AThreadPoolBuilder withNumPrefetchLocal (int numPrefetchLocal) {
         this.numPrefetchLocal = numPrefetchLocal;
         return this;
@@ -114,7 +126,7 @@ public class AThreadPoolBuilder {
     //TODO ensure that the prefetch size is no bigger than the local queues' capacity
 
     public AThreadPoolWithAdmin build() {
-        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, numPrefetchLocal);
+        return new AThreadPoolImpl (isDaemon, threadNameFactory, exceptionHandler, numThreads, localQueueSize, numSharedQueues, checkShutdownOnSubmission, sharedQueueFactory, ownLocalFifoInterval, numPrefetchLocal);
     }
 
     @Override

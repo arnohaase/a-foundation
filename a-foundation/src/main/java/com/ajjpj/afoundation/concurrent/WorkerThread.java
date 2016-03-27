@@ -21,6 +21,14 @@ class WorkerThread extends Thread {
     final AThreadPoolImpl pool;                // accessed only from this thread
     private final int queueTraversalIncrement; // accessed only from this thread
     private final AStatement1NoThrow<Throwable> exceptionHandler; // accessed only from this thread
+    private final int ownLocalFifoInterval;    // accessed only from this thread
+
+    /**
+     * Processing the 'top', i.e. LIFO, element of a thread's local queue is typically desirable because caches tend to still be
+     *  hot. It can however lead to starvation with 'old' work never getting done in very specific (pretty pathological) load
+     *  scenarios where every work item spawns a new work item. To avoid these starvation scenarios, a WorkerThread reads from
+     *  the bottom of its local queue once in a while.
+     */
     private final int numPrefetchLocal;        // accessed only from this thread
 
     final long idleThreadMask;                 //accessed from arbitrary other thread during thread wake-up
@@ -47,9 +55,12 @@ class WorkerThread extends Thread {
      */
     private int currentSharedQueue = 0;
 
+    private int localIntermittentFifoCounter = 0;
+
     long q1, q2, q3, q4, q5, q6, q7;
 
-    WorkerThread (int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
+    WorkerThread (int ownLocalFifoInterval, int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
+        this.ownLocalFifoInterval = ownLocalFifoInterval;
         this.numPrefetchLocal = numPrefetchLocal;
         this.exceptionHandler = exceptionHandler;
 
@@ -159,8 +170,7 @@ class WorkerThread extends Thread {
     private Runnable tryGetWork() {
         Runnable task;
 
-        //TODO intermittently read from global SharedQueue(s) and FIFO end of local localQueue
-        if ((task = localQueue.popLifo ()) != null) {
+        if ((task = getOwnWork ()) != null) {
             return task;
         }
         else if ((task = tryGetSharedWork ()) != null) {
@@ -170,6 +180,23 @@ class WorkerThread extends Thread {
             return task;
         }
         return null;
+    }
+
+    private Runnable getOwnWork() {
+        if (localIntermittentFifoCounter == 0) {
+            localIntermittentFifoCounter = ownLocalFifoInterval;
+            return localQueue.popFifo();
+        }
+        else {
+            final Runnable task = localQueue.popFifo();
+            if (task != null) {
+                localIntermittentFifoCounter -= 1;
+            }
+            else {
+                localIntermittentFifoCounter = ownLocalFifoInterval;
+            }
+            return task;
+        }
     }
 
     private Runnable tryGetForeignWork () {
