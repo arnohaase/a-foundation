@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -50,11 +49,6 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
     private final Map<Integer, Integer> producerToQueueAffinity = new ConcurrentHashMap<> ();
     private final ASharedQueueAffinityStrategy sharedQueueAffinityStrategy;
     private final AWorkerThreadLifecycleCallback workerThreadLifecycleCallback;
-
-    /**
-     * this is a long rather than an int to be on the safe side - 2 billion different producer threads during the lifetime of a thread pool, but still...
-     */
-    private final AtomicLong nextSharedQueue = new AtomicLong (0);
 
     final AtomicBoolean shutdown = new AtomicBoolean (false);
     final boolean checkShutdownOnSubmission;

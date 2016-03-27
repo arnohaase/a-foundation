@@ -2,6 +2,7 @@ package com.ajjpj.afoundation.concurrent;
 
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -22,10 +23,9 @@ public interface ASharedQueueAffinityStrategy {
      */
     static ASharedQueueAffinityStrategy createDefault() {
         return new ASharedQueueAffinityStrategy () {
-            final AtomicInteger nextSharedQueue = new AtomicInteger (0);
-
+            final AtomicLong nextSharedQueue = new AtomicLong (0);
             @Override public int getSharedQueueIndex (Thread producer, int numSharedQueues) {
-                return nextSharedQueue.getAndIncrement () % numSharedQueues;
+                return (int) nextSharedQueue.getAndIncrement () % numSharedQueues;
             }
         };
     }
