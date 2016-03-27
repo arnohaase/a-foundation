@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
  */
 @Contended
 class WorkerThread extends Thread {
+    @SuppressWarnings ("unused")
     long a1, a2, a3, a4, a5, a6, a7;
 
     final LocalQueue localQueue;                 // accessed only from this thread
@@ -33,8 +34,13 @@ class WorkerThread extends Thread {
      */
     private final int numPrefetchLocal;        // accessed only from this thread
 
-    final long idleThreadMask;                 //accessed from arbitrary other thread during thread wake-up
+    /**
+     * holds the index of the 64-bit-block to which this thread's idleThreadMask applies, with the first block only holding 63 'idle thread' flags
+     */
+    final int idleThreadMaskBlock;                 // accessed from arbitrary other thread during thread wake.up
+    final long idleThreadMask;                 // accessed from arbitrary other thread during thread wake-up
 
+    @SuppressWarnings ("unused")
     long p1, p2, p3, p4, p5, p6, p7;
 
     //---------------------------------------------------------------------------------------------------------
@@ -61,6 +67,7 @@ class WorkerThread extends Thread {
     private int skipLocalWorkCounter = 0;
     private int switchSharedQueueCounter = 0;
 
+    @SuppressWarnings ("unused")
     long q1, q2, q3, q4, q5, q6, q7;
 
     WorkerThread (int ownLocalFifoInterval, int skipLocalWorkInterval, int switchSharedQueueInterval, int numPrefetchLocal, LocalQueue localQueue, ASharedQueue[] sharedQueues, AThreadPoolImpl pool, int threadIdx, int queueTraversalIncrement, AStatement1NoThrow<Throwable> exceptionHandler) {
@@ -80,7 +87,9 @@ class WorkerThread extends Thread {
         this.pool = pool;
 
         this.allLocalQueues = pool.localQueues;
-        idleThreadMask = 1L << threadIdx;
+
+        this.idleThreadMaskBlock = (threadIdx + 1) >> 6;
+        this.idleThreadMask = 1L << threadIdx;
         this.queueTraversalIncrement = queueTraversalIncrement;
 
         currentSharedQueue = threadIdx % sharedQueues.length;
@@ -118,11 +127,11 @@ class WorkerThread extends Thread {
 //                        }
 //                    }
 
-                    pool.markWorkerAsIdle (idleThreadMask);
+                    pool.markWorkerAsIdle (idleThreadMaskBlock, idleThreadMask);
 
                     // re-check availability of work after marking the thread as idle --> avoid races
                     if ((task = tryGetForeignWork ()) != null) {
-                        if (! pool.markWorkerAsBusy (idleThreadMask)) {
+                        if (! pool.markWorkerAsBusy (idleThreadMaskBlock, idleThreadMask)) {
                             // thread was 'woken up' because of available work --> cause some other thread to be notified instead
                             pool.unmarkScanning (); //TODO merge with 'markWorkerAsBusy'
                             pool.onAvailableTask ();
@@ -147,7 +156,7 @@ class WorkerThread extends Thread {
                     // This flag is usually set before the call unpark(), but some races cause a thread to be unparked redundantly, causing the flag to be out of sync.
                     // Setting the flag before unpark() is piggybacked on another CAS operation and therefore basically for free, so we leave it there, but we need it
                     //  here as well.
-                    pool.markWorkerAsBusy (idleThreadMask);
+                    pool.markWorkerAsBusy (idleThreadMaskBlock, idleThreadMask);
 
                     if ((task = tryGetForeignWork ()) != null) {
                         pool.unmarkScanning();

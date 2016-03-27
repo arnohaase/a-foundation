@@ -229,8 +229,8 @@ public abstract class AThreadPoolImpl implements AThreadPoolWithAdmin {
     abstract void onAvailableTask ();
     abstract void wakeUpWorker ();
 
-    abstract void markWorkerAsIdle (long mask);
-    abstract boolean markWorkerAsBusy (long mask);
+    abstract void markWorkerAsIdle (int maskBlock, long mask);
+    abstract boolean markWorkerAsBusy (int maskBlock, long mask);
     abstract boolean markWorkerAsBusyAndScanning (WorkerThread worker);
     abstract void unmarkScanning();
 

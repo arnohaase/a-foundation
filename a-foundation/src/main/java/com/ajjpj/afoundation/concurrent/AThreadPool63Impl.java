@@ -35,6 +35,9 @@ public class AThreadPool63Impl extends AThreadPoolImpl {
     @SuppressWarnings({"unused"})
     private volatile long idleThreads = 0;
 
+    /**
+     * padding at the end of the subclass to prevent false sharing
+     */
     @SuppressWarnings ("unused")
     long q1, q2, q3, q4, q5, q6, q7;
 
@@ -73,21 +76,16 @@ public class AThreadPool63Impl extends AThreadPoolImpl {
         }
     }
 
-    @Override void markWorkerAsIdle (long mask) {
+    @Override void markWorkerAsIdle (int block, long mask) {
         long prev, after;
         do {
             prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
             after = prev | mask;
-
-            // A 'scanning' thread (i.e. a thread that was triggered by 'onAvailableTask') going to sleep means that scanning is finished, so we
-            //  can clear the flag. A thread going to sleep after doing some work also triggers the flag to be cleared, but that is safe and
-            //  incurs little additional overhead - clearing the flag in this place is basically for free.
-//            after = after & ~MASK_IDLE_THREAD_SCANNING;
         }
         while (! UNSAFE.compareAndSwapLong (this, OFFS_IDLE_THREADS, prev, after));
     }
 
-    @Override boolean markWorkerAsBusy (long mask) {
+    @Override boolean markWorkerAsBusy (int block, long mask) {
         long prev, after;
         do {
             prev = UNSAFE.getLongVolatile (this, OFFS_IDLE_THREADS);
@@ -138,7 +136,7 @@ public class AThreadPool63Impl extends AThreadPoolImpl {
 
     static {
         try {
-            OFFS_IDLE_THREADS = UNSAFE.objectFieldOffset (AThreadPoolImpl.class.getDeclaredField ("idleThreads"));
+            OFFS_IDLE_THREADS = UNSAFE.objectFieldOffset (AThreadPool63Impl.class.getDeclaredField ("idleThreads"));
         }
         catch (Exception e) {
             AUnchecker.throwUnchecked (e);
