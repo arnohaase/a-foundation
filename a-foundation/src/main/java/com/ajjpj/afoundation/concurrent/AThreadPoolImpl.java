@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Contended
 public class AThreadPoolImpl implements AThreadPoolWithAdmin {
+    private static final int MAX_NUM_PRODUCER_AFFINITIES = 10_000;
+
     long p1, p2, p3, p4, p5, p6, p7;
 
     /**
@@ -164,7 +166,7 @@ public class AThreadPoolImpl implements AThreadPoolWithAdmin {
 
         Integer result = producerToQueueAffinity.get (key);
         if (result == null) {
-            if (producerToQueueAffinity.size () > 10_000) { //TODO make this number configurable
+            if (producerToQueueAffinity.size () > MAX_NUM_PRODUCER_AFFINITIES) {
                 // in the unusual situation that producers are transient, discard affinity data if the map gets too large
                 producerToQueueAffinity.clear ();
             }

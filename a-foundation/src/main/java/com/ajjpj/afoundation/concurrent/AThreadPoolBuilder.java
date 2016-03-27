@@ -15,11 +15,11 @@ public class AThreadPoolBuilder {
 
     private int numThreads = Runtime.getRuntime ().availableProcessors ();
     private int numSharedQueues = Runtime.getRuntime ().availableProcessors ();
-    private int localQueueSize = 16384; //TODO smaller default; handle overflow so that it pushes to shared queue instead
+    private int localQueueSize = 16384;
     private int sharedQueueSize = 16384;
 
-    private int prefetchBatchSize = 4; //TODO tune this default based on benchmarks
-    private int numPrefetchLocal = 0; //TODO tune this default based on benchmarks; assimilate naming and semantics between shared and local prefetching
+    private int prefetchBatchSize = 4;
+    private int numPrefetchLocal = 0;
 
     private SharedQueueStrategy sharedQueueStrategy = SharedQueueStrategy.SyncPush;
 
