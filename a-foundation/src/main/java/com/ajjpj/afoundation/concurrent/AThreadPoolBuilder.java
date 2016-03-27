@@ -40,6 +40,10 @@ public class AThreadPoolBuilder {
         throw new IllegalStateException ("unknown shared queue strategy " + sharedQueueStrategy);
     };
 
+    /**
+     * Checking whether a thread pool is shut down adds a volatile read for every submitted tasks. It is enabled by default, but if your usage does not
+     *  require this and you know what you are doing, you can disable the check and the overhead it incurs using this method.
+     */
     public AThreadPoolBuilder withCheckShutdownOnSubmission (boolean checkShutdownOnSubmission) {
         this.checkShutdownOnSubmission = checkShutdownOnSubmission;
         return this;
@@ -149,6 +153,9 @@ public class AThreadPoolBuilder {
         return this;
     }
 
+    /**
+     * This logs the (current) builder with its configuration to a given logger
+     */
     public <T extends Throwable> AThreadPoolBuilder log (AStatement1<String, T> logOperation) throws T {
         final String stringRepresentation = toString ();
         logOperation.apply (stringRepresentation);
