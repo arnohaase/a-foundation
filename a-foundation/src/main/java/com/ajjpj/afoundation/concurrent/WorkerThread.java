@@ -205,7 +205,7 @@ class WorkerThread extends Thread {
             return localQueue.popFifo();
         }
         else {
-            final Runnable task = localQueue.popFifo();
+            final Runnable task = localQueue.popLifo();
             if (task != null) {
                 localIntermittentFifoCounter -= 1;
             }
