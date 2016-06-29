@@ -367,8 +367,8 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
             int idx = 0;
             AList<T> l = inner;
 
-            while(! inner.isEmpty()) {
-                if(AEquality.EQUALS.equals(inner.head(), o)) {
+            while(! l.isEmpty()) {
+                if(AEquality.EQUALS.equals(l.head(), o)) {
                     return idx;
                 }
 
@@ -384,8 +384,8 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
             AList<T> l = inner;
             int result = -1;
 
-            while(! inner.isEmpty()) {
-                if(AEquality.EQUALS.equals(inner.head(), o)) {
+            while(! l.isEmpty()) {
+                if(AEquality.EQUALS.equals(l.head(), o)) {
                     result = idx;
                 }
 

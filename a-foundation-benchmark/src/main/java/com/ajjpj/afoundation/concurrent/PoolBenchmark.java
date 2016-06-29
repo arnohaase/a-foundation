@@ -31,24 +31,24 @@ public class PoolBenchmark {
     ABenchmarkPool pool;
 
     @Param({
-            "a-local-0",
-            "a-local-1",
-            "a-local-2",
-            "a-local-3",
-            "a-local-4",
+//            "a-local-0",
+//            "a-local-1",
+//            "a-local-2",
+//            "a-local-3",
+//            "a-local-4",
 
-            "a-no-prefetch",
-            "a-prefetch-2",
-            "a-prefetch-3",
+//            "a-no-prefetch",
+//            "a-prefetch-2",
+//            "a-prefetch-3",
             "a-prefetch-4",
-            "a-prefetch-5",
-            "a-prefetch-6",
-            "a-sync-nocheck",
-            "a-lock-block",
-            "a-nonblocking",
+//            "a-prefetch-5",
+//            "a-prefetch-6",
+//            "a-sync-nocheck",
+//            "a-lock-block",
+//            "a-nonblocking",
 
 //            "a-strict-own",
-            "no-conc",
+//            "no-conc",
 
 //            "Executors.newFixedThreadPool",
 
@@ -206,13 +206,13 @@ public class PoolBenchmark {
 
     @Benchmark
     @Threads(16)
-    public void testSimpleScheduling16() throws InterruptedException {
+    public void _testSimpleScheduling16() throws InterruptedException {
         doSimpleScheduling (false);
     }
 
     @Benchmark
     @Threads(16)
-    public void testSimpleScheduling16WithWork() throws InterruptedException {
+    public void _testSimpleScheduling16WithWork() throws InterruptedException {
         doSimpleScheduling (true);
     }
 
@@ -329,7 +329,7 @@ public class PoolBenchmark {
     }
 
     @Benchmark
-    public void testSteal() throws InterruptedException {
+    public void __testSteal() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch (10_000);
 
         pool.submit (() -> {

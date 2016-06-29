@@ -89,4 +89,14 @@ public class AListTest extends AbstractCollectionTest<AList<String>, AList<Integ
         assertEquals("a",   AList.nil().cons("a")          .mkString("#"));
         assertEquals("b#a", AList.nil().cons("a").cons("b").mkString("#"));
     }
+
+    @Test
+    public void testJUListWrapperContains() {
+        assertEquals (false, AList.nil().asJavaUtilList().contains("a"));
+        assertEquals (true, AList.create("a").asJavaUtilList().contains("a"));
+        assertEquals (false, AList.create("b").asJavaUtilList().contains("a"));
+        assertEquals (true, AList.create("a", "b").asJavaUtilList().contains("a"));
+        assertEquals (true, AList.create("b", "a").asJavaUtilList().contains("a"));
+        assertEquals (false, AList.create("b", "c").asJavaUtilList().contains("a"));
+    }
 }
