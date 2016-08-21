@@ -57,7 +57,11 @@ public abstract class AbstractACollection<T, C extends AbstractACollection<T, C>
     }
 
     @Override public <E extends Throwable> C filter(APredicate<? super T, E> pred) throws E {
-        return createInternal(ACollectionHelper.filter (this, pred));
+        return createInternal (ACollectionHelper.filter (this, pred));
+    }
+
+    @Override public <E extends Throwable> C filterNot (APredicate<? super T, E> pred) throws E {
+        return createInternal (ACollectionHelper.filterNot (this, pred));
     }
 
     @Override public <X, E extends Throwable> AMap<X, C> groupBy(AFunction1<? super T, ? extends X, E> f) throws E {

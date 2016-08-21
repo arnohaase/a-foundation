@@ -369,6 +369,45 @@ public class ACollectionHelper {
     }
 
     /**
+     * Matches all elements of a collection against a predicate, creating a new collection from those that do not match.
+     */
+    public static <T, E extends Throwable> Collection<T> filterNot (Iterable<T> coll, APredicate<? super T, E> pred) throws E {
+        final List<T> result = new ArrayList<>();
+        for(T o: coll) {
+            if(! pred.apply(o)) {
+                result.add(o);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Matches all elements of a collection against a predicate, creating a new collection from those that do not match.
+     */
+    public static <T, E extends Throwable> List<T> filterNot (List<T> coll, APredicate<? super T, E> pred) throws E {
+        final List<T> result = createEmptyListOfType (coll, false);
+        for(T o: coll) {
+            if (! pred.apply(o)) {
+                result.add(o);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Matches all elements of a collection against a predicate, creating a new collection from those that do not match.
+     */
+    public static <T, E extends Throwable> Set<T> filterNot (Set<T> coll, APredicate<? super T, E> pred) throws E {
+        final Set<T> result = createEmptySetOfType(coll, false);
+        for(T o: coll) {
+            if (! pred.apply(o)) {
+                result.add(o);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Creates a Map from a collection. Each element's key is determined by applying a function to the element. All
      *  elements with the same key are stored as that key's value in the returned Map.
      */
@@ -711,6 +750,10 @@ public class ACollectionHelper {
 
         @Override public <E extends Throwable> ASetWrapper<T> filter (APredicate<? super T, E> pred) throws E {
             return new ASetWrapper<> (ACollectionHelper.<T,E>filter (inner, pred));
+        }
+
+        @Override public <E extends Throwable> ASetWrapper<T> filterNot (APredicate<? super T, E> pred) throws E {
+            return new ASetWrapper<> (ACollectionHelper.<T,E>filterNot (inner, pred));
         }
     }
 

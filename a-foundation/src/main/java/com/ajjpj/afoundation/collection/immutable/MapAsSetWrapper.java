@@ -144,6 +144,10 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return createInternal (ACollectionHelper.<K,E>filter (this, pred));
     }
 
+    @Override public <E extends Throwable> ASet<K> filterNot (APredicate<? super K, E> pred) throws E {
+        return createInternal (ACollectionHelper.<K,E>filterNot (this, pred));
+    }
+
     @SuppressWarnings ("unchecked")
     @Override public <X> ASet<X> flatten () {
         return (ASet<X>) createInternal (ACollectionHelper.flatten ((Iterable<? extends Iterable<Object>>) this));

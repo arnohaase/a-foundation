@@ -87,7 +87,7 @@ abstract public class AList<T> extends AbstractACollection<T, AList<T>> implemen
         return asJavaUtilList ();
     }
 
-    @Override protected AList<T> createInternal(Collection<T> elements) {
+    @Override protected AList<T> createInternal (Collection<T> elements) {
         return AList.create (elements);
     }
 

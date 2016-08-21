@@ -51,6 +51,12 @@ public interface ACollection<T> extends ATraversable<T>, Iterable<T> {
      */
     @Override <E extends Throwable> ACollection<T> filter(APredicate<? super T, E> pred) throws E;
 
+    /**
+     * Filters this collection's elements, this method returns a new collection comprised of only those elements that do not match
+     *  a given predicate.
+     */
+    @Override <E extends Throwable> AMonadicOps<T> filterNot (APredicate<? super T, E> pred) throws E;
+
     @Override <X, E extends Throwable> ACollection<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
     @Override <X, E extends Throwable> ACollection<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
 

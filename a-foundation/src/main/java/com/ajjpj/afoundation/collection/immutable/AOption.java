@@ -84,6 +84,9 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
      */
     public abstract <E extends Throwable> T getOrElseEval (AFunction0<T,E> producer) throws E;
 
+    public abstract <E extends Throwable> AOption<T> filter    (APredicate<? super T, E> pred) throws E;
+    public abstract <E extends Throwable> AOption<T> filterNot (APredicate<? super T, E> pred) throws E;
+
     /**
      * This method returns the element contained in this AOption if it is defined. Otherwise, it evaluates the function passed in and throws the exception
      *  returned by that function. The function is guaranteed to be evaluated only if this AOption is empty.
@@ -184,6 +187,14 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
             else
                 return none();
         }
+
+        @Override public <E extends Throwable> AOption<T> filterNot (APredicate<? super T, E> pred) throws E {
+            if (pred.apply (el))
+                return none();
+            else
+                return this;
+        }
+
 
         @Override public <R, E extends Throwable> R foldLeft (R startValue, AFunction2<R, ? super T, R, E> f) throws E {
             return f.apply(startValue, el);
@@ -357,6 +368,11 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         @Override public <E extends Throwable> AOption<Object> filter(APredicate<? super Object, E> pred) {
             return none();
         }
+
+        @Override public <E extends Throwable> AOption<Object> filterNot (APredicate<? super Object, E> pred) throws E {
+            return none();
+        }
+
 
         @Override public boolean nonEmpty() {
             return false;

@@ -15,7 +15,13 @@ public interface AMonadicOps<T> {
      * Filters this collection's elements, this method returns a new collection comprised of only those elements that match
      *  a given predicate.
      */
-    <E extends Throwable> AMonadicOps<T> filter(APredicate<? super T, E> pred) throws E;
+    <E extends Throwable> AMonadicOps<T> filter (APredicate<? super T, E> pred) throws E;
+
+    /**
+     * Filters this collection's elements, this method returns a new collection comprised of only those elements that do not match
+     *  a given predicate.
+     */
+    <E extends Throwable> AMonadicOps<T> filterNot (APredicate<? super T, E> pred) throws E;
 
     /**
      * Turns a collection of collections into a 'flat' collection, removing one layer of collections.
@@ -40,12 +46,6 @@ public interface AMonadicOps<T> {
      *   of the transformed elements only. So the number of result elements may be less than the number of elements in the source collection.
      */
     <X, E extends Throwable> AMonadicOps<X> collect (APartialFunction<? super T, ? extends X, E> pf) throws E;
-
-    /**
-     * Wraps a filter around the existing collection, making creation of the result a constant time operation. This comes
-     *  at the price that the actual filtering is done for every iteration.
-     */
-//TODO    <E extends Throwable> AMonadicOps<T, ? extends AFilterMonadic<T, ?>> withFilter(APredicate<T, E> pred) throws E;
 
     /**
      * Searches through this collection's elements and returns the first element matching a given predicate. if any.

@@ -152,9 +152,19 @@ public class AFile implements ATraversable<String> {
     }
 
     @Override
-    public <E extends Throwable> ATraversable<String> filter(APredicate<? super String, E> pred) throws E {
+    public <E extends Throwable> ATraversable<String> filter (APredicate<? super String, E> pred) throws E {
         try {
             return ACollectionHelper.asACollectionView(ACollectionHelper.<String,E>filter (lines(), pred));
+        } catch (IOException e) {
+            AUnchecker.throwUnchecked(e);
+            return null; // for the compiler
+        }
+    }
+
+    @Override
+    public <E extends Throwable> ATraversable<String> filterNot (APredicate<? super String, E> pred) throws E {
+        try {
+            return ACollectionHelper.asACollectionView (ACollectionHelper.<String,E>filterNot (lines(), pred));
         } catch (IOException e) {
             AUnchecker.throwUnchecked(e);
             return null; // for the compiler

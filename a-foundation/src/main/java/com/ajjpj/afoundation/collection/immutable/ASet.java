@@ -19,7 +19,8 @@ import com.ajjpj.afoundation.function.APredicate;
  * @author arno
  */
 public interface ASet<T> extends ACollection<T> {
-    @Override <E extends Throwable> ASet<T> filter(APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> ASet<T> filter    (APredicate<? super T, E> pred) throws E;
+    @Override <E extends Throwable> ASet<T> filterNot (APredicate<? super T, E> pred) throws E;
 
     @Override <X, E extends Throwable> ASet<X> map(AFunction1<? super T, ? extends X, E> f) throws E;
     @Override <X, E extends Throwable> ASet<X> flatMap(AFunction1<? super T, ? extends Iterable<X>, E> f) throws E;
