@@ -19,6 +19,14 @@ import com.ajjpj.afoundation.function.APredicate;
  * @author arno
  */
 public interface ASet<T> extends ACollection<T> {
+    static <T> ASet<T> empty() {
+        return AHashSet.empty ();
+    }
+
+    static <T> ASet<T> create (Iterable<T> elements) {
+        return AHashSet.create (elements);
+    }
+
     @Override <E extends Throwable> ASet<T> filter    (APredicate<? super T, E> pred) throws E;
     @Override <E extends Throwable> ASet<T> filterNot (APredicate<? super T, E> pred) throws E;
 

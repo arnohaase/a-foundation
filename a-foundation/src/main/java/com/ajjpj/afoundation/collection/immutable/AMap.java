@@ -5,6 +5,7 @@ import com.ajjpj.afoundation.function.AFunction1;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Map;
 
 
 /**
@@ -26,6 +27,14 @@ import java.util.Iterator;
  * @author arno
  */
 public interface AMap<K,V> extends Iterable<AMapEntry<K,V>>, Serializable {
+    static <K,V> AMap<K,V> empty() {
+        return AHashMap.empty ();
+    }
+
+    static <K,V> AMap<K,V> fromJava (Map<K,V> map) {
+        return AHashMap.fromJavaUtilMap (map);
+    }
+
     /**
      * @return an {@link AEquality} that returns {@code true} if and only if two elements are
      *         'equal' in the sense that one would replace the other as a key.
