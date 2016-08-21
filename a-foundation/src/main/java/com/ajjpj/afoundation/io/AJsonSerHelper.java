@@ -1,9 +1,8 @@
 package com.ajjpj.afoundation.io;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import com.ajjpj.afoundation.function.AStatement1;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -147,6 +146,51 @@ public class AJsonSerHelper {
         checkAcceptsValueAndPrefixComma ();
         out.write ("null");
         afterValueWritten ();
+    }
+
+    //----------------------------------------- convenience API
+
+    public void writeIntLiteral (int value) throws IOException {
+        writeNumberLiteral (value, 0);
+    }
+    public void writeLongLiteral (long value) throws IOException {
+        writeNumberLiteral (value, 0);
+    }
+
+    public void writeStringArray (Iterable<String> values) throws IOException {
+        startArray ();
+        for (String el: values) writeStringLiteral (el);
+        endArray ();
+    }
+
+    public void writeStringField (String key, String value) throws IOException {
+        writeKey (key);
+        writeStringLiteral (value);
+    }
+    public void writeBooleanField (String key, Boolean value) throws IOException {
+        writeKey (key);
+        if (value == null) writeNullLiteral ();
+        else writeBooleanLiteral (value);
+    }
+    public void writeIntField (String key, Integer value) throws IOException {
+        writeKey (key);
+        if (value == null) writeNullLiteral ();
+        else writeIntLiteral (value);
+    }
+    public void writeLongField (String key, Long value) throws IOException {
+        writeKey (key);
+        if (value == null) writeNullLiteral ();
+        else writeLongLiteral (value);
+    }
+
+    /**
+     * This is a convenience method for building simple JSON strings. It passes an AJsonSerHelper to a callback and
+     *  builds a string based on what the callback does with it.
+     */
+    public static <E extends Throwable> String buildString (AStatement1<AJsonSerHelper, E> code) throws E {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+        code.apply (new AJsonSerHelper (baos));
+        return new String (baos.toByteArray (), UTF_8);
     }
 
     //----------------------------------------- helper methods
