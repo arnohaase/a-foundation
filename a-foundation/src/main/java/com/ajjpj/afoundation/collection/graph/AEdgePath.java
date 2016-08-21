@@ -32,7 +32,7 @@ public class AEdgePath<N, E extends AEdge<N>> implements Serializable {
     }
 
     AEdgePath<N,E> prepend (E edge) {
-        return new AEdgePath<> (edges.cons (edge), nodes.added (edge.getFrom ()), to);
+        return new AEdgePath<> (edges.cons (edge), nodes.with (edge.getFrom ()), to);
     }
 
     @SuppressWarnings ("unchecked")

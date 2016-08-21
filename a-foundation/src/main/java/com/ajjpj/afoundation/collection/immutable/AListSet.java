@@ -49,7 +49,7 @@ public class AListSet<K> extends MapAsSetWrapper<K, AListSet<K>> {
         AListSet<T> result = empty (equality);
 
         for (T el: elements) {
-            result = result.added (el);
+            result = result.with (el);
         }
         return result;
     }

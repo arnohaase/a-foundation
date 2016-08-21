@@ -19,7 +19,7 @@ public class ABTreeSet<T> extends MapAsSetWrapper<T, ABTreeSet<T>> {
         ABTreeSet<T> result = empty (spec);
 
         for (T el: elements) {
-            result = result.added (el);
+            result = result.with (el);
         }
         return result;
     }

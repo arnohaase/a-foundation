@@ -5,7 +5,10 @@ import com.ajjpj.afoundation.collection.AEquality;
 import com.ajjpj.afoundation.function.*;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -39,13 +42,21 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
         return inner.nonEmpty ();
     }
 
-    @SuppressWarnings ("unchecked")
     @Override public C added (K el) {
-        return wrapAsSet (inner.updated (el, Boolean.TRUE));
+        return with (el);
     }
 
     @SuppressWarnings ("unchecked")
+    @Override public C with (K el) {
+        return wrapAsSet (inner.updated (el, Boolean.TRUE));
+    }
+
     @Override public C removed (K el) {
+        return without (el);
+    }
+
+    @SuppressWarnings ("unchecked")
+    @Override public C without (K el) {
         return wrapAsSet (inner.removed (el));
     }
 
@@ -169,7 +180,7 @@ abstract class MapAsSetWrapper<K, C extends MapAsSetWrapper<K, C>> implements AS
             final ASet<K> perKey = result
                     .get(key)
                     .getOrElse (emptySet)
-                    .added (o);
+                    .with (o);
             result = result.updated (key, perKey);
         }
         return result;

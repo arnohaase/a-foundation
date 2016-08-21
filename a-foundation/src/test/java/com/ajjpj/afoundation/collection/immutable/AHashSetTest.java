@@ -43,18 +43,18 @@ public class AHashSetTest extends AbstractCollectionTest<AHashSet<String>, AHash
     @Test
     public void testAddRemoveContains() {
         assertFalse(AHashSet.empty ().contains("a"));
-        assertTrue (AHashSet.empty ().added("a").contains("a"));
-        assertFalse(AHashSet.empty ().added("a").contains("b"));
-        assertTrue (AHashSet.empty ().added("a").added("b").contains("b"));
-        assertFalse(AHashSet.empty ().added("a").added("b").contains("c"));
-        assertFalse(AHashSet.empty ().added("a").added("b").removed("a").contains("a"));
-        assertTrue (AHashSet.empty ().added("a").added("b").removed("a").contains("b"));
-        assertFalse(AHashSet.empty ().added("a").added("b").removed("a").contains("c"));
+        assertTrue (AHashSet.empty ().with("a").contains("a"));
+        assertFalse(AHashSet.empty ().with("a").contains("b"));
+        assertTrue (AHashSet.empty ().with("a").with("b").contains("b"));
+        assertFalse(AHashSet.empty ().with("a").with("b").contains("c"));
+        assertFalse(AHashSet.empty ().with("a").with("b").without("a").contains("a"));
+        assertTrue (AHashSet.empty ().with("a").with("b").without("a").contains("b"));
+        assertFalse(AHashSet.empty ().with("a").with("b").without("a").contains("c"));
     }
 
     @Test
     public void testFromJavaUtil() {
-        final AHashSet<String> l = AHashSet.<String>empty ().added("a").added("b").added("c");
+        final AHashSet<String> l = AHashSet.<String>empty ().with("a").with("b").with("c");
         final AHashSet<String> l2 = AHashSet.create (Arrays.asList ("c", "b", "a"));
 
         assertEquals(l, l2);
@@ -66,21 +66,21 @@ public class AHashSetTest extends AbstractCollectionTest<AHashSet<String>, AHash
     public void testEquals2() {
         assertEquals(AHashSet.empty (),
                      AHashSet.empty ());
-        assertEquals(AHashSet.empty ().added("a"),
-                     AHashSet.empty ().added("a"));
-        assertEquals(AHashSet.empty ().added("a").added("b"),
-                     AHashSet.empty ().added("b").added("a"));
+        assertEquals(AHashSet.empty ().with("a"),
+                     AHashSet.empty ().with("a"));
+        assertEquals(AHashSet.empty ().with("a").with("b"),
+                     AHashSet.empty ().with("b").with("a"));
 
         assertNotEquals(AHashSet.empty (),
-                        AHashSet.empty ().added("a"));
-        assertNotEquals(AHashSet.empty ().added("a"),
+                        AHashSet.empty ().with("a"));
+        assertNotEquals(AHashSet.empty ().with("a"),
                         AHashSet.empty ());
-        assertNotEquals(AHashSet.empty ().added("a").added("b"),
-                        AHashSet.empty ().added("a").added("b").added("c"));
-        assertNotEquals(AHashSet.empty ().added("a").added("b").added("c"),
-                        AHashSet.empty ().added("a").added("b"));
-        assertNotEquals(AHashSet.empty ().added("a").added("b").added("c"),
-                        AHashSet.empty ().added("b").added("c"));
+        assertNotEquals(AHashSet.empty ().with("a").with("b"),
+                        AHashSet.empty ().with("a").with("b").with("c"));
+        assertNotEquals(AHashSet.empty ().with("a").with("b").with("c"),
+                        AHashSet.empty ().with("a").with("b"));
+        assertNotEquals(AHashSet.empty ().with("a").with("b").with("c"),
+                        AHashSet.empty ().with("b").with("c"));
 
         assertNotEquals(AHashSet.empty (), null);
     }
@@ -88,15 +88,15 @@ public class AHashSetTest extends AbstractCollectionTest<AHashSet<String>, AHash
     @Test
     public void testMkString() {
         assertEquals("%&",     AHashSet.empty ()                    .mkString("%", "--", "&"));
-        assertEquals("%a&",    AHashSet.empty ().added("a")          .mkString("%", "--", "&"));
+        assertEquals("%a&",    AHashSet.empty ().with("a")          .mkString("%", "--", "&"));
 
-        final String s1 = AHashSet.empty ().added("a").added("b").mkString("%", "--", "&");
+        final String s1 = AHashSet.empty ().with("a").with("b").mkString("%", "--", "&");
         assertTrue("%b--a&".equals(s1) || "%a--b&".equals(s1));
 
         assertEquals("",    AHashSet.empty ()                    .mkString("#"));
-        assertEquals("a",   AHashSet.empty ().added("a")          .mkString("#"));
+        assertEquals("a",   AHashSet.empty ().with("a")          .mkString("#"));
 
-        final String s2 = AHashSet.empty ().added("a").added("b").mkString("#");
+        final String s2 = AHashSet.empty ().with("a").with("b").mkString("#");
         assertTrue("b#a".equals(s2) || "a#b".equals(s2));
     }
 

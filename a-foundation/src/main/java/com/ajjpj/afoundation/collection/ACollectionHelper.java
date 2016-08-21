@@ -723,11 +723,11 @@ public class ACollectionHelper {
         @Override public AEquality equalityForEquals () {
             return AEquality.EQUALS;
         }
-        @Override public ASet<T> added (T el) {
+        @Override public ASet<T> with (T el) {
             throw new UnsupportedOperationException ("adding and removing elements is not supported for views - create a full-blown AHashSet instead");
         }
 
-        @Override public ASet<T> removed (T el) {
+        @Override public ASet<T> without (T el) {
             throw new UnsupportedOperationException ("adding and removing elements is not supported for views - create a full-blown AHashSet instead");
         }
 

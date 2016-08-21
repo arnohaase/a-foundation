@@ -17,7 +17,7 @@ public class ALongHashSet extends MapAsSetWrapper<Long, ALongHashSet> {
         ALongHashSet result = empty ();
 
         for (long el: elements) {
-            result = result.added (el); //TODO specialize this
+            result = result.with (el); //TODO specialize this
         }
         return result;
     }
@@ -30,7 +30,7 @@ public class ALongHashSet extends MapAsSetWrapper<Long, ALongHashSet> {
         ALongHashSet result = empty ();
 
         for (Long el: elements) {
-            result = result.added (el);
+            result = result.with (el);
         }
         return result;
     }

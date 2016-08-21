@@ -48,12 +48,56 @@ public interface ASet<T> extends ACollection<T> {
      *         element which this set's {@link com.ajjpj.afoundation.collection.AEquality} considers
      *         equal to the parameter {@code el}.
      */
-    ASet<T> added (T el);
+    @Deprecated
+    default ASet<T> added (T el) {
+        return with (el);
+    }
+
+    /**
+     * @return a new {@link ASet} that is guaranteed to contain the new element, i.e. to contain an
+     *         element which this set's {@link com.ajjpj.afoundation.collection.AEquality} considers
+     *         equal to the parameter {@code el}.
+     */
+    ASet<T> with (T el);
+
+    /**
+     * @return a new {@link ASet} that is guaranteed to contain all elements passed to the method. It is equivalent
+     *          to calling {@code with} for each of the elements passed in.
+     */
+    default ASet<T> withAll (Iterable<T> elements) {
+        ASet<T> result = this;
+        for (T el: elements) {
+            result = result.with (el);
+        }
+        return result;
+    }
 
     /**
      * @return a new {@link ASet} that is guaranteed not to contain the parameter {@code el}, i.e. not
      *          to contain an element that this set's {@link com.ajjpj.afoundation.collection.AEquality}
      *          considers equal to the parameter {@code el}.
      */
-    ASet<T> removed (T el);
+    @Deprecated
+    default ASet<T> removed (T el) {
+        return without (el);
+    }
+
+    /**
+     * @return a new {@link ASet} that is guaranteed not to contain the parameter {@code el}, i.e. not
+     *          to contain an element that this set's {@link com.ajjpj.afoundation.collection.AEquality}
+     *          considers equal to the parameter {@code el}.
+     */
+    ASet<T> without (T el);
+
+    /**
+     * @return a new {@link ASet} that is guaranteed to contain all elements passed to the method. It is equivalent
+     *          to calling {@code without} for each of the elements passed in.
+     */
+    default ASet<T> withoutAll (Iterable<T> elements) {
+        ASet<T> result = this;
+        for (T el: elements) {
+            result = result.without (el);
+        }
+        return result;
+    }
 }

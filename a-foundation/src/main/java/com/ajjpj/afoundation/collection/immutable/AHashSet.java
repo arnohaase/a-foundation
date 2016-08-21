@@ -48,7 +48,7 @@ public class AHashSet<T> extends MapAsSetWrapper<T, AHashSet<T>> {
         AHashSet<T> result = empty (equality);
 
         for (T el: elements) {
-            result = result.added (el);
+            result = result.with (el);
         }
         return result;
     }

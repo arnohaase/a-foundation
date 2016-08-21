@@ -221,7 +221,7 @@ public class ADiGraphTest {
 
         String from, to = first;
         for (String target: others) {
-            nodeSet = nodeSet.added (target);
+            nodeSet = nodeSet.with (target);
             from = to;
             to = target;
             edges.add (edge (from, to));

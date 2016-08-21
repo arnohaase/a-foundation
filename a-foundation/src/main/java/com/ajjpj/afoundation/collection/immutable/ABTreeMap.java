@@ -44,7 +44,7 @@ public abstract class ABTreeMap<K, V> extends AbstractAMap<K,V> {
     }
 
     @SuppressWarnings ("unchecked")
-    public ABTreeMap<K,V> removed (K key) {
+    @Override public ABTreeMap<K,V> removed (K key) {
         final RemoveResult removeResult = _removed (key, null);
         if (removeResult.underflowed &&
                 removeResult.newNode instanceof IndexNode &&

@@ -230,11 +230,11 @@ public abstract class AOption<T> implements ACollection<T>, Serializable {
         }
 
         @Override public ASet<T> toSet() {
-            return AHashSet.<T>empty ().added(el);
+            return AHashSet.<T>empty ().with(el);
         }
 
         @Override public ASet<T> toSet(AEquality equality) {
-            return AHashSet.<T>empty (equality).added(el);
+            return AHashSet.<T>empty (equality).with(el);
         }
 
         @SuppressWarnings("NullableProblems")

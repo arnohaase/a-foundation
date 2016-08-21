@@ -24,7 +24,7 @@ public class ARedBlackTreeSet<T> extends MapAsSetWrapper<T, ARedBlackTreeSet<T>>
         ARedBlackTreeSet<T> result = empty (comparator);
 
         for (T el: elements) {
-            result = result.added (el);
+            result = result.with (el);
         }
         return result;
     }
