@@ -1,5 +1,6 @@
 package com.ajjpj.afoundation.concurrent;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +20,7 @@ public class ForkJoinOverflowTest {
     final CountDownLatch latch = new CountDownLatch (N);
     final AtomicLong counter = new AtomicLong ();
 
+    @Ignore
     @Test
     public void testOverflow() throws InterruptedException {
         final ForkJoinPool pool = new ForkJoinPool (1);
