@@ -176,8 +176,8 @@ class AFutureImpl<T> implements ASettableFuture<T> {
         final AFutureImpl<T> result = new AFutureImpl<> (tp);
 
         onSuccess (AThreadPool.SYNC_THREADPOOL, result::completeAsSuccess);
-        onFailure (AThreadPool.SYNC_THREADPOOL, th -> {
-            if (! f.isDefinedAt (th)) result.completeAsFailure (th);
+        onFailure (AThreadPool.SYNC_THREADPOOL, (AStatement1<Throwable, Throwable>) th -> {
+            if (!f.isDefinedAt (th)) result.completeAsFailure (th);
             else {
                 f.apply (th).onComplete (tp, result::complete);
             }
