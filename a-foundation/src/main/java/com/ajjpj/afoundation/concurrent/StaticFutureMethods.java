@@ -1,6 +1,6 @@
 package com.ajjpj.afoundation.concurrent;
 
-import com.ajjpj.afoundation.collection.ACollectionHelper;
+import com.ajjpj.afoundation.collection.immutable.AList;
 import com.ajjpj.afoundation.collection.immutable.AOption;
 import com.ajjpj.afoundation.collection.immutable.ATry;
 import com.ajjpj.afoundation.function.AFunction0;
@@ -9,7 +9,6 @@ import com.ajjpj.afoundation.function.AFunction2;
 import com.ajjpj.afoundation.function.APredicate;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,8 +28,8 @@ class StaticFutureMethods {
         return result;
     }
 
-    public static <T> AFuture<List<T>> lift (AThreadPool tp, Iterable<AFuture<T>> futures) {
-        final AFutureImpl<List<T>> result = new AFutureImpl<> (tp);
+    public static <T> AFuture<AList<T>> lift (AThreadPool tp, Iterable<AFuture<T>> futures) {
+        final AFutureImpl<AList<T>> result = new AFutureImpl<> (tp);
 
         int numFutures = 0;
         for (AFuture<T> ignored: futures) numFutures += 1;
@@ -45,18 +44,18 @@ class StaticFutureMethods {
                 if (tr.isSuccess ()) {
                     list.set (idx, tr.getValue ());
                     if (numUnbound.decrementAndGet () == 0) {
-                        result.tryComplete (ATry.success (list));
+                        result.tryComplete (ATry.success (AList.create (list)));
                     }
                 }
                 else {
                     //noinspection unchecked
-                    result.tryComplete ((ATry<List<T>>) tr);
+                    result.tryComplete ((ATry<AList<T>>) tr);
                 }
             });
         }
 
         if (list.isEmpty ()) {
-            result.completeAsSuccess (Collections.emptyList ());
+            result.completeAsSuccess (AList.nil ());
         }
 
         return result;
@@ -103,8 +102,8 @@ class StaticFutureMethods {
     public static <R, T, E extends Throwable> AFuture<R> fold (AThreadPool tp, R start, Iterable<AFuture<T>> futures, AFunction2<R, T, R, E> f) {
         if (! futures.iterator ().hasNext ()) return AFuture.createSuccessful (start);
 
-        final AFuture<List<T>> lifted = StaticFutureMethods.lift (tp, futures);
-        return lifted.map (tp, x -> ACollectionHelper.asACollectionView (x).<R,E>foldLeft (start, f));
+        final AFuture<AList<T>> lifted = StaticFutureMethods.lift (tp, futures);
+        return lifted.map (tp, x -> x.foldLeft (start, f));
     }
 
     //TODO AMonadicOps.reduceLeft
@@ -113,7 +112,7 @@ class StaticFutureMethods {
 //        return lifted.map (tp, x -> ACollectionHelper.asACollectionView (x).<R,E>reduceLeft (f));
 //    }
 
-    public static <R, T, E extends Throwable> AFuture<List<R>> traverse (AThreadPool tp, Iterable<T> values, AFunction1<T, AFuture<R>, E> f) throws E {
+    public static <R, T, E extends Throwable> AFuture<AList<R>> traverse (AThreadPool tp, Iterable<T> values, AFunction1<T, AFuture<R>, E> f) throws E {
         final List<AFuture<R>> result = new ArrayList<> ();
         for (T o: values) {
             result.add (f.apply (o));

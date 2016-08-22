@@ -1,12 +1,17 @@
 todo
 ----
+JavaDoc ATry
+
+
 * ACicruitBreaker
 * JUnit tests for
   * AFuture
+    * cascading failures
+    * recover, recoverWith
   * AThreadPool
   * ATry
 * JavaDoc
-* Java 8: convenience factory methods in collection interfaces
+* ASortedSet
 
 * AThreadPool
   * strategy for work stealing

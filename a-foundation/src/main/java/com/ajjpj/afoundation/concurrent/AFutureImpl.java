@@ -64,7 +64,13 @@ class AFutureImpl<T> implements ASettableFuture<T> {
     }
 
     @Override public AFuture<Throwable> inverse() {
-        return null;
+        final AFutureImpl<Throwable> result = new AFutureImpl<> (AThreadPool.SYNC_THREADPOOL);
+
+        onComplete (AThreadPool.SYNC_THREADPOOL, res -> {
+            result.complete (res.inverse ());
+        });
+
+        return result;
     }
 
     @Override public void complete (ATry<T> o) {
@@ -163,6 +169,20 @@ class AFutureImpl<T> implements ASettableFuture<T> {
     @Override public AFuture<T> recover (AThreadPool tp, APartialFunction<Throwable, T, ?> f) {
         final AFutureImpl<T> result = new AFutureImpl<> (tp);
         onComplete (tp, x -> result.complete (x.recover (f)));
+        return result;
+    }
+
+    @Override public AFuture<T> recoverWith (AThreadPool tp, APartialFunction<Throwable, AFuture<T>, ?> f) {
+        final AFutureImpl<T> result = new AFutureImpl<> (tp);
+
+        onSuccess (AThreadPool.SYNC_THREADPOOL, result::completeAsSuccess);
+        onFailure (AThreadPool.SYNC_THREADPOOL, th -> {
+            if (! f.isDefinedAt (th)) result.completeAsFailure (th);
+            else {
+                f.apply (th).onComplete (tp, result::complete);
+            }
+        });
+
         return result;
     }
 

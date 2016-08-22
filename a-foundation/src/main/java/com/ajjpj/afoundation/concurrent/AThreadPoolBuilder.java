@@ -9,6 +9,27 @@ import com.ajjpj.afoundation.function.AStatement1NoThrow;
 //TODO no-steal implementation: WakeupForLocalTasks, StealOnIdle, NoStealing
 //TODO separate implementation optimized for blocking
 
+/**
+ * This is a builder for creating {@link AThreadPool} instances. Create an AThreadPoolBuilder, change its configuration
+ *  as wished, and finally call {@link AThreadPoolBuilder#build} to create the thread pool. <p>
+ *
+ * All parameters are optional and have reasonable default values. The following code creates a thread pool with default
+ *  configuration:
+ *
+ * <pre>
+ * {@code
+ *   AThreadPoolWithAdmin threadPool = new AThreadPoolBuilder().build();
+ * }</pre>
+ *
+ * Building a thread pool with a fixed size of 20 threads:
+ *
+ * <pre>
+ * {@code
+ *   AThreadPoolWithAdmin threadPool = new AThreadPoolBuilder()
+ *       .withNumThreads (20)
+ *       .build();
+ * }</pre>
+ */
 public class AThreadPoolBuilder {
     private boolean checkShutdownOnSubmission = true;
 
